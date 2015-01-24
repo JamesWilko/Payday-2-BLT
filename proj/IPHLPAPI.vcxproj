@@ -75,12 +75,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\iphp.cpp" />
-    <ClCompile Include="..\InitiateState.cpp" />
+    <ClCompile Include="..\src\iphp.cpp" />
+    <ClCompile Include="..\src\InitiateState.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Functions.h" />
-    <ClInclude Include="..\InitState.h" />
+    <ClInclude Include="..\src\Functions.h" />
+    <ClInclude Include="..\src\InitState.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
