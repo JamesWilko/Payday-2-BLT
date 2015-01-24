@@ -4,7 +4,6 @@
 #include <Windows.h>
 
 void InitiateStates();
-DWORD WINAPI GatherThread();
 
 
 #endif

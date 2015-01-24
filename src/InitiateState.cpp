@@ -1,71 +1,58 @@
 #include "InitState.h"
-#include "Functions.h"
 
 #include <iostream>
 #include <fstream>
-
-/*extern "C" {
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
-}*/
+#include <detours.h>
 
 
 class lua_State;
-//#define luaL_loadfile ((int (*)(lua_State *L, const char *filename))0x7CDB70);
-//#define lua_pcall ((int (*)(lua_State *L, int nargs, int nresults, int errfunc))0x7BC4A0);
 
+typedef int(*lua_callptr)(lua_State*, int, int);
 typedef int(*luaL_loadfileptr)(lua_State*, const char*);
-typedef int(*lua_pcallptr)(lua_State*, int, int, int);
 
-DWORD StringJmpBack = 0;
-DWORD LuaStatePtr;
+lua_callptr lua_call = NULL;
+luaL_loadfileptr luaL_loadfile = NULL;
 
-__declspec(naked) void InterceptString(){
-	__asm {
-		PUSH ESI
-		MOV ESI, [ESP+8]
-		PUSH 0
-		MOV LuaStatePtr, ESI
-		JMP [StringJmpBack]
+typedef void* (__thiscall *do_game_updateptr)(void*, DWORD*, DWORD*);
+
+do_game_updateptr do_game_update_old = NULL;
+
+int updates = 0;
+
+void* __fastcall do_game_update_new(void* thislol, int edx, DWORD* a, DWORD* b){
+	lua_State* L = (lua_State*)*((void**)thislol);
+	updates++;
+	if (L != NULL && updates == 500){
+		luaL_loadfile(L, "test.lua");
+		lua_call(L, 0, 1);
 	}
-
+	return do_game_update_old(thislol, a, b);
 }
 
+/*class CMember {
+public:
+	int* do_game_update_old(int* a, int* b);
+};
 
+class CDetour {
+public:
+	int* do_game_update_new(int* a, int* b);
+	static int* (CDetour::* Real_Target)(int* a, int* b);
+};
+
+int* (CDetour::* CDetour::Real_Target)(int*, int*) = (int* (CDetour::*)(int*, int*))&CMember::do_game_update_old;*/
 
 void InitiateStates(){
-	DWORD StringAddy = FindPattern("payday2_win32_release.exe",
-		"\x8B\x74\x24\x08\x6A\x00\x68\x00\x00\x00\x00\x68\x00\x00\x00\x00\x56\xE8\x00\x00\x00\x00\x68\x00\x00\x00\x00\x6A\xFF\x56\xE8\x00\x00\x00\x00",
-		"xxxxxxx????x????xx????x????xxxx????");
+	DetourRestoreAfterWith();
 
-	StringAddy -= 1; // 1 byte behind the pattern.
+	lua_call = (lua_callptr)0x007BA570;
+	luaL_loadfile = (luaL_loadfileptr)0x007CDB70;
 
-	StringJmpBack = StringAddy + 0x7;
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
 
-	PlaceJMP((BYTE*)StringAddy, (DWORD)InterceptString, 7);
-}
+	do_game_update_old = (do_game_updateptr)0x00767B60;
+	DetourAttach(&(PVOID&)do_game_update_old, do_game_update_new);
 
-DWORD WINAPI GatherThread(){
-	for (;; Sleep(1000)){
-
-		if (LuaStatePtr == 0) continue;
-
-		std::ofstream mFile;
-		mFile.open("stuff.txt", std::ios::out | std::ios::app);
-
-		luaL_loadfileptr luaL_loadfile = (luaL_loadfileptr)0x7CDB70;
-		lua_pcallptr lua_pcall = (lua_pcallptr)0x7BC4A0;
-		
-		mFile << "1\n";
-		lua_State* L = (lua_State*)LuaStatePtr;
-		mFile << "2\n";
-		mFile << luaL_loadfile(L, "test.lua");
-		mFile << "3\n";
-		mFile << lua_pcall(L, 0, 0, 0);
-		mFile << "4\n";
-
-		mFile.close();
-	}
-
+	LONG result = DetourTransactionCommit();
 }
