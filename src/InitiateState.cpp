@@ -9,7 +9,7 @@
 class lua_State;
 
 CREATE_CALLABLE_SIGNATURE(lua_call, int, "\x8B\x44\x24\x08\x56\x8B\x74\x24\x08\x8B\x56\x08", "xxxxxxxxxxxx", 0, lua_State*, int, int)
-CREATE_CALLABLE_SIGNATURE(luaL_loadfile, int, "\x81\xEC\x00\x00\x00\x00\x55\x8B\xAC\x24\x00\x00\x00\x00\x56\x8B\xB4\x24", "xx????xxxx????xxxx", 0, lua_State*, const char*)
+CREATE_CALLABLE_SIGNATURE(luaL_loadfile, int, "\x81\xEC\x01\x01\x01\x01\x55\x8B\xAC\x24\x01\x01\x01\x01\x56\x8B\xB4\x24\x01\x01\x01\x01\x57", "xx????xxxx????xxxx????x", 0, lua_State*, const char*)
 
 typedef void* (__thiscall *do_game_updateptr)(void*, DWORD*, DWORD*);
 
@@ -22,7 +22,7 @@ void* __fastcall do_game_update_new(void* thislol, int edx, DWORD* a, DWORD* b){
 	updates++;
 	if (L != NULL && updates == 500){
 		luaL_loadfile(L, "test.lua");
-		lua_call(L, 0, 1);
+		lua_call(L, 0, 0);
 	}
 	return do_game_update_old(thislol, a, b);
 }
@@ -32,9 +32,6 @@ void InitiateStates(){
 	SignatureSearch::Search();
 
 	DetourRestoreAfterWith();
-
-	lua_call = (lua_callptr)0x007BA570;
-	luaL_loadfile = (luaL_loadfileptr)0x007CDB70;
 
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());

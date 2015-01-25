@@ -52,6 +52,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>D:\GitHub\PaydayBLT\Payday-2-BLT\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -82,7 +83,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\InitState.h" />
-    <ClInclude Include="..\src\signatures\functions.h" />
     <ClInclude Include="..\src\signatures\signatures.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

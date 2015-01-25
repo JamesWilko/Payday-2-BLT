@@ -4,12 +4,14 @@
 #include <Psapi.h>
 
 #include "signatures.h"
-#include "functions.h"
 
-MODULEINFO GetModuleInfo(char *szModule)
+#include <iostream>
+#include <fstream>
+
+MODULEINFO GetModuleInfo(std::string szModule)
 {
 	MODULEINFO modinfo = { 0 };
-	HMODULE hModule = GetModuleHandle(szModule);
+	HMODULE hModule = GetModuleHandle(szModule.c_str());
 	if (hModule == 0)
 		return modinfo;
 	GetModuleInformation(GetCurrentProcess(), hModule, &modinfo, sizeof(MODULEINFO));
@@ -17,7 +19,7 @@ MODULEINFO GetModuleInfo(char *szModule)
 }
 
 
-unsigned long FindPattern(char *module, const char *pattern, const char *mask)
+unsigned long FindPattern(char* module, const char* pattern, const char* mask)
 {
 	MODULEINFO mInfo = GetModuleInfo(module);
 	DWORD base = (DWORD)mInfo.lpBaseOfDll;
@@ -35,16 +37,22 @@ unsigned long FindPattern(char *module, const char *pattern, const char *mask)
 	return NULL;
 }
 
-std::vector<SignatureF> SignatureSearch::signatures;
+std::vector<SignatureF>* allSignatures = NULL;
 
-SignatureSearch::SignatureSearch(void* target, std::string signature, std::string mask, int offset){
-	SignatureF ins = { signature, mask, offset, NULL, target };
-	signatures.push_back(ins);
+SignatureSearch::SignatureSearch(void* adress, const char* signature, const char* mask, int offset){
+	// lazy-init, container gets 'emptied' when initialized on compile.
+	if (!allSignatures){
+		allSignatures = new std::vector<SignatureF>();
+	}
+
+	SignatureF ins = { signature, mask, offset, adress };
+	allSignatures->push_back(ins);
 }
 
 void SignatureSearch::Search(){
+
 	std::vector<SignatureF>::iterator it;
-	for (it = signatures.begin(); it < signatures.end(); it++){
-		it->address = (void*)(FindPattern("payday2_win32_release.exe", it->signature.c_str(), it->mask.c_str()) + it->offset);
+	for (it = allSignatures->begin(); it < allSignatures->end(); it++){
+		*((void**)it->address) = (void*)(FindPattern("payday2_win32_release.exe", it->signature, it->mask) + it->offset);
 	}
 }
