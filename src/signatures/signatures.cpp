@@ -2,11 +2,9 @@
 #include <Windows.h>
 #include <tlhelp32.h>
 #include <Psapi.h>
+#include <detours.h>
 
 #include "signatures.h"
-
-#include <iostream>
-#include <fstream>
 
 MODULEINFO GetModuleInfo(std::string szModule)
 {
@@ -50,9 +48,25 @@ SignatureSearch::SignatureSearch(void* adress, const char* signature, const char
 }
 
 void SignatureSearch::Search(){
-
 	std::vector<SignatureF>::iterator it;
 	for (it = allSignatures->begin(); it < allSignatures->end(); it++){
 		*((void**)it->address) = (void*)(FindPattern("payday2_win32_release.exe", it->signature, it->mask) + it->offset);
 	}
+}
+
+
+FuncDetour::FuncDetour(void** oldF, void* newF) : oldFunction(oldF), newFunction(newF){
+	//DetourRestoreAfterWith();
+
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourAttach(oldF, newF);
+	LONG result = DetourTransactionCommit();
+}
+
+FuncDetour::~FuncDetour(){
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourDetach(oldFunction, newFunction);
+	LONG result = DetourTransactionCommit();
 }
