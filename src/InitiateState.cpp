@@ -4,14 +4,12 @@
 #include <fstream>
 #include <detours.h>
 
+#include "signatures/signatures.h"
 
 class lua_State;
 
-typedef int(*lua_callptr)(lua_State*, int, int);
-typedef int(*luaL_loadfileptr)(lua_State*, const char*);
-
-lua_callptr lua_call = NULL;
-luaL_loadfileptr luaL_loadfile = NULL;
+CREATE_CALLABLE_SIGNATURE(lua_call, int, "\x8B\x44\x24\x08\x56\x8B\x74\x24\x08\x8B\x56\x08", "xxxxxxxxxxxx", 0, lua_State*, int, int)
+CREATE_CALLABLE_SIGNATURE(luaL_loadfile, int, "\x81\xEC\x00\x00\x00\x00\x55\x8B\xAC\x24\x00\x00\x00\x00\x56\x8B\xB4\x24", "xx????xxxx????xxxx", 0, lua_State*, const char*)
 
 typedef void* (__thiscall *do_game_updateptr)(void*, DWORD*, DWORD*);
 
@@ -29,20 +27,10 @@ void* __fastcall do_game_update_new(void* thislol, int edx, DWORD* a, DWORD* b){
 	return do_game_update_old(thislol, a, b);
 }
 
-/*class CMember {
-public:
-	int* do_game_update_old(int* a, int* b);
-};
-
-class CDetour {
-public:
-	int* do_game_update_new(int* a, int* b);
-	static int* (CDetour::* Real_Target)(int* a, int* b);
-};
-
-int* (CDetour::* CDetour::Real_Target)(int*, int*) = (int* (CDetour::*)(int*, int*))&CMember::do_game_update_old;*/
-
 void InitiateStates(){
+
+	SignatureSearch::Search();
+
 	DetourRestoreAfterWith();
 
 	lua_call = (lua_callptr)0x007BA570;
@@ -55,4 +43,5 @@ void InitiateStates(){
 	DetourAttach(&(PVOID&)do_game_update_old, do_game_update_new);
 
 	LONG result = DetourTransactionCommit();
+	
 }
