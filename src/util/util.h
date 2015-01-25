@@ -5,7 +5,7 @@
 #include <string>
 
 namespace Util {
-	std::vector<std::string> GetDirectoryContents(char* path);
+	std::vector<std::string> GetDirectoryContents(char* path, bool isDirs = false);
 	std::string GetFileContents(std::string filename);
 }
 

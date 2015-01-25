@@ -3,31 +3,58 @@
 
 #include "../../rapidjson/document.h"
 
-std::vector<PaydayAddon*> addonList;
+std::list<PaydayAddon*> g_addonList;
+std::list<PaydayHook*> g_hookList;
 
 void InitializeAllAddons(){
-	std::vector<std::string> files = Util::GetDirectoryContents("addons\\");
+	std::vector<std::string> files = Util::GetDirectoryContents("addons\\", true);
 	std::vector<std::string>::iterator it;
 
 	for (it = files.begin(); it < files.end(); it++){
-		std::string jsonFile = Util::GetFileContents("addons\\" + *it);
-		PaydayAddon* cAddon = new PaydayAddon();
+		if (*it == "." || *it == "..") continue;
+		std::string jsonFile = Util::GetFileContents("addons\\" + *it + "\\addon.txt");
 		
 		rapidjson::Document jsonDoc;
 		jsonDoc.Parse(jsonFile.c_str());
 
-		cAddon->initScript = jsonDoc["initScript"].GetString();
-		cAddon->postLoad = jsonDoc["postLoad"].GetString();
+		PaydayAddon* cAddon = new PaydayAddon(*it, jsonDoc["addon"].GetString(), jsonDoc["author"].GetString());
 
-		addonList.push_back(cAddon);
+		rapidjson::Value& hookList = jsonDoc["hooks"];
+		for (auto hookIt = hookList.Begin(); hookIt != hookList.End(); hookIt++){
+			PaydayHook* newHook = new PaydayHook(cAddon, (*hookIt)["scriptPath"].GetString(), (*hookIt)["hookID"].GetString());
+			cAddon->AddHook(newHook);
+			g_hookList.push_back(newHook);
+		}
+
+		g_addonList.push_back(cAddon);
 	}
 }
 
 void RunFunctionHook(std::string msgHook, void* lState){
-	std::vector<PaydayAddon*>::iterator it;
-	for (it = addonList.begin(); it < addonList.end(); it++){
-		if (msgHook == (*it)->postLoad){
-			(*it)->RunScript(lState);
+	std::list<PaydayHook*>::iterator it;
+	for (it = g_hookList.begin(); it != g_hookList.end(); it++){
+		if (msgHook == (*it)->GetHookID()){
+			(*it)->RunHook(lState);
 		}
 	}
+}
+
+PaydayAddon::PaydayAddon(std::string ident, std::string name, std::string author) : identifier(ident), addonName(name), authorName(author){
+
+}
+
+std::string& PaydayAddon::GetIdentifer(){
+	return identifier;
+}
+
+PaydayHook::PaydayHook(PaydayAddon* addon, std::string script, std::string hook) : ownerAddon(addon), scriptPath(script), hookID(hook){
+
+}
+
+void PaydayAddon::AddHook(PaydayHook* hook){
+	hookList.push_back(hook);
+}
+
+std::string& PaydayHook::GetHookID(){
+	return hookID;
 }

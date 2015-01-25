@@ -37,20 +37,19 @@ int lua_load_new(lua_State* L, lua_Reader reader, void* data, const char* chunkn
 }
 
 void InitiateStates(){
-
 	SignatureSearch::Search();
-
 	FuncDetour* gameUpdateDetour = new FuncDetour((void**)&do_game_update, do_game_update_new);
 	FuncDetour* loadFileDetour = new FuncDetour((void**)&lua_load, lua_load_new);
 }
 
 
 // needs captured functions, variables only here, I might extern them? eh
-void PaydayAddon::RunScript(void* luaState){
+void PaydayHook::RunHook(void* luaState){
 	lua_State* L = (lua_State*)luaState;
 	
 	lua_call(L, 0, -1);
-	luaL_loadfile(L, initScript.c_str());
+	std::string fPath = "addons/" + ownerAddon->GetIdentifer() + "/" + scriptPath;
+	luaL_loadfile(L, fPath.c_str());
 	
 
 	//Logging::Log(initScript);
