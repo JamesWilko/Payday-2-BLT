@@ -21,6 +21,7 @@ private:
 class PaydayAddon {
 public:
 	PaydayAddon(std::string ident, std::string name, std::string author);
+	~PaydayAddon();
 	void AddHook(PaydayHook* hook);
 	std::string& GetIdentifer();
 private:
@@ -32,6 +33,11 @@ private:
 
 void InitializeAllAddons();
 void RunFunctionHook(std::string msgHook, void* lState);
+
+namespace Configuration {
+	void LoadConfiguration();
+	bool IsDeveloperConsole();
+}
 
 
 #endif // __ADDONS_HEADER__

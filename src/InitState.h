@@ -4,6 +4,6 @@
 #include <Windows.h>
 
 void InitiateStates();
-
+void DestroyStates();
 
 #endif

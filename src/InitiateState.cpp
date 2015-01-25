@@ -4,11 +4,16 @@
 #include "signatures/signatures.h"
 #include "util/util.h"
 #include "addons.h"
+#include "console/console.h"
 
 class lua_State;
 
 typedef const char * (*lua_Reader) (lua_State *L, void *ud, size_t *sz);
 typedef int(*lua_CFunction) (lua_State *L);
+typedef struct luaL_Reg {
+	const char* name;
+	lua_CFunction func;
+} luaL_Reg;
 
 CREATE_CALLABLE_SIGNATURE(lua_call, int, "\x8B\x44\x24\x08\x56\x8B\x74\x24\x08\x8B\x56\x08", "xxxxxxxxxxxx", 0, lua_State*, int, int)
 CREATE_CALLABLE_SIGNATURE(lua_pcall, int, "\x8B\x4C\x24\x10\x83\xEC\x08\x56\x8B\x74\x24\x10", "xxxxxxxxxxxx", 0, lua_State*, int, int, int);
@@ -18,6 +23,7 @@ CREATE_CALLABLE_SIGNATURE(luaL_loadfile, int, "\x81\xEC\x01\x01\x01\x01\x55\x8B\
 CREATE_CALLABLE_SIGNATURE(lua_load, int, "\x8B\x4C\x24\x10\x33\xD2\x83\xEC\x18\x3B\xCA", "xxxxxxxxxxx", 0, lua_State*, lua_Reader, void*, const char*)
 CREATE_CALLABLE_SIGNATURE(lua_pushcclosure, void, "\x8B\x50\x04\x8B\x02\x8B\x40\x0C\x8B\x7C\x24\x14\x50\x57\x56", "xxxxxxxxxxxxxxx", -60, lua_State*, lua_CFunction, int);
 CREATE_CALLABLE_SIGNATURE(lua_setfield, void, "\x8B\x46\x08\x83\xE8\x08\x50\x8D\x4C\x24\x1C", "xxxxxxxxxxx", -53, lua_State*, int, const char*)
+CREATE_CALLABLE_SIGNATURE(luaI_openlib, void, "\x83\xEC\x08\x53\x8B\x5C\x24\x14\x55\x8B\x6C\x24\x1C\x56", "xxxxxxxxxxxxxx", 0, lua_State*, const char*, const luaL_Reg*, int)
 CREATE_CALLABLE_CLASS_SIGNATURE(do_game_update, void*, "\x8B\x44\x24\x08\x56\x50\x8B\xF1\x8B\x0E", "xxxxxxxxxx", 0, int*, int*)
 
 
@@ -70,10 +76,24 @@ int lua_load_new(lua_State* L, lua_Reader reader, void* data, const char* chunkn
 	return result;
 }
 
+CConsole* gbl_mConsole = NULL;
+
 void InitiateStates(){
+	Configuration::LoadConfiguration();
+
+	if (Configuration::IsDeveloperConsole()){
+		gbl_mConsole = new CConsole();
+	}
+
 	SignatureSearch::Search();
 	FuncDetour* gameUpdateDetour = new FuncDetour((void**)&do_game_update, do_game_update_new);
 	FuncDetour* loadFileDetour = new FuncDetour((void**)&lua_load, lua_load_new);
+}
+
+void DestroyStates(){
+	// Okay... let's not do that.
+	// I don't want to keep this in memory, but it CRASHES THE SHIT OUT if you delete this after all is said and done.
+	// if (gbl_mConsole) delete gbl_mConsole;
 }
 
 

@@ -291,6 +291,7 @@ BOOL WINAPI DllMain(HINSTANCE hInst,DWORD reason,LPVOID)
 		}
 	if (reason == DLL_PROCESS_DETACH)
 		{
+		DestroyStates();
 		FreeLibrary(hL);
 		}
 
