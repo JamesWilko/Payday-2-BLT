@@ -77,13 +77,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\addons.cpp" />
     <ClCompile Include="..\src\iphp.cpp" />
     <ClCompile Include="..\src\InitiateState.cpp" />
     <ClCompile Include="..\src\signatures\signatures.cpp" />
+    <ClCompile Include="..\src\util\files.cpp" />
+    <ClCompile Include="..\src\util\logging.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\addons.h" />
     <ClInclude Include="..\src\InitState.h" />
     <ClInclude Include="..\src\signatures\signatures.h" />
+    <ClInclude Include="..\src\util\util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
