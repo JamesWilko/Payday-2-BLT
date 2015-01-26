@@ -31,8 +31,19 @@ private:
 	std::string identifier;
 };
 
-void InitializeAllAddons();
-void RunFunctionHook(std::string msgHook, void* lState);
+class AddonManager {
+public:
+	AddonManager();
+	~AddonManager();
+	void RunFunctionHook(std::string msgHook, void* lState);
+
+	static AddonManager* GetSingleton();
+private:
+	static AddonManager* addonSingleton;
+	std::list<PaydayAddon*> addonList;
+	std::list<PaydayHook*> hookList;
+};
+
 
 namespace Configuration {
 	void LoadConfiguration();

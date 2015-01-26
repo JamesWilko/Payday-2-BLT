@@ -5,6 +5,8 @@
 #include "util/util.h"
 #include "addons.h"
 #include "console/console.h"
+#include "threading/queue.h"
+#include "http/http.h"
 
 class lua_State;
 
@@ -23,12 +25,18 @@ CREATE_CALLABLE_SIGNATURE(luaL_loadfile, int, "\x81\xEC\x01\x01\x01\x01\x55\x8B\
 CREATE_CALLABLE_SIGNATURE(lua_load, int, "\x8B\x4C\x24\x10\x33\xD2\x83\xEC\x18\x3B\xCA", "xxxxxxxxxxx", 0, lua_State*, lua_Reader, void*, const char*)
 CREATE_CALLABLE_SIGNATURE(lua_pushcclosure, void, "\x8B\x50\x04\x8B\x02\x8B\x40\x0C\x8B\x7C\x24\x14\x50\x57\x56", "xxxxxxxxxxxxxxx", -60, lua_State*, lua_CFunction, int);
 CREATE_CALLABLE_SIGNATURE(lua_setfield, void, "\x8B\x46\x08\x83\xE8\x08\x50\x8D\x4C\x24\x1C", "xxxxxxxxxxx", -53, lua_State*, int, const char*)
+CREATE_CALLABLE_SIGNATURE(lua_pushlstring, void, "\x52\x50\x56\xE8\x00\x00\x00\x00\x83\xC4\x0C\x89\x07\xC7\x47\x04\x04\x00\x00\x00\x83\x46\x08\x08\x5F", "xxxx????xxxxxxxxx???xxxxx", -58, lua_State*, const char*, size_t)
+
 CREATE_CALLABLE_SIGNATURE(luaI_openlib, void, "\x83\xEC\x08\x53\x8B\x5C\x24\x14\x55\x8B\x6C\x24\x1C\x56", "xxxxxxxxxxxxxx", 0, lua_State*, const char*, const luaL_Reg*, int)
+CREATE_CALLABLE_SIGNATURE(luaL_ref, int, "\x53\x8B\x5C\x24\x0C\x8D\x83\x00\x00\x00\x00", "xxxxxxx????", 0, lua_State*, int);
+CREATE_CALLABLE_SIGNATURE(lua_rawgeti, void, "\x8B\x4C\x24\x08\x56\x8B\x74\x24\x08\x8B\xD6\xE8\x00\x00\x00\x00\x8B\x4C\x24\x10", "xxxxxxxxxxxx????xxxx", 0, lua_State*, int, int);
+CREATE_CALLABLE_SIGNATURE(luaL_unref, void, "\x53\x8B\x5C\x24\x10\x85\xDB\x7C\x74", "xxxxxxxxx", 0, lua_State*, int, int);
 CREATE_CALLABLE_CLASS_SIGNATURE(do_game_update, void*, "\x8B\x44\x24\x08\x56\x50\x8B\xF1\x8B\x0E", "xxxxxxxxxx", 0, int*, int*)
 
 
 // lua c-functions
 
+#define LUA_REGISTRYINDEX	(-10000)
 #define LUA_GLOBALSINDEX	(-10002)
 
 int luaF_pcall(lua_State* L){
@@ -47,12 +55,51 @@ int luaF_dofile(lua_State* L){
 	return 0;
 }
 
+struct lua_http_data {
+	int funcRef;
+	lua_State* L;
+};
+
+void return_lua_http(void* data, std::string& urlcontents){
+	Logging::Log(urlcontents);
+	lua_http_data* ourData = (lua_http_data*)data;
+	lua_rawgeti(ourData->L, LUA_REGISTRYINDEX, ourData->funcRef);
+	lua_pushlstring(ourData->L, urlcontents.c_str(), urlcontents.length());
+	lua_pcall(ourData->L, 1, 0, 0);
+	luaL_unref(ourData->L, LUA_REGISTRYINDEX, ourData->funcRef);
+	delete ourData;
+}
+
+int luaF_dohttpreq(lua_State* L){
+	int functionReference = luaL_ref(L, LUA_REGISTRYINDEX);
+	size_t len;
+	const char* url_c = lua_tolstring(L, 1, &len);
+	std::string url = std::string(url_c, len);
+
+	Logging::Log(url);
+	Logging::Log(std::to_string(functionReference));
+
+	lua_http_data* ourData = new lua_http_data();
+	ourData->funcRef = functionReference;
+	ourData->L = L;
+
+	HTTPItem* reqItem = new HTTPItem();
+	reqItem->call = return_lua_http;
+	reqItem->data = ourData;
+	reqItem->url = url;
+
+	HTTPManager::GetSingleton()->LaunchHTTPRequest(reqItem);
+	return 0;
+}
+
 int updates = 0;
 
 void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 	lua_State* L = (lua_State*)*((void**)thislol);
 	if (updates == 0){
-		InitializeAllAddons();
+		new AddonManager();
+		new EventQueueM();
+		HTTPManager::GetSingleton()->init_locks();
 	}
 	if (updates == 1){
 		lua_pushcclosure(L, luaF_pcall, 0);
@@ -60,6 +107,13 @@ void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 
 		lua_pushcclosure(L, luaF_dofile, 0);
 		lua_setfield(L, LUA_GLOBALSINDEX, "dofile");
+
+		lua_pushcclosure(L, luaF_dohttpreq, 0);
+		lua_setfield(L, LUA_GLOBALSINDEX, "dohttpreq");
+	}
+
+	if (updates > 1){
+		EventQueueM::GetSingleton()->ProcessEvents();
 	}
 
 	updates++;
@@ -72,11 +126,12 @@ int lua_load_new(lua_State* L, lua_Reader reader, void* data, const char* chunkn
 	int result = lua_load(L, reader, data, chunkname);
 	//lua_call(L, 0, 0);
 
-	RunFunctionHook(chunkname, L);
+	AddonManager::GetSingleton()->RunFunctionHook(chunkname, L);
 	return result;
 }
 
 CConsole* gbl_mConsole = NULL;
+static HTTPManager mainManager;
 
 void InitiateStates(){
 	Configuration::LoadConfiguration();
@@ -94,6 +149,7 @@ void DestroyStates(){
 	// Okay... let's not do that.
 	// I don't want to keep this in memory, but it CRASHES THE SHIT OUT if you delete this after all is said and done.
 	// if (gbl_mConsole) delete gbl_mConsole;
+	delete AddonManager::GetSingleton();
 }
 
 

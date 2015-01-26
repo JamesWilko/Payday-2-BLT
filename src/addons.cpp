@@ -3,10 +3,11 @@
 
 #include "../../rapidjson/document.h"
 
-std::list<PaydayAddon*> g_addonList;
-std::list<PaydayHook*> g_hookList;
+AddonManager* AddonManager::addonSingleton = NULL;
 
-void InitializeAllAddons(){
+AddonManager::AddonManager(){
+	if (addonSingleton) delete addonSingleton;
+	addonSingleton = this;
 	std::vector<std::string> files = Util::GetDirectoryContents("addons\\", true);
 	std::vector<std::string>::iterator it;
 
@@ -19,27 +20,31 @@ void InitializeAllAddons(){
 
 		PaydayAddon* cAddon = new PaydayAddon(*it, jsonDoc["addon"].GetString(), jsonDoc["author"].GetString());
 
-		rapidjson::Value& hookList = jsonDoc["hooks"];
-		for (auto hookIt = hookList.Begin(); hookIt != hookList.End(); hookIt++){
+		rapidjson::Value& hookListJson = jsonDoc["hooks"];
+		for (auto hookIt = hookListJson.Begin(); hookIt != hookListJson.End(); hookIt++){
 			PaydayHook* newHook = new PaydayHook(cAddon, (*hookIt)["scriptPath"].GetString(), (*hookIt)["hookID"].GetString());
 			cAddon->AddHook(newHook);
-			g_hookList.push_back(newHook);
+			hookList.push_back(newHook);
 		}
 
-		g_addonList.push_back(cAddon);
+		addonList.push_back(cAddon);
 	}
 }
 
-void DestroyAddons(){
+AddonManager::~AddonManager(){
 	std::list<PaydayAddon*>::iterator it;
-	for (it = g_addonList.begin(); it != g_addonList.end(); it++){
+	for (it = addonList.begin(); it != addonList.end(); it++){
 		delete *it;
 	}
 }
 
-void RunFunctionHook(std::string msgHook, void* lState){
+AddonManager* AddonManager::GetSingleton(){
+	return addonSingleton;
+}
+
+void AddonManager::RunFunctionHook(std::string msgHook, void* lState){
 	std::list<PaydayHook*>::iterator it;
-	for (it = g_hookList.begin(); it != g_hookList.end(); it++){
+	for (it = hookList.begin(); it != hookList.end(); it++){
 		if (msgHook == (*it)->GetHookID()){
 			(*it)->RunHook(lState);
 		}
