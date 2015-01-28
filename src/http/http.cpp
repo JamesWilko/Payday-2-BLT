@@ -80,9 +80,11 @@ void launch_thread_http(HTTPItem* item){
 
 
 	EventQueueM::GetSingleton()->AddToQueue(run_http_event, item);
+	Logging::Log("Thread End");
 }
 
 void HTTPManager::LaunchHTTPRequest(HTTPItem* callback){
+	Logging::Log("Launching Async HTTP Thread");
 	new std::thread(launch_thread_http, callback);
 	//launch_thread_http(callback);
 }

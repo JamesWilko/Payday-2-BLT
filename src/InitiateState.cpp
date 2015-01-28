@@ -61,16 +61,25 @@ struct lua_http_data {
 };
 
 void return_lua_http(void* data, std::string& urlcontents){
-	Logging::Log(urlcontents);
+	//Logging::Log("1");
+	Logging::Log("Returning data to lua");
 	lua_http_data* ourData = (lua_http_data*)data;
+	//Logging::Log("2");
 	lua_rawgeti(ourData->L, LUA_REGISTRYINDEX, ourData->funcRef);
+	//Logging::Log("3");
 	lua_pushlstring(ourData->L, urlcontents.c_str(), urlcontents.length());
+	//Logging::Log("4");
 	lua_pcall(ourData->L, 1, 0, 0);
+	//Logging::Log("5");
 	luaL_unref(ourData->L, LUA_REGISTRYINDEX, ourData->funcRef);
+	//Logging::Log("6");
 	delete ourData;
+	//Logging::Log("7");
+	Logging::Log("Data returned");
 }
 
 int luaF_dohttpreq(lua_State* L){
+	Logging::Log("Incoming HTTP Request/Request");
 	int functionReference = luaL_ref(L, LUA_REGISTRYINDEX);
 	size_t len;
 	const char* url_c = lua_tolstring(L, 1, &len);

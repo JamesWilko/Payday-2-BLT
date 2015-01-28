@@ -43,8 +43,8 @@
     <LibraryPath>..\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>..\incl;$(IncludePath)</IncludePath>
-    <LibraryPath>..\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\incl;..\..\curl\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\lib;..\..\curl\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -53,11 +53,12 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>D:\GitHub\PaydayBLT\Payday-2-BLT\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PreprocessorDefinitions>CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>iphp.def</ModuleDefinitionFile>
-      <AdditionalDependencies>detours.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>detours.lib;libcurl_a_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -78,16 +79,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\addons.cpp" />
+    <ClCompile Include="..\src\console\console.cpp" />
+    <ClCompile Include="..\src\http\http.cpp" />
     <ClCompile Include="..\src\iphp.cpp" />
     <ClCompile Include="..\src\InitiateState.cpp" />
     <ClCompile Include="..\src\signatures\signatures.cpp" />
+    <ClCompile Include="..\src\threading\threadqueue.cpp" />
     <ClCompile Include="..\src\util\files.cpp" />
     <ClCompile Include="..\src\util\logging.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\addons.h" />
+    <ClInclude Include="..\src\console\console.h" />
+    <ClInclude Include="..\src\http\http.h" />
     <ClInclude Include="..\src\InitState.h" />
     <ClInclude Include="..\src\signatures\signatures.h" />
+    <ClInclude Include="..\src\threading\queue.h" />
     <ClInclude Include="..\src\util\util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
