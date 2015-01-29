@@ -84,6 +84,8 @@ void launch_thread_http(HTTPItem* item){
 
 void HTTPManager::LaunchHTTPRequest(HTTPItem* callback){
 	Logging::Log("Launching Async HTTP Thread");
+	// This shit's gonna end eventually, how many threads are people going to launch?
+	// Probably a lot.
+	// I'll manage them I guess, but I've no idea when to tell them to join which I believe is part of the constructor.
 	new std::thread(launch_thread_http, callback);
-	//launch_thread_http(callback);
 }
