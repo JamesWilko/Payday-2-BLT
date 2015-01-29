@@ -33,13 +33,11 @@ CREATE_CALLABLE_SIGNATURE(lua_pushboolean, void, "\x8B\x44\x24\x04\x8B\x48\x08\x
 CREATE_CALLABLE_SIGNATURE(lua_insert, void, "\x8B\x4C\x24\x08\x56\x8B\x74\x24\x08\x8B\xD6\xE8\x50\xFE", "xxxxxxxxxxxxxx", 0, lua_State*, int)
 CREATE_CALLABLE_SIGNATURE(lua_newstate, lua_State*, "\x53\x55\x8B\x6C\x24\x0C\x56\x57\x8B\x7C\x24\x18\x68\x00\x00\x00\x00\x33\xDB", "xxxxxxxxxxxxx????xx", 0, lua_Alloc, void*)
 
-
 CREATE_CALLABLE_SIGNATURE(luaI_openlib, void, "\x83\xEC\x08\x53\x8B\x5C\x24\x14\x55\x8B\x6C\x24\x1C\x56", "xxxxxxxxxxxxxx", 0, lua_State*, const char*, const luaL_Reg*, int)
 CREATE_CALLABLE_SIGNATURE(luaL_ref, int, "\x53\x8B\x5C\x24\x0C\x8D\x83\x00\x00\x00\x00", "xxxxxxx????", 0, lua_State*, int);
 CREATE_CALLABLE_SIGNATURE(lua_rawgeti, void, "\x8B\x4C\x24\x08\x56\x8B\x74\x24\x08\x8B\xD6\xE8\x00\x00\x00\x00\x8B\x4C\x24\x10", "xxxxxxxxxxxx????xxxx", 0, lua_State*, int, int);
 CREATE_CALLABLE_SIGNATURE(luaL_unref, void, "\x53\x8B\x5C\x24\x10\x85\xDB\x7C\x74", "xxxxxxxxx", 0, lua_State*, int, int);
 CREATE_CALLABLE_CLASS_SIGNATURE(do_game_update, void*, "\x8B\x44\x24\x08\x56\x50\x8B\xF1\x8B\x0E", "xxxxxxxxxx", 0, int*, int*)
-CREATE_CALLABLE_CLASS_SIGNATURE(luaL_newstate, int, "\x8B\x44\x24\x0C\x56\x8B\xF1\x85", "xxxxxxxx", 0, char, char, int)
 
 
 // lua c-functions
@@ -51,12 +49,10 @@ int luaF_pcall(lua_State* L){
 	int args = lua_gettop(L);
 
 	int result = lua_pcall(L, args - 1, -1, 0);
-	//lua_pushboolean(L, result == 0);
-	//lua_insert(L, 1);
+	lua_pushboolean(L, result == 0);
+	lua_insert(L, 1);
 
-	if (result != 0) return 1;
-
-	return 0;
+	return lua_gettop(L);
 }
 
 int luaF_dofile(lua_State* L){
@@ -118,6 +114,8 @@ void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 
 	lua_State* L = (lua_State*)*((void**)thislol);
 	if (updates == 0){
+		new AddonManager();
+		new EventQueueM();
 		HTTPManager::GetSingleton()->init_locks();
 	}
 
@@ -141,19 +139,6 @@ int lua_load_new(lua_State* L, lua_Reader reader, void* data, const char* chunkn
 
 lua_State* lua_newstate_new(lua_Alloc f, void* ud){
 	lua_State* L = lua_newstate(f, ud);
-	Logging::Log("Hooked newstate at");
-	Logging::Log(std::to_string((int)L));
-	
-	return L;
-}
-
-// Random dude who wrote what's his face?
-// I 'unno, I stole this method from the guy who wrote the 'underground-light-lua-hook'
-// Mine worked fine, but this seems more elegant.
-int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, int clue){
-	int ret = luaL_newstate(thislol, no, freakin, clue);
-
-	lua_State* L = (lua_State*)*((void**)thislol);
 	lua_pushcclosure(L, luaF_pcall, 0);
 	lua_setfield(L, LUA_GLOBALSINDEX, "pcall");
 
@@ -162,7 +147,7 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 
 	lua_pushcclosure(L, luaF_dohttpreq, 0);
 	lua_setfield(L, LUA_GLOBALSINDEX, "dohttpreq");
-	return ret;
+	return L;
 }
 
 CConsole* gbl_mConsole = NULL;
@@ -178,11 +163,7 @@ void InitiateStates(){
 	SignatureSearch::Search();
 	FuncDetour* gameUpdateDetour = new FuncDetour((void**)&do_game_update, do_game_update_new);
 	FuncDetour* loadFileDetour = new FuncDetour((void**)&lua_load, lua_load_new);
-	// FuncDetour* newStateDetour = new FuncDetour((void**)&lua_newstate, lua_newstate_new);
-	FuncDetour* newStateDetour = new FuncDetour((void**)&luaL_newstate, luaL_newstate_new);
-
-	new AddonManager();
-	new EventQueueM();
+	FuncDetour* newStateDetour = new FuncDetour((void**)&lua_newstate, lua_newstate_new);
 }
 
 void DestroyStates(){
@@ -197,8 +178,6 @@ void DestroyStates(){
 void PaydayHook::RunHook(void* luaState){
 	lua_State* L = (lua_State*)luaState;
 	
-	Logging::Log("Running hook-state");
-	Logging::Log(std::to_string((int)luaState));
 	// This function is executed directly after a PAYDAY script is loaded.
 	// Execute the PAYDAY Script (I'm assuming it returns nothing.)
 	lua_call(L, 0, -1);
