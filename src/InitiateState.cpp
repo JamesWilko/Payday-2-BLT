@@ -8,6 +8,8 @@
 #include "threading/queue.h"
 #include "http/http.h"
 
+#include <thread>
+
 class lua_State;
 
 typedef const char * (*lua_Reader) (lua_State *L, void *ud, size_t *sz);
@@ -61,21 +63,12 @@ struct lua_http_data {
 };
 
 void return_lua_http(void* data, std::string& urlcontents){
-	//Logging::Log("1");
-	Logging::Log("Returning data to lua");
 	lua_http_data* ourData = (lua_http_data*)data;
-	//Logging::Log("2");
 	lua_rawgeti(ourData->L, LUA_REGISTRYINDEX, ourData->funcRef);
-	//Logging::Log("3");
 	lua_pushlstring(ourData->L, urlcontents.c_str(), urlcontents.length());
-	//Logging::Log("4");
 	lua_pcall(ourData->L, 1, 0, 0);
-	//Logging::Log("5");
 	luaL_unref(ourData->L, LUA_REGISTRYINDEX, ourData->funcRef);
-	//Logging::Log("6");
 	delete ourData;
-	//Logging::Log("7");
-	Logging::Log("Data returned");
 }
 
 int luaF_dohttpreq(lua_State* L){
@@ -102,8 +95,17 @@ int luaF_dohttpreq(lua_State* L){
 }
 
 int updates = 0;
+std::thread::id main_thread_id;
 
 void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
+
+	// If someone has a better way of doing this, I'd like to know about it.
+	// I could save the this pointer?
+	// I'll check if it's even different at all later.
+	if (std::this_thread::get_id() != main_thread_id){
+		return do_game_update(thislol, a, b);
+	}
+
 	lua_State* L = (lua_State*)*((void**)thislol);
 	if (updates == 0){
 		new AddonManager();
@@ -144,7 +146,7 @@ static HTTPManager mainManager;
 
 void InitiateStates(){
 	Configuration::LoadConfiguration();
-
+	main_thread_id = std::this_thread::get_id();
 	if (Configuration::IsDeveloperConsole()){
 		gbl_mConsole = new CConsole();
 	}
@@ -166,11 +168,18 @@ void DestroyStates(){
 void PaydayHook::RunHook(void* luaState){
 	lua_State* L = (lua_State*)luaState;
 	
+	// This function is executed directly after a PAYDAY script is loaded.
+	// Execute the PAYDAY Script (I'm assuming it returns nothing.)
 	lua_call(L, 0, -1);
 	std::string fPath = "addons/" + ownerAddon->GetIdentifer() + "/" + scriptPath;
-	luaL_loadfile(L, fPath.c_str());
-	
 
-	//Logging::Log(initScript);
-	//Logging::Log(postLoad);
+	// Set the RequiredScript variable because Wilko is addicted to Olinub's methods.
+	lua_pushlstring(L, hookID.c_str(), hookID.length());
+	lua_setfield(L, LUA_GLOBALSINDEX, "RequiredScript");
+
+	// Load our script
+	luaL_loadfile(L, fPath.c_str());
+
+	// Then PAYDAY will execute our script instead of it's one.
+	// (This function should still work okay if ran multiple times after a script.)
 }
