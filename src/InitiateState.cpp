@@ -20,8 +20,9 @@ typedef struct luaL_Reg {
 } luaL_Reg;
 
 CREATE_CALLABLE_SIGNATURE(lua_call, void, "\x8B\x44\x24\x08\x56\x8B\x74\x24\x08\x8B\x56\x08", "xxxxxxxxxxxx", 0, lua_State*, int, int)
-CREATE_CALLABLE_SIGNATURE(lua_pcall, int, "\x8B\x4C\x24\x10\x83\xEC\x08\x56\x8B\x74\x24\x10", "xxxxxxxxxxxx", 0, lua_State*, int, int, int);
-CREATE_CALLABLE_SIGNATURE(lua_gettop, int, "\x8B\x4C\x24\x04\x8B\x41\x08\x2B\x41\x0C", "xxxxxxxxxx", 0, lua_State*);
+CREATE_CALLABLE_SIGNATURE(lua_pcall, int, "\x8B\x4C\x24\x10\x83\xEC\x08\x56\x8B\x74\x24\x10", "xxxxxxxxxxxx", 0, lua_State*, int, int, int)
+CREATE_CALLABLE_SIGNATURE(lua_gettop, int, "\x8B\x4C\x24\x04\x8B\x41\x08\x2B\x41\x0C", "xxxxxxxxxx", 0, lua_State*)
+CREATE_CALLABLE_SIGNATURE(lua_settop, void, "\x8B\x4C\x24\x08\x8B\x44\x24\x04\x85", "xxxxxxxxx", 0, lua_State*, int)
 CREATE_CALLABLE_SIGNATURE(lua_tolstring, const char*, "\x56\x8B\x74\x24\x08\x57\x8B\x7C\x24\x10\x8B\xCF\x8B\xD6", "xxxxxxxxxxxxxx", 0, lua_State*, int, size_t*)
 CREATE_CALLABLE_SIGNATURE(luaL_loadfile, int, "\x81\xEC\x01\x01\x01\x01\x55\x8B\xAC\x24\x01\x01\x01\x01\x56\x8B\xB4\x24\x01\x01\x01\x01\x57", "xx????xxxx????xxxx????x", 0, lua_State*, const char*)
 CREATE_CALLABLE_SIGNATURE(lua_load, int, "\x8B\x4C\x24\x10\x33\xD2\x83\xEC\x18\x3B\xCA", "xxxxxxxxxxx", 0, lua_State*, lua_Reader, void*, const char*)
@@ -53,6 +54,10 @@ CREATE_CALLABLE_CLASS_SIGNATURE(luaL_newstate, int, "\x8B\x44\x24\x0C\x56\x8B\xF
 #define LUA_GLOBALSINDEX	(-10002)
 
 // more bloody lua shit
+#define LUA_YIELD	1
+#define LUA_ERRRUN	2
+#define LUA_ERRSYNTAX	3
+#define LUA_ERRMEM	4
 #define LUA_ERRERR	5
 #define LUA_ERRFILE     (LUA_ERRERR+1)
 
@@ -216,6 +221,9 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	int ret = luaL_newstate(thislol, no, freakin, clue);
 
 	lua_State* L = (lua_State*)*((void**)thislol);
+	if (!L) return ret;
+
+	int stack_size = lua_gettop(L);
 
 	CREATE_LUA_FUNCTION(luaF_pcall, "pcall")
 	CREATE_LUA_FUNCTION(luaF_dofile, "dofile")
@@ -227,9 +235,23 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	luaL_Reg consoleLib[] = { { "CreateConsole", luaF_createconsole }, { "DestroyConsole", luaF_destroyconsole }, { NULL, NULL } };
 	luaI_openlib(L, "console", consoleLib, 0);
 
+	int result;
+	Logging::Log("Initiating Hook");
+	
+	result = luaL_loadfile(L, "blt.lua");
+	if (result == LUA_ERRSYNTAX){
+		size_t len;
+		Logging::Log(lua_tolstring(L, -1, &len));
+		return ret;
+	}
+	result = lua_pcall(L, 0, 1, 0);
+	if (result == LUA_ERRRUN){
+		size_t len;
+		Logging::Log(lua_tolstring(L, -1, &len));
+		return ret;
+	}
 
-	luaL_loadfile(L, "blt.lua");
-	lua_pcall(L, 0, -1, 0);
+	lua_settop(L, stack_size);
 	return ret;
 }
 
