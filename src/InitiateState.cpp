@@ -183,8 +183,6 @@ int luaF_destroyconsole(lua_State* L){
 int luaF_print(lua_State* L){
 	size_t len;
 	const char* str = lua_tolstring(L, 1, &len);
-	printf(str);
-	printf("\n");
 	Logging::Log(str);
 	return 0;
 }

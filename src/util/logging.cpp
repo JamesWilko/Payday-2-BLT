@@ -14,4 +14,6 @@ void Logging::Log(std::string msg){
 	mFile << msg.c_str();
 	mFile << "\n";
 	mFile.close();
+	printf(msg.c_str());
+	printf("\n");
 }
