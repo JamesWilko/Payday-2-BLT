@@ -48,10 +48,12 @@ SignatureSearch::SignatureSearch(void* adress, const char* signature, const char
 }
 
 void SignatureSearch::Search(){
+	printf("Scanning for signatures.\n");
 	std::vector<SignatureF>::iterator it;
 	for (it = allSignatures->begin(); it < allSignatures->end(); it++){
 		*((void**)it->address) = (void*)(FindPattern("payday2_win32_release.exe", it->signature, it->mask) + it->offset);
 	}
+	printf("Signatures Found.\n");
 }
 
 

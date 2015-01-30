@@ -13,11 +13,11 @@
 using namespace std;
 
 namespace Util{
-	vector<string> GetDirectoryContents(char* path, bool dirs){
+	vector<string> GetDirectoryContents(std::string path, bool dirs){
 		vector<string> files;
 		WIN32_FIND_DATA ffd;
 		TCHAR szDir[MAX_PATH];
-		TCHAR *fPath = (TCHAR*)path;
+		TCHAR *fPath = (TCHAR*)path.c_str();
 		//WideCharToMultiByte(CP_ACP, 0, ffd.cFileName, -1, fileName, MAX_PATH, &DefChar, NULL);
 
 		size_t length_of_arg;

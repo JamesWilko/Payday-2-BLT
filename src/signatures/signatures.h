@@ -14,6 +14,10 @@
 	name ## ptr name = NULL; \
 	SignatureSearch name ## search(&name, signature, mask, offset);
 
+#define CREATE_LUA_FUNCTION(lua_func, name) \
+	lua_pushcclosure(L, lua_func, 0); \
+	lua_setfield(L, LUA_GLOBALSINDEX, name);
+
 struct SignatureF {
 	const char* signature;
 	const char* mask;

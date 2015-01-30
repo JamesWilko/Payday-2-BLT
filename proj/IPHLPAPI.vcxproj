@@ -80,7 +80,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\addons.cpp" />
     <ClCompile Include="..\src\console\console.cpp" />
     <ClCompile Include="..\src\http\http.cpp" />
     <ClCompile Include="..\src\iphp.cpp" />
@@ -91,7 +90,6 @@
     <ClCompile Include="..\src\util\logging.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\addons.h" />
     <ClInclude Include="..\src\console\console.h" />
     <ClInclude Include="..\src\http\http.h" />
     <ClInclude Include="..\src\InitState.h" />

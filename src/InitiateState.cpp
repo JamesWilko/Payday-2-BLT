@@ -3,7 +3,6 @@
 
 #include "signatures/signatures.h"
 #include "util/util.h"
-#include "addons.h"
 #include "console/console.h"
 #include "threading/queue.h"
 #include "http/http.h"
@@ -20,19 +19,25 @@ typedef struct luaL_Reg {
 	lua_CFunction func;
 } luaL_Reg;
 
-CREATE_CALLABLE_SIGNATURE(lua_call, int, "\x8B\x44\x24\x08\x56\x8B\x74\x24\x08\x8B\x56\x08", "xxxxxxxxxxxx", 0, lua_State*, int, int)
+CREATE_CALLABLE_SIGNATURE(lua_call, void, "\x8B\x44\x24\x08\x56\x8B\x74\x24\x08\x8B\x56\x08", "xxxxxxxxxxxx", 0, lua_State*, int, int)
 CREATE_CALLABLE_SIGNATURE(lua_pcall, int, "\x8B\x4C\x24\x10\x83\xEC\x08\x56\x8B\x74\x24\x10", "xxxxxxxxxxxx", 0, lua_State*, int, int, int);
 CREATE_CALLABLE_SIGNATURE(lua_gettop, int, "\x8B\x4C\x24\x04\x8B\x41\x08\x2B\x41\x0C", "xxxxxxxxxx", 0, lua_State*);
 CREATE_CALLABLE_SIGNATURE(lua_tolstring, const char*, "\x56\x8B\x74\x24\x08\x57\x8B\x7C\x24\x10\x8B\xCF\x8B\xD6", "xxxxxxxxxxxxxx", 0, lua_State*, int, size_t*)
 CREATE_CALLABLE_SIGNATURE(luaL_loadfile, int, "\x81\xEC\x01\x01\x01\x01\x55\x8B\xAC\x24\x01\x01\x01\x01\x56\x8B\xB4\x24\x01\x01\x01\x01\x57", "xx????xxxx????xxxx????x", 0, lua_State*, const char*)
 CREATE_CALLABLE_SIGNATURE(lua_load, int, "\x8B\x4C\x24\x10\x33\xD2\x83\xEC\x18\x3B\xCA", "xxxxxxxxxxx", 0, lua_State*, lua_Reader, void*, const char*)
-CREATE_CALLABLE_SIGNATURE(lua_pushcclosure, void, "\x8B\x50\x04\x8B\x02\x8B\x40\x0C\x8B\x7C\x24\x14\x50\x57\x56", "xxxxxxxxxxxxxxx", -60, lua_State*, lua_CFunction, int);
 CREATE_CALLABLE_SIGNATURE(lua_setfield, void, "\x8B\x46\x08\x83\xE8\x08\x50\x8D\x4C\x24\x1C", "xxxxxxxxxxx", -53, lua_State*, int, const char*)
-CREATE_CALLABLE_SIGNATURE(lua_pushlstring, void, "\x52\x50\x56\xE8\x00\x00\x00\x00\x83\xC4\x0C\x89\x07\xC7\x47\x04\x04\x00\x00\x00\x83\x46\x08\x08\x5F", "xxxx????xxxxxxxxx???xxxxx", -58, lua_State*, const char*, size_t)
-CREATE_CALLABLE_SIGNATURE(lua_pushboolean, void, "\x8B\x44\x24\x04\x8B\x48\x08\x33", "xxxxxxxx", 0, lua_State*, bool)
+CREATE_CALLABLE_SIGNATURE(lua_createtable, void, "\x83\xC4\x0C\x89\x07\xC7\x47\x04\x05\x00\x00\x00\x83\x46\x08\x08\x5F", "xxxxxxxxx???xxxxx", -66, lua_State*, int, int)
 CREATE_CALLABLE_SIGNATURE(lua_insert, void, "\x8B\x4C\x24\x08\x56\x8B\x74\x24\x08\x8B\xD6\xE8\x50\xFE", "xxxxxxxxxxxxxx", 0, lua_State*, int)
 CREATE_CALLABLE_SIGNATURE(lua_newstate, lua_State*, "\x53\x55\x8B\x6C\x24\x0C\x56\x57\x8B\x7C\x24\x18\x68\x00\x00\x00\x00\x33\xDB", "xxxxxxxxxxxxx????xx", 0, lua_Alloc, void*)
 
+CREATE_CALLABLE_SIGNATURE(lua_rawset, void, "\x8B\x4C\x24\x08\x53\x56\x8B\x74\x24\x0C\x57", "xxxxxxxxxxx", 0, lua_State*, int)
+CREATE_CALLABLE_SIGNATURE(lua_settable, void, "\x8B\x4C\x24\x08\x56\x8B\x74\x24\x08\x8B\xD6\xE8\x00\x00\x00\x00\x8B\x4E\x08\x8D\x51\xF8", "xxxxxxxxxxxx????xxxxxx", 0, lua_State*, int)
+
+CREATE_CALLABLE_SIGNATURE(lua_pushnumber, void, "\x8B\x44\x24\x04\x8B\x48\x08\xF3\x0F\x10\x44\x24\x08", "xxxxxxxxxxxxx", 0, lua_State*, double)
+CREATE_CALLABLE_SIGNATURE(lua_pushinteger, void, "\x8B\x44\x24\x04\x8B\x48\x08\xF3\x0F\x2A\x44\x24\x08", "xxxxxxxxxxxxx", 0, lua_State*, ptrdiff_t)
+CREATE_CALLABLE_SIGNATURE(lua_pushboolean, void, "\x8B\x44\x24\x04\x8B\x48\x08\x33", "xxxxxxxx", 0, lua_State*, bool)
+CREATE_CALLABLE_SIGNATURE(lua_pushcclosure, void, "\x8B\x50\x04\x8B\x02\x8B\x40\x0C\x8B\x7C\x24\x14\x50\x57\x56", "xxxxxxxxxxxxxxx", -60, lua_State*, lua_CFunction, int);
+CREATE_CALLABLE_SIGNATURE(lua_pushlstring, void, "\x52\x50\x56\xE8\x00\x00\x00\x00\x83\xC4\x0C\x89\x07\xC7\x47\x04\x04\x00\x00\x00\x83\x46\x08\x08\x5F", "xxxx????xxxxxxxxx???xxxxx", -58, lua_State*, const char*, size_t)
 
 CREATE_CALLABLE_SIGNATURE(luaI_openlib, void, "\x83\xEC\x08\x53\x8B\x5C\x24\x14\x55\x8B\x6C\x24\x1C\x56", "xxxxxxxxxxxxxx", 0, lua_State*, const char*, const luaL_Reg*, int)
 CREATE_CALLABLE_SIGNATURE(luaL_ref, int, "\x53\x8B\x5C\x24\x0C\x8D\x83\x00\x00\x00\x00", "xxxxxxx????", 0, lua_State*, int);
@@ -47,24 +52,75 @@ CREATE_CALLABLE_CLASS_SIGNATURE(luaL_newstate, int, "\x8B\x44\x24\x0C\x56\x8B\xF
 #define LUA_REGISTRYINDEX	(-10000)
 #define LUA_GLOBALSINDEX	(-10002)
 
+// more bloody lua shit
+#define LUA_ERRERR	5
+#define LUA_ERRFILE     (LUA_ERRERR+1)
+
+int luaF_getdir(lua_State* L){
+	size_t len;
+	const char* dirc = lua_tolstring(L, 1, &len);
+	std::string dir(dirc, len);
+
+	std::vector<std::string> directories = Util::GetDirectoryContents(dir, true);
+
+	lua_createtable(L, 0, 0);
+	
+	std::vector<std::string>::iterator it;
+	int index = 1;
+	for (it = directories.begin(); it < directories.end(); it++){
+		if (*it == "." || *it == "..") continue;
+		lua_pushinteger(L, index);
+		lua_pushlstring(L, it->c_str(), it->length());
+		lua_settable(L, -3);
+		index++;
+	}
+
+	return 1;
+}
+
+int luaF_getfiles(lua_State* L){
+	size_t len;
+	const char* dirc = lua_tolstring(L, 1, &len);
+	std::string dir(dirc, len);
+
+	std::vector<std::string> directories = Util::GetDirectoryContents(dir, false);
+
+	lua_createtable(L, 0, 0);
+
+	std::vector<std::string>::iterator it;
+	int index = 1;
+	for (it = directories.begin(); it < directories.end(); it++){
+		lua_pushinteger(L, index);
+		lua_pushlstring(L, it->c_str(), it->length());
+		lua_settable(L, -3);
+		index++;
+	}
+
+	return 1;
+}
+
 int luaF_pcall(lua_State* L){
 	int args = lua_gettop(L);
 
 	int result = lua_pcall(L, args - 1, -1, 0);
-	//lua_pushboolean(L, result == 0);
-	//lua_insert(L, 1);
+	lua_pushboolean(L, result == 0);
+	lua_insert(L, 1);
 
-	if (result != 0) return 1;
+	//if (result != 0) return 1;
 
-	return 0;
+	return lua_gettop(L);
 }
 
 int luaF_dofile(lua_State* L){
+
+	int n = lua_gettop(L);
+
 	size_t length = 0;
 	const char* filename = lua_tolstring(L, 1, &length);
-	luaL_loadfile(L, filename);
-	lua_call(L, 0, -1);
-	return 0;
+	int error = luaL_loadfile(L, filename);
+	Logging::Log(std::to_string(error));
+	lua_pcall(L, 0, -1, 0);
+	return lua_gettop(L) - n;
 }
 
 struct lua_http_data {
@@ -104,6 +160,30 @@ int luaF_dohttpreq(lua_State* L){
 	return 0;
 }
 
+CConsole* gbl_mConsole = NULL;
+
+int luaF_createconsole(lua_State* L){
+	if (gbl_mConsole) return 0;
+	gbl_mConsole = new CConsole();
+	return 0;
+}
+
+int luaF_destroyconsole(lua_State* L){
+	if (!gbl_mConsole) return 0;
+	delete gbl_mConsole;
+	gbl_mConsole = NULL;
+	return 0;
+}
+
+int luaF_print(lua_State* L){
+	size_t len;
+	const char* str = lua_tolstring(L, 1, &len);
+	printf(str);
+	printf("\n");
+	Logging::Log(str);
+	return 0;
+}
+
 int updates = 0;
 std::thread::id main_thread_id;
 
@@ -129,24 +209,6 @@ void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 	return do_game_update(thislol, a, b);
 }
 
-int lua_load_new(lua_State* L, lua_Reader reader, void* data, const char* chunkname){
-	//Logging::Log(chunkname);
-
-	int result = lua_load(L, reader, data, chunkname);
-	//lua_call(L, 0, 0);
-
-	AddonManager::GetSingleton()->RunFunctionHook(chunkname, L);
-	return result;
-}
-
-lua_State* lua_newstate_new(lua_Alloc f, void* ud){
-	lua_State* L = lua_newstate(f, ud);
-	Logging::Log("Hooked newstate at");
-	Logging::Log(std::to_string((int)L));
-	
-	return L;
-}
-
 // Random dude who wrote what's his face?
 // I 'unno, I stole this method from the guy who wrote the 'underground-light-lua-hook'
 // Mine worked fine, but this seems more elegant.
@@ -154,34 +216,33 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	int ret = luaL_newstate(thislol, no, freakin, clue);
 
 	lua_State* L = (lua_State*)*((void**)thislol);
-	lua_pushcclosure(L, luaF_pcall, 0);
-	lua_setfield(L, LUA_GLOBALSINDEX, "pcall");
 
-	lua_pushcclosure(L, luaF_dofile, 0);
-	lua_setfield(L, LUA_GLOBALSINDEX, "dofile");
+	CREATE_LUA_FUNCTION(luaF_pcall, "pcall")
+	CREATE_LUA_FUNCTION(luaF_dofile, "dofile")
+	CREATE_LUA_FUNCTION(luaF_dohttpreq, "dohttpreq")
+	CREATE_LUA_FUNCTION(luaF_getdir, "getdir")
+	CREATE_LUA_FUNCTION(luaF_getfiles, "getfiles")
+	CREATE_LUA_FUNCTION(luaF_print, "print")
 
-	lua_pushcclosure(L, luaF_dohttpreq, 0);
-	lua_setfield(L, LUA_GLOBALSINDEX, "dohttpreq");
+	luaL_Reg consoleLib[] = { { "CreateConsole", luaF_createconsole }, { "DestroyConsole", luaF_destroyconsole }, { NULL, NULL } };
+	luaI_openlib(L, "console", consoleLib, 0);
+
+
+	luaL_loadfile(L, "blt.lua");
+	lua_pcall(L, 0, -1, 0);
 	return ret;
 }
 
-CConsole* gbl_mConsole = NULL;
+
 static HTTPManager mainManager;
 
 void InitiateStates(){
-	Configuration::LoadConfiguration();
-	main_thread_id = std::this_thread::get_id();
-	if (Configuration::IsDeveloperConsole()){
-		gbl_mConsole = new CConsole();
-	}
-
 	SignatureSearch::Search();
-	FuncDetour* gameUpdateDetour = new FuncDetour((void**)&do_game_update, do_game_update_new);
-	FuncDetour* loadFileDetour = new FuncDetour((void**)&lua_load, lua_load_new);
-	// FuncDetour* newStateDetour = new FuncDetour((void**)&lua_newstate, lua_newstate_new);
-	FuncDetour* newStateDetour = new FuncDetour((void**)&luaL_newstate, luaL_newstate_new);
 
-	new AddonManager();
+
+	FuncDetour* gameUpdateDetour = new FuncDetour((void**)&do_game_update, do_game_update_new);
+	FuncDetour* newStateDetour = new FuncDetour((void**)&luaL_newstate, luaL_newstate_new);
+	
 	new EventQueueM();
 }
 
@@ -189,28 +250,4 @@ void DestroyStates(){
 	// Okay... let's not do that.
 	// I don't want to keep this in memory, but it CRASHES THE SHIT OUT if you delete this after all is said and done.
 	// if (gbl_mConsole) delete gbl_mConsole;
-	delete AddonManager::GetSingleton();
-}
-
-
-// needs captured functions, variables only here, I might extern them? eh
-void PaydayHook::RunHook(void* luaState){
-	lua_State* L = (lua_State*)luaState;
-	
-	Logging::Log("Running hook-state");
-	Logging::Log(std::to_string((int)luaState));
-	// This function is executed directly after a PAYDAY script is loaded.
-	// Execute the PAYDAY Script (I'm assuming it returns nothing.)
-	lua_call(L, 0, -1);
-	std::string fPath = "addons/" + ownerAddon->GetIdentifer() + "/" + scriptPath;
-
-	// Set the RequiredScript variable because Wilko is addicted to Olinub's methods.
-	lua_pushlstring(L, hookID.c_str(), hookID.length());
-	lua_setfield(L, LUA_GLOBALSINDEX, "RequiredScript");
-
-	// Load our script
-	luaL_loadfile(L, fPath.c_str());
-
-	// Then PAYDAY will execute our script instead of it's one.
-	// (This function should still work okay if ran multiple times after a script.)
 }
