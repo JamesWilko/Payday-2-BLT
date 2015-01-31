@@ -125,11 +125,13 @@ int luaF_dofile(lua_State* L){
 	int error = luaL_loadfile(L, filename);
 	if (error == LUA_ERRSYNTAX){
 		size_t len;
+		Logging::Log(filename);
 		Logging::Log(lua_tolstring(L, -1, &len));
 	}
 	error = lua_pcall(L, 0, 0, 0);
 	if (error == LUA_ERRRUN){
 		size_t len;
+		Logging::Log(filename);
 		Logging::Log(lua_tolstring(L, -1, &len));
 	}
 	return 0;

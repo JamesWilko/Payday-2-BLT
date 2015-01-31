@@ -70,8 +70,8 @@ void launch_thread_http(HTTPItem* item){
 	curl = curl_easy_init();
 	curl_easy_setopt(curl, CURLOPT_URL, item->url.c_str());
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-	//curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-	//curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 	
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_http_data);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, item);
