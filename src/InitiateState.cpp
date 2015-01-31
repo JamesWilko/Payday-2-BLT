@@ -123,9 +123,16 @@ int luaF_dofile(lua_State* L){
 	size_t length = 0;
 	const char* filename = lua_tolstring(L, 1, &length);
 	int error = luaL_loadfile(L, filename);
-	Logging::Log(std::to_string(error));
-	lua_pcall(L, 0, -1, 0);
-	return lua_gettop(L) - n;
+	if (error == LUA_ERRSYNTAX){
+		size_t len;
+		Logging::Log(lua_tolstring(L, -1, &len));
+	}
+	error = lua_pcall(L, 0, 0, 0);
+	if (error == LUA_ERRRUN){
+		size_t len;
+		Logging::Log(lua_tolstring(L, -1, &len));
+	}
+	return 0;
 }
 
 struct lua_http_data {
@@ -228,7 +235,7 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	CREATE_LUA_FUNCTION(luaF_dohttpreq, "dohttpreq")
 	CREATE_LUA_FUNCTION(luaF_getdir, "getdir")
 	CREATE_LUA_FUNCTION(luaF_getfiles, "getfiles")
-	CREATE_LUA_FUNCTION(luaF_print, "print")
+	CREATE_LUA_FUNCTION(luaF_print, "log")
 
 	luaL_Reg consoleLib[] = { { "CreateConsole", luaF_createconsole }, { "DestroyConsole", luaF_destroyconsole }, { NULL, NULL } };
 	luaI_openlib(L, "console", consoleLib, 0);
@@ -257,6 +264,9 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 static HTTPManager mainManager;
 
 void InitiateStates(){
+
+	main_thread_id = std::this_thread::get_id();
+
 	SignatureSearch::Search();
 
 
