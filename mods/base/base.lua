@@ -16,42 +16,13 @@ if not declare then
 	end
 end
 
--- Constants
-declare( "LuaModManager", {} )
-LuaModManager.Constants = {}
+-- Load Mod Manager
+if not LuaModManager then
+	local lmm_path = "mods/base/req/lua_mod_manager.lua"
+	dofile( lmm_path )
+end
+
 local C = LuaModManager.Constants
-C.mods_directory = "mods/"
-C.lua_base_directory = "base/"
-C.logs_directory = "logs/"
-C.json_module = "req/json.lua"
-C.mod_manager_file = "mod_manager.txt"
-C.excluded_mods_directories = {
-	["logs"] = true,
-}
-C.always_active_mods = {
-	["mods/base/"] = true,
-	["mods/logs/"] = true,
-}
-
-C.required_script_global = "RequiredScript"
-C.mod_path_global = "ModPath"
-C.logs_path_global = "LogsPath"
-
-C.mod_definition_file = "mod.txt"
-C.mod_name_key = "name"
-C.mod_desc_key = "description"
-C.mod_version_key = "version"
-C.mod_author_key = "author"
-C.mod_contact_key = "contact"
-C.mod_hooks_key = "hooks"
-C.mod_prehooks_key = "pre_hooks"
-C.mod_persists_key = "persist_scripts"
-C.mod_hook_id_key = "hook_id"
-C.mod_script_path_key = "script_path"
-C.mod_persists_global_key = "global"
-C.mod_persists_path_key = "path"
-
--- Mods and Hooks
 _lua_reqs 		= _lua_reqs or {}
 _mods_folders 	= _mods_folders or {}
 _mods 			= _mods or {}
@@ -117,92 +88,11 @@ if not _require_orig then
 
 end
 
--- Load mod manager
+-- Load saved mod data
 if not _loaded_mod_manager then
 
-	LuaModManager._enabled_mods = {}
-	LuaModManager._persist_scripts = {}
-	LuaModManager._path = C.mods_directory .. C.lua_base_directory .. C.mod_manager_file
-
-	LuaModManager._EnsureTablesExists = function( self )
-		if not self._enabled_mods then self._enabled_mods = {} end
-		if not self._persist_scripts then self._persist_scripts = {} end
-	end
-
-	LuaModManager.SaveModsStates = function( self )
-		self:_EnsureTablesExists()
-		local file = io.open(self._path, "w+")
-		file:write( json.encode( self._enabled_mods ) )
-		file:close()
-	end
-
-	LuaModManager.IsModEnabled = function( self, mod_name )
-		self:_EnsureTablesExists()
-		return (self._enabled_mods[mod_name] == nil or self._enabled_mods[mod_name] == true)
-	end
-
-	LuaModManager.SetModEnabledState = function( self, mod_name, state )
-		self:_EnsureTablesExists()
-		self._enabled_mods[mod_name] = state
-		self:SaveModsStates()
-	end
-
-	LuaModManager.ToggleModState = function( self, mod_name )
-		self:_EnsureTablesExists()
-		if not C.always_active_mods[mod_name] then
-			if self._enabled_mods[mod_name] == nil then
-				self._enabled_mods[mod_name] = false
-			else
-				self._enabled_mods[mod_name] = not self._enabled_mods[mod_name]
-			end
-			self:SaveModsStates()
-		end
-	end
-
-	LuaModManager.EnableMod = function( self, mod_name )
-		self:_EnsureTablesExists()
-		self:SetModEnabledState( mod_name, true )
-		self:SaveModsStates()
-	end
-
-	LuaModManager.DisableMod = function( self, mod_name )
-		self:_EnsureTablesExists()
-		self:SetModEnabledState( mod_name, false )
-		self:SaveModsStates()
-	end
-
-	LuaModManager.AddPersistScript = function( self, global, script, path )
-		self:_EnsureTablesExists()
-		local tbl = {
-			[ C.mod_persists_global_key ] = global,
-			[ C.mod_script_path_key ] = script,
-			[ C.mod_persists_path_key ] = path,
-		}
-		table.insert( self._persist_scripts, tbl )
-	end
-
-	LuaModManager.PersistScripts = function( self )	
-		self:_EnsureTablesExists()
-		return self._persist_scripts
-	end
-
-	-- Load mod manager data
-	local is_readable = io.file_is_readable and io.file_is_readable( LuaModManager._path ) or false
-	if is_readable then
-
-		local file = io.open( LuaModManager._path )
-		if file then
-
-			local file_contents = file:read("*all")
-			local mod_manager_data = json.decode(file_contents)
-			if mod_manager_data then
-				LuaModManager._enabled_mods = mod_manager_data
-			end
-			file:close()
-
-		end
-
-	end
+	LuaModManager:Load()
+	_loaded_mod_manager = true
 
 end
 
@@ -287,10 +177,23 @@ if _loaded_mod_folders and _mods then
 		local persists = mod.definition[C.mod_persists_key]
 		if persists then
 			for k, v in pairs( persists ) do
-				local global = v[C.mod_persists_global_key]
-				local script = mod.path .. v[C.mod_script_path_key]
-				declare( global, false )
-				LuaModManager:AddPersistScript( global, script, mod.path )
+				LuaModManager:AddPersistScript( v, mod.path )
+			end
+		end
+
+	end
+
+	local add_keybind_scripts = function( mod )
+
+		local keybinds = mod.definition[C.mod_keybinds_key]
+		if keybinds then
+			for k, v in pairs( keybinds ) do
+				-- log("found keybind:")
+				-- log("keybind_id: " .. v[C.mod_keybind_id_key])
+				-- log("name: " .. v[C.mod_keybind_name_key])
+				-- log("description: " .. v[C.mod_keybind_desc_key])
+				-- log("script_path: " .. v[C.mod_keybind_script_key])
+				LuaModManager:AddKeybinding( v, mod.path )
 			end
 		end
 
@@ -312,6 +215,9 @@ if _loaded_mod_folders and _mods then
 
 			-- Load persist scripts
 			add_persist_scripts( v )
+
+			-- Load keybinds
+			add_keybind_scripts( v )
 
 		else
 			log("[Mods] Mod '" .. v.path .. "' is disabled!")

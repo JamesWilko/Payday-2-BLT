@@ -35,6 +35,16 @@ Hooks:Add( "MenuManagerInitialize", "MenuManagerInitialize_Base_AddLuaModsMenu",
 			"MenuManager_Base_BuildModsMenu"
 		)
 
+		-- Setup mod keybinds menu
+		menu_manager:_base_process_menu(
+			"menu_main",
+			"video",
+			"options",
+			"MenuManager_Base_SetupKeybindsMenu",
+			"MenuManager_Base_PopulateKeybindsMenu",
+			"MenuManager_Base_BuildKeybindsMenu"
+		)
+
 		-- Allow custom menus on the main menu (and lobby) and the pause menu 
 		menu_manager:_base_process_menu( "menu_main" )
 		menu_manager:_base_process_menu( "menu_pause" )

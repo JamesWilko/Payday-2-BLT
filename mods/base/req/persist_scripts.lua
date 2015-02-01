@@ -28,4 +28,3 @@ function LMM:UpdatePersistScripts()
 	declare( "PersistScriptPath", nil )
 
 end
-
