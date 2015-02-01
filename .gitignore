@@ -10,3 +10,16 @@ proj/IPHLPAPI.v12.suo
 proj/IPHLPAPI.vcxproj.filters
 proj/IPHLPAPI.vcxproj.user
 proj/Release/vc120.pdb
+incl/curl/Makefile.am
+incl/curl/Makefile.in
+incl/curl/curl.h
+incl/curl/curlbuild.h
+incl/curl/curlbuild.h.cmake
+incl/curl/curlbuild.h.in
+incl/curl/curlrules.h
+incl/curl/curlver.h
+incl/curl/easy.h
+incl/curl/mprintf.h
+incl/curl/multi.h
+incl/curl/stdcheaders.h
+incl/curl/typecheck-gcc.h
