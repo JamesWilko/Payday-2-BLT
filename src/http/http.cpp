@@ -32,6 +32,12 @@ HTTPManager::~HTTPManager(){
 	curl_global_cleanup();
 
 	delete[] openssl_locks;
+
+	std::list<std::thread*>::iterator it;
+	for (it = threadList.begin(); it != threadList.end(); it++){
+		(*it)->join();
+		delete *it;
+	}
 }
 
 void HTTPManager::init_locks(){
@@ -87,5 +93,5 @@ void HTTPManager::LaunchHTTPRequest(HTTPItem* callback){
 	// This shit's gonna end eventually, how many threads are people going to launch?
 	// Probably a lot.
 	// I'll manage them I guess, but I've no idea when to tell them to join which I believe is part of the constructor.
-	new std::thread(launch_thread_http, callback);
+	threadList.push_back(new std::thread(launch_thread_http, callback));
 }

@@ -1,0 +1,12 @@
+proj/Debug/addons.obj
+proj/Debug/console.obj
+*.obj
+*.log
+*.tlog
+proj/Debug/vc120.idb
+proj/Debug/vc120.pdb
+proj/IPHLPAPI.sdf
+proj/IPHLPAPI.v12.suo
+proj/IPHLPAPI.vcxproj.filters
+proj/IPHLPAPI.vcxproj.user
+proj/Release/vc120.pdb

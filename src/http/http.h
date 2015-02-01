@@ -3,6 +3,8 @@
 
 #include <string>
 #include <mutex>
+#include <thread>
+#include <list>
 
 typedef void(*HTTPCallback)(void* data, std::string& urlContents);
 
@@ -30,6 +32,7 @@ private:
 	static HTTPManager* httpSingleton;
 	std::mutex* openssl_locks;
 	int numLocks;
+	std::list<std::thread*> threadList;
 };
 
 
