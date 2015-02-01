@@ -113,12 +113,20 @@ function LuaModManager:Keybinds()
 	return self._keybinds
 end
 
+function LuaModManager:GetNumberOfKeybinds()
+	local i = 0
+	for k, v in pairs( self._keybinds ) do
+		i = i + 1
+	end
+	return i
+end
+
 function LuaModManager:PlayerKeybinds()
 	return self._player_keybinds
 end
 
 function LuaModManager:AddKeybinding( keybind, path )
-	
+
 	local tbl = clone( keybind )
 	tbl[ C.mod_keybind_path_key ] = path
 	tbl[ C.mod_keybind_script_key ] = path .. tbl[ C.mod_keybind_script_key ]

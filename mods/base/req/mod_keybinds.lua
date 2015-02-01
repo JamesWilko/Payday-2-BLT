@@ -3,41 +3,51 @@ local C = LuaModManager.Constants
 LuaModManager.Constants._keybinds_menu_id = "base_keybinds_menu"
 local keybinds_menu_id = C._keybinds_menu_id
 
+local display_keybinds_menu = false
 local set_keybind_time = 0
 local keybind_set_delay = 0.5
 
 -- Keybinds Menu
 Hooks:Add("MenuManager_Base_SetupKeybindsMenu", "Base_SetupKeybindsMenu", function( menu_manager, nodes )
-	MenuHelper:NewMenu( keybinds_menu_id )
+	display_keybinds_menu = LuaModManager:GetNumberOfKeybinds() > 0
+	if display_keybinds_menu then
+		MenuHelper:NewMenu( keybinds_menu_id )
+	end
 end)
 
 Hooks:Add("MenuManager_Base_PopulateKeybindsMenu", "Base_PopulateKeybindsMenu", function( menu_manager, nodes )
 	
-	for k, v in pairs( LuaModManager:Keybinds() ) do
+	if display_keybinds_menu then
 
-		local keybind_id = v[ C.mod_keybind_id_key ]
-		local keybind_name = v[ C.mod_keybind_name_key ]
-		local keybind_desc = v[ C.mod_keybind_desc_key ]
-		local keybind_script = v[ C.mod_keybind_script_key ]
-		local key = LuaModManager:GetPlayerKeybind( keybind_id ) or ""
+		for k, v in pairs( LuaModManager:Keybinds() ) do
 
-		MenuHelper:AddKeybinding({
-			id = keybind_id,
-			title = keybind_name,
-			desc = keybind_desc,
-			connection_name = keybind_id,
-			button = key,
-			binding = key,
-			menu_id = keybinds_menu_id,
-		})
+			local keybind_id = v[ C.mod_keybind_id_key ]
+			local keybind_name = v[ C.mod_keybind_name_key ]
+			local keybind_desc = v[ C.mod_keybind_desc_key ]
+			local keybind_script = v[ C.mod_keybind_script_key ]
+			local key = LuaModManager:GetPlayerKeybind( keybind_id ) or ""
+
+			MenuHelper:AddKeybinding({
+				id = keybind_id,
+				title = keybind_name,
+				desc = keybind_desc,
+				connection_name = keybind_id,
+				button = key,
+				binding = key,
+				menu_id = keybinds_menu_id,
+			})
+
+		end
 
 	end
 
 end)
 
 Hooks:Add("MenuManager_Base_BuildKeybindsMenu", "Base_BuildKeybindsMenu", function( menu_manager, nodes )
-	nodes[keybinds_menu_id] = MenuHelper:BuildMenu( keybinds_menu_id )
-	MenuHelper:AddMenuItem( nodes.options, keybinds_menu_id, "mod keybinds", "mod keybinds menu", 7 )
+	if display_keybinds_menu then
+		nodes[keybinds_menu_id] = MenuHelper:BuildMenu( keybinds_menu_id )
+		MenuHelper:AddMenuItem( nodes.options, keybinds_menu_id, "mod keybinds", "mod keybinds menu", 7 )
+	end
 end)
 
 Hooks:Add("CustomizeControllerOnKeySet", "Base_Keybinds_CustomizeControllerOnKeySet", function( item )
@@ -66,13 +76,15 @@ function LuaModManager:UpdateBindings( state )
 		if not string.is_nil_or_empty( key ) then
 
 			local keybind = LuaModManager:Keybinds()[ keybind_id ]
-			local key_pressed = self._input:pressed( Idstring(key) )
-			local should_run = keybind[ state == "MENU" and C.mod_keybind_scope_menu_key or C.mod_keybind_scope_game_key ] or true
+			if keybind then
+				local key_pressed = self._input:pressed( Idstring(key) )
+				local should_run = keybind[ state == "MENU" and C.mod_keybind_scope_menu_key or C.mod_keybind_scope_game_key ] or true
 
-			if should_run and key_pressed then
-				if Application:time() - set_keybind_time >= keybind_set_delay then
-					local script = keybind[ C.mod_keybind_script_key ]
-					dofile( script )
+				if should_run and key_pressed then
+					if Application:time() - set_keybind_time >= keybind_set_delay then
+						local script = keybind[ C.mod_keybind_script_key ]
+						dofile( script )
+					end
 				end
 			end
 
