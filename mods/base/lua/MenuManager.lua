@@ -97,32 +97,42 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 
 	node:clean_items()
 	
+	local C = LuaModManager.Constants
 	local sorted_mods = {}
 	local mods = {}
 	local conflicted_content = {}
 	local modded_content = {}
 
-	local get_hooks_list_string = function( hooks_table )
-
+	local add_hooks_list = function( content_table, hooks_table, title )
 		local _hooks = {}
 		local hooks_str = ""
-
 		if type(hooks_table) == "table" then
-
 			for x, y in pairs( hooks_table ) do
-				local hook = y[ LuaModManager.Constants.mod_hook_id_key ]
+				local hook = y[ C.mod_hook_id_key ]
 				if not _hooks[ hook ] then
 					hooks_str = hooks_str .. "    " .. tostring(hook) .. "\n"
 					_hooks[ hook ] = true
 				end
 			end
-
-		else
-			hooks_str = tostring(hooks_table)
 		end
+		if not string.is_nil_or_empty(hooks_str) then
+			table.insert( content_table, title .. ":\n" .. hooks_str )
+		end
+	end
 
-		return hooks_str
-
+	local add_persist_scripts_list = function( content_table, persist_table, title )
+		local str = ""
+		if type( persist_table ) == "table" then
+			local pattern = "    [{1}] = {2}\n"
+			for k, v in pairs( persist_table ) do
+				str = str .. pattern
+				str = str:gsub("{1}", v[C.mod_persists_global_key])
+				str = str:gsub("{2}", v[C.mod_script_path_key])
+			end
+		end
+		if not string.is_nil_or_empty(str) then
+			table.insert( content_table, title .. ":\n" .. str )
+		end
 	end
 
 	for k, v in pairs( LuaModManager.Mods ) do
@@ -130,7 +140,6 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 		local mod_disabled = not LuaModManager:IsModEnabled( v.path )
 		local path = v.path
 		local info = v.definition
-		local C = LuaModManager.Constants
 		local mod_name = info[ C.mod_name_key ] or "No Mod Name"
 		local mod_desc = info[ C.mod_desc_key ] or "No Mod Description"
 		local mod_version = info[ C.mod_version_key ] or "1.0"
@@ -138,6 +147,7 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 		local mod_contact = info[ C.mod_contact_key ] or "No Contact Details"
 		local mod_hooks = info[ C.mod_hooks_key ] or "No Hooks"
 		local mod_prehooks = info[ C.mod_prehooks_key ] or "No Pre-Hooks"
+		local mod_persist_scripts = info[ C.mod_persists_key ] or "No Persistent Scripts"
 
 		table.insert(sorted_mods, mod_name)
 		mods[mod_name] = {
@@ -152,10 +162,11 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 		table.insert( content, "Author: " .. mod_author )
 		table.insert( content, "Contact: " .. mod_contact )
 		table.insert( content, "Path: " .. path )
-		table.insert( content, "\nPre-Hooks:\n" .. get_hooks_list_string(mod_prehooks) )
-		table.insert( content, "\nHooks:\n" .. get_hooks_list_string(mod_hooks) )
+		add_hooks_list( content, mod_prehooks, "Pre-Hooks" )
+		add_hooks_list( content, mod_hooks, "Hooks" )
+		add_persist_scripts_list( content, mod_persist_scripts, "Persistent Scripts" )
 
-		MenuCallbackHandler.toggle_corpse = function(this, item)
+		MenuCallbackHandler.base_toggle_lua_mod = function(this, item)
 			if item and item._parameters.mod_path then
 				LuaModManager:ToggleModState( item._parameters.mod_path )
 			end
@@ -167,7 +178,7 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 			mod_path = path,
 			localize = false,
 			enabled = true,
-			callback = "toggle_corpse",
+			callback = "base_toggle_lua_mod",
 			hightlight_color = mod_disabled and tweak_data.screen_colors.important_1,
 			row_item_color = mod_disabled and tweak_data.screen_colors.important_2,
 		})

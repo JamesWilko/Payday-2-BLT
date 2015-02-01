@@ -13,9 +13,13 @@
 		{ "hook_id" : "lib/entry", "script_path" : "req/menus.lua" },
 		{ "hook_id" : "lib/entry", "script_path" : "req/network.lua" },
 		{ "hook_id" : "lib/entry", "script_path" : "req/options.lua" },
+		{ "hook_id" : "lib/entry", "script_path" : "req/persist_scripts.lua" },
 		{ "hook_id" : "lib/entry", "script_path" : "req/SimpleMenu.lua" }
 	],
 	"hooks" : [
+		{ 	"hook_id" : "core/lib/system/corepatchlua",
+			"script_path" : "lua/CorePatchLua.lua"
+		},
 		{ 	"hook_id" : "lib/managers/localizationmanager",
 			"script_path" : "lua/LocalizationManager.lua"
 		},

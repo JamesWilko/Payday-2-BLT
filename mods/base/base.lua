@@ -28,6 +28,10 @@ C.mod_manager_file = "mod_manager.txt"
 C.excluded_mods_directories = {
 	["logs"] = true,
 }
+C.always_active_mods = {
+	["mods/base/"] = true,
+	["mods/logs/"] = true,
+}
 
 C.required_script_global = "RequiredScript"
 C.mod_path_global = "ModPath"
@@ -41,8 +45,11 @@ C.mod_author_key = "author"
 C.mod_contact_key = "contact"
 C.mod_hooks_key = "hooks"
 C.mod_prehooks_key = "pre_hooks"
+C.mod_persists_key = "persist_scripts"
 C.mod_hook_id_key = "hook_id"
 C.mod_script_path_key = "script_path"
+C.mod_persists_global_key = "global"
+C.mod_persists_path_key = "path"
 
 -- Mods and Hooks
 _lua_reqs 		= _lua_reqs or {}
@@ -114,52 +121,69 @@ end
 if not _loaded_mod_manager then
 
 	LuaModManager._enabled_mods = {}
+	LuaModManager._persist_scripts = {}
 	LuaModManager._path = C.mods_directory .. C.lua_base_directory .. C.mod_manager_file
 
-	LuaModManager._EnsureModsTableExists = function( self )
-		if not self._enabled_mods then
-			self._enabled_mods = {}
-		end
+	LuaModManager._EnsureTablesExists = function( self )
+		if not self._enabled_mods then self._enabled_mods = {} end
+		if not self._persist_scripts then self._persist_scripts = {} end
 	end
 
 	LuaModManager.SaveModsStates = function( self )
-		self:_EnsureModsTableExists()
+		self:_EnsureTablesExists()
 		local file = io.open(self._path, "w+")
 		file:write( json.encode( self._enabled_mods ) )
 		file:close()
 	end
 
 	LuaModManager.IsModEnabled = function( self, mod_name )
-		self:_EnsureModsTableExists()
+		self:_EnsureTablesExists()
 		return (self._enabled_mods[mod_name] == nil or self._enabled_mods[mod_name] == true)
 	end
 
 	LuaModManager.SetModEnabledState = function( self, mod_name, state )
-		self:_EnsureModsTableExists()
+		self:_EnsureTablesExists()
 		self._enabled_mods[mod_name] = state
 		self:SaveModsStates()
 	end
 
 	LuaModManager.ToggleModState = function( self, mod_name )
-		self:_EnsureModsTableExists()
-		if self._enabled_mods[mod_name] == nil then
-			self._enabled_mods[mod_name] = false
-		else
-			self._enabled_mods[mod_name] = not self._enabled_mods[mod_name]
+		self:_EnsureTablesExists()
+		if not C.always_active_mods[mod_name] then
+			if self._enabled_mods[mod_name] == nil then
+				self._enabled_mods[mod_name] = false
+			else
+				self._enabled_mods[mod_name] = not self._enabled_mods[mod_name]
+			end
+			self:SaveModsStates()
 		end
-		self:SaveModsStates()
 	end
 
 	LuaModManager.EnableMod = function( self, mod_name )
-		self:_EnsureModsTableExists()
+		self:_EnsureTablesExists()
 		self:SetModEnabledState( mod_name, true )
 		self:SaveModsStates()
 	end
 
 	LuaModManager.DisableMod = function( self, mod_name )
-		self:_EnsureModsTableExists()
+		self:_EnsureTablesExists()
 		self:SetModEnabledState( mod_name, false )
 		self:SaveModsStates()
+	end
+
+	LuaModManager.AddPersistScript = function( self, global, script, path )
+		self:_EnsureTablesExists()
+		local tbl = {
+			[ C.mod_persists_global_key ] = global,
+			[ C.mod_script_path_key ] = script,
+			[ C.mod_persists_path_key ] = path,
+		}
+		table.insert( self._persist_scripts, tbl )
+	end
+
+	LuaModManager.PersistScripts = function( self )	
+		self:_EnsureTablesExists()
+		return self._persist_scripts
 	end
 
 	-- Load mod manager data
@@ -258,6 +282,20 @@ if _loaded_mod_folders and _mods then
 
 	end
 
+	local add_persist_scripts = function( mod )
+
+		local persists = mod.definition[C.mod_persists_key]
+		if persists then
+			for k, v in pairs( persists ) do
+				local global = v[C.mod_persists_global_key]
+				local script = mod.path .. v[C.mod_script_path_key]
+				declare( global, false )
+				LuaModManager:AddPersistScript( global, script, mod.path )
+			end
+		end
+
+	end
+
 	-- Prioritize
 	table.sort( _mods, function(a, b)
 		return a.priority > b.priority
@@ -265,21 +303,22 @@ if _loaded_mod_folders and _mods then
 
 	-- Add mod hooks to tables
 	for k, v in ipairs( _mods ) do
+
 		if LuaModManager:IsModEnabled( v.path ) then
+
+			-- Load pre- and post- hooks
 			add_hooks_table( v, C.mod_hooks_key, _posthooks )
 			add_hooks_table( v, C.mod_prehooks_key, _prehooks )
+
+			-- Load persist scripts
+			add_persist_scripts( v )
+
 		else
 			log("[Mods] Mod '" .. v.path .. "' is disabled!")
 		end
+
 	end
 
 	LuaModManager.Mods = _mods
 
 end
-
---[[
-	dohttpreq( "https://github.com/JamesWilko/GoonMod/blob/master/GoonBase/goonbase.lua", function(data)
-		print("http request returned!")
-		print("data: " .. data)
-	end )
-]]
