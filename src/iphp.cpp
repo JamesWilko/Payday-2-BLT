@@ -1,6 +1,9 @@
 #include <windows.h>
 #include "InitState.h"
 
+#include <iostream>
+#include <fstream>
+
 #pragma pack(1)
 
 
@@ -14,7 +17,12 @@ BOOL WINAPI DllMain(HINSTANCE hInst,DWORD reason,LPVOID)
 	if (reason == DLL_PROCESS_ATTACH)
 		{
 		hLThis = hInst;
-		hL = LoadLibrary("C:\\Windows\\SysWow64\\IPHLPAPI.dll");
+
+		char bufd[200];
+		GetSystemDirectory(bufd, 200);
+		strcat_s(bufd, "\\IPHLPAPI.dll");
+
+		hL = LoadLibrary(bufd);
 		if (!hL) return false;
 
 
