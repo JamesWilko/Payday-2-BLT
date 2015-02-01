@@ -145,6 +145,27 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 		end
 	end
 
+	local add_keybinds_list = function( content_table, keybinds_table, title )
+		local str = ""
+		if type( keybinds_table ) == "table" then
+			local pattern = "    [{1}] {2}"
+			for id, keybind in pairs( keybinds_table ) do
+				
+				local keybind_id = keybind[ C.mod_keybind_id_key ]
+				local keybind_name = keybind[ C.mod_keybind_name_key ]
+				local key = LuaModManager:GetPlayerKeybind( keybind_id ) or "Not Set"
+				
+				str = str .. pattern
+				str = str:gsub("{1}", key)
+				str = str:gsub("{2}", keybind_name)
+
+			end
+		end
+		if not string.is_nil_or_empty(str) then
+			table.insert( content_table, title .. ":\n" .. str )
+		end
+	end
+
 	for k, v in pairs( LuaModManager.Mods ) do
 
 		local mod_disabled = not LuaModManager:IsModEnabled( v.path )
@@ -158,6 +179,7 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 		local mod_hooks = info[ C.mod_hooks_key ] or "No Hooks"
 		local mod_prehooks = info[ C.mod_prehooks_key ] or "No Pre-Hooks"
 		local mod_persist_scripts = info[ C.mod_persists_key ] or "No Persistent Scripts"
+		local mod_keybinds = info[ C.mod_keybinds_key ] or "No Keybinds"
 
 		table.insert(sorted_mods, mod_name)
 		mods[mod_name] = {
@@ -172,6 +194,7 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 		table.insert( content, "Author: " .. mod_author )
 		table.insert( content, "Contact: " .. mod_contact )
 		table.insert( content, "Path: " .. path )
+		add_keybinds_list( content, mod_keybinds, "Keybinds" )
 		add_hooks_list( content, mod_prehooks, "Pre-Hooks" )
 		add_hooks_list( content, mod_hooks, "Hooks" )
 		add_persist_scripts_list( content, mod_persist_scripts, "Persistent Scripts" )
