@@ -245,7 +245,7 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	int result;
 	Logging::Log("Initiating Hook");
 	
-	result = luaL_loadfile(L, "blt.lua");
+	result = luaL_loadfile(L, "mods/base/base.lua");
 	if (result == LUA_ERRSYNTAX){
 		size_t len;
 		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
