@@ -125,14 +125,14 @@ int luaF_dofile(lua_State* L){
 	int error = luaL_loadfile(L, filename);
 	if (error == LUA_ERRSYNTAX){
 		size_t len;
-		Logging::Log(filename);
-		Logging::Log(lua_tolstring(L, -1, &len));
+		Logging::Log(filename, Logging::LOGGING_ERROR);
+		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
 	}
 	error = lua_pcall(L, 0, 0, 0);
 	if (error == LUA_ERRRUN){
 		size_t len;
-		Logging::Log(filename);
-		Logging::Log(lua_tolstring(L, -1, &len));
+		Logging::Log(filename, Logging::LOGGING_ERROR);
+		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
 	}
 	return 0;
 }
@@ -192,7 +192,7 @@ int luaF_destroyconsole(lua_State* L){
 int luaF_print(lua_State* L){
 	size_t len;
 	const char* str = lua_tolstring(L, 1, &len);
-	Logging::Log(str);
+	Logging::Log(str, Logging::LOGGING_LUA);
 	return 0;
 }
 
@@ -248,13 +248,13 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	result = luaL_loadfile(L, "blt.lua");
 	if (result == LUA_ERRSYNTAX){
 		size_t len;
-		Logging::Log(lua_tolstring(L, -1, &len));
+		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
 		return ret;
 	}
 	result = lua_pcall(L, 0, 1, 0);
 	if (result == LUA_ERRRUN){
 		size_t len;
-		Logging::Log(lua_tolstring(L, -1, &len));
+		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
 		return ret;
 	}
 

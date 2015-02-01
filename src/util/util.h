@@ -11,7 +11,15 @@ namespace Util {
 
 
 namespace Logging {
-	void Log(std::string msg);
+
+	enum LogType{
+		LOGGING_LOG=1,
+		LOGGING_LUA,
+		LOGGING_WARN,
+		LOGGING_ERROR
+	};
+
+	void Log(std::string msg, LogType msgType = LOGGING_LOG);
 }
 
 #endif // __UTIL_HEADER__
