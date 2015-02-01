@@ -1,9 +1,6 @@
 #include <windows.h>
 #include "InitState.h"
 
-#include <iostream>
-#include <fstream>
-
 #pragma pack(1)
 
 
