@@ -210,7 +210,7 @@ function Menu:AddKeybinding( button_data )
 
 	local params = {
 		name = button_data.id,
-		text_id = button_data.title,
+		text_id = managers.localization:text(button_data.title),
 		connection_name = button_data.connection_name,
 		binding = button_data.binding,
 		localize = "false",
