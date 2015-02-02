@@ -52,11 +52,12 @@ C.mod_keybind_scope_game_key = "run_in_game"
 LuaModManager._persist_scripts = LuaModManager._persist_scripts or {}
 
 LuaModManager._enabled_mods = LuaModManager._enabled_mods or {}
-LuaModManager._mod_manager_file_path = C.mods_directory .. C.lua_base_directory .. C.mod_manager_file
+LuaModManager._base_path = C.mods_directory .. C.lua_base_directory
+LuaModManager._mod_manager_file_path = LuaModManager._base_path .. C.mod_manager_file
 
 LuaModManager._keybinds = LuaModManager._keybinds or {}
 LuaModManager._player_keybinds = LuaModManager._player_keybinds or {}
-LuaModManager._mod_keybinds_file_path = C.mods_directory .. C.lua_base_directory .. C.mod_keybinds_file
+LuaModManager._mod_keybinds_file_path = LuaModManager._base_path .. C.mod_keybinds_file
 
 local function clone( o )
 	local res = {}

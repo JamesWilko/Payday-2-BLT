@@ -1,7 +1,14 @@
 
 CloneClass( LocalizationManager )
 
-function LocalizationManager.text(this, str, macros)
+LocalizationManager._custom_localizations = LocalizationManager._custom_localizations or {}
+
+function LocalizationManager.init( self )
+	self.orig.init( self )
+	self:load_localization_file( LuaModManager._base_path .. "loc/en.txt")
+end
+
+function LocalizationManager.text( self, str, macros )
 
 	-- log( "Localizer: " .. tostring(Localizer.__index) )
 	-- log( "SystemInfo:language():key(): " )
@@ -11,10 +18,9 @@ function LocalizationManager.text(this, str, macros)
 	-- lang_mods[Idstring("spanish"):key()]
 	-- lang_mods[Idstring("english"):key()]
 
-	--[[
-	if _G.GoonBase.Localization[str] then
+	if self._custom_localizations[str] then
 
-		local return_str =_G.GoonBase.Localization[str]
+		local return_str = self._custom_localizations[str]
 		if macros and type(macros) == "table" then
 			for k, v in pairs( macros ) do
 				return_str = return_str:gsub( "$" .. k, v )
@@ -23,7 +29,29 @@ function LocalizationManager.text(this, str, macros)
 		return return_str
 
 	end
-	]]
-	return this.orig.text(this, str, macros)
+	return self.orig.text(self, str, macros)
+
+end
+
+function LocalizationManager:add_localized_strings( string_table )
+	if type(string_table) == "table" then
+		for k, v in pairs( string_table ) do
+			self._custom_localizations[k] = v
+		end
+	end
+end
+
+function LocalizationManager:load_localization_file( file_path )
+
+	local file = io.open( file_path, "r" )
+	if file then
+
+		local file_contents = file:read("*all")
+		file:close()
+
+		local contents = json.decode( file_contents )
+		self:add_localized_strings( contents )
+
+	end
 
 end

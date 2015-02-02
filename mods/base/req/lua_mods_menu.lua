@@ -11,5 +11,5 @@ Hooks:Add("MenuManager_Base_BuildModsMenu", "Base_BuildModsMenu", function( menu
 	local mods_menu = MenuHelper:BuildMenu( lua_mods_menu_id )
 	mods_menu._parameters.name = lua_mods_menu_id	
 	nodes[lua_mods_menu_id] = mods_menu
-	MenuHelper:AddMenuItem( nodes.options, lua_mods_menu_id, "lua mods", "lua mods options menu", 6 )
+	MenuHelper:AddMenuItem( nodes.options, lua_mods_menu_id, "base_options_menu_lua_mods", "base_options_menu_lua_mods_desc", 6 )
 end)

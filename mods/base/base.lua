@@ -188,11 +188,6 @@ if _loaded_mod_folders and _mods then
 		local keybinds = mod.definition[C.mod_keybinds_key]
 		if keybinds then
 			for k, v in pairs( keybinds ) do
-				-- log("found keybind:")
-				-- log("keybind_id: " .. v[C.mod_keybind_id_key])
-				-- log("name: " .. v[C.mod_keybind_name_key])
-				-- log("description: " .. v[C.mod_keybind_desc_key])
-				-- log("script_path: " .. v[C.mod_keybind_script_key])
 				LuaModManager:AddKeybinding( v, mod.path )
 			end
 		end

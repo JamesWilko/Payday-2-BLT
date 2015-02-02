@@ -113,6 +113,10 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 	local conflicted_content = {}
 	local modded_content = {}
 
+	local text = function(str)
+		return managers.localization:text(str)
+	end
+
 	local add_hooks_list = function( content_table, hooks_table, title )
 		local _hooks = {}
 		local hooks_str = ""
@@ -126,7 +130,7 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 			end
 		end
 		if not string.is_nil_or_empty(hooks_str) then
-			table.insert( content_table, title .. ":\n" .. hooks_str )
+			table.insert( content_table, text(title) .. ":\n" .. hooks_str )
 		end
 	end
 
@@ -141,7 +145,7 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 			end
 		end
 		if not string.is_nil_or_empty(str) then
-			table.insert( content_table, title .. ":\n" .. str )
+			table.insert( content_table, text(title) .. ":\n" .. str )
 		end
 	end
 
@@ -162,7 +166,7 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 			end
 		end
 		if not string.is_nil_or_empty(str) then
-			table.insert( content_table, title .. ":\n" .. str )
+			table.insert( content_table, text(title) .. ":\n" .. str )
 		end
 	end
 
@@ -187,17 +191,18 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 			conflicted = {},
 			title = nil
 		}
-		mods[mod_name].title = mod_name .. ( mod_disabled and " [Disabled]" or "" )
+		mods[mod_name].title = mod_name
+		mods[mod_name].title = mods[mod_name].title .. ( mod_disabled and (" [" .. text("base_mod_info_disabled") .. "]") or "" )
 		local content = mods[mod_name].content
 		table.insert( content, mod_desc )
-		table.insert( content, "Version: " .. mod_version )
-		table.insert( content, "Author: " .. mod_author )
-		table.insert( content, "Contact: " .. mod_contact )
-		table.insert( content, "Path: " .. path )
-		add_keybinds_list( content, mod_keybinds, "Keybinds" )
-		add_hooks_list( content, mod_prehooks, "Pre-Hooks" )
-		add_hooks_list( content, mod_hooks, "Hooks" )
-		add_persist_scripts_list( content, mod_persist_scripts, "Persistent Scripts" )
+		table.insert( content, text("base_mod_info_version") .. ": " .. mod_version )
+		table.insert( content, text("base_mod_info_author") .. ": " .. mod_author )
+		table.insert( content, text("base_mod_info_contact") .. ": " .. mod_contact )
+		table.insert( content, text("base_mod_info_path") .. ": " .. path )
+		add_keybinds_list( content, mod_keybinds, "base_mod_info_keybinds" )
+		add_hooks_list( content, mod_prehooks, "base_mod_info_prehooks" )
+		add_hooks_list( content, mod_hooks, "base_mod_info_hooks" )
+		add_persist_scripts_list( content, mod_persist_scripts, "base_mod_info_persist" )
 
 		MenuCallbackHandler.base_toggle_lua_mod = function(this, item)
 			if item and item._parameters.mod_path then
