@@ -12,7 +12,7 @@
 			"description" : "json_item_toggle_desc",
 			"callback" : "callback_test_toggle",
 			"value" : "toggle_value",
-			"default_value" : true,
+			"default_value" : false,
 		},
 		{
 			"type" : "slider",
