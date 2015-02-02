@@ -86,7 +86,12 @@ function MenuNodeGui._key_press(self, o, key, input_id, item, no_add)
 			connection = key_name
 		})
 		item:parameters().binding = key_name
-		Hooks:Call("CustomizeControllerOnKeySet", connections[item:parameters().axis])
+
+		local conn = connections[item:parameters().axis]
+		local key_id = conn._name
+		local key_button = conn._input_name_list[1]
+		Hooks:Call( "CustomizeControllerOnKeySet", key_id, key_button )
+
 	else
 		if connections[item:parameters().button] == nil then
 			for k, v in pairs( connections ) do
@@ -103,7 +108,12 @@ function MenuNodeGui._key_press(self, o, key, input_id, item, no_add)
 			controller_id = input_id
 		})
 		item:parameters().binding = key_name
-		Hooks:Call("CustomizeControllerOnKeySet", connections[item:parameters().button])
+
+		local conn = connections[item:parameters().button]
+		local key_id = conn._name
+		local key_button = conn._input_name_list[1]
+		Hooks:Call( "CustomizeControllerOnKeySet", key_id, key_button )
+
 	end
 	managers.controller:rebind_connections()
 	self:_end_customize_controller(o, item)

@@ -188,7 +188,7 @@ if _loaded_mod_folders and _mods then
 		local keybinds = mod.definition[C.mod_keybinds_key]
 		if keybinds then
 			for k, v in pairs( keybinds ) do
-				LuaModManager:AddKeybinding( v, mod.path )
+				LuaModManager:AddJsonKeybinding( v, mod.path )
 			end
 		end
 

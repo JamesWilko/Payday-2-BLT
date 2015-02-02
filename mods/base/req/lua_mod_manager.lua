@@ -48,6 +48,7 @@ C.mod_keybind_script_key = "script_path"
 C.mod_keybind_path_key = "path"
 C.mod_keybind_scope_menu_key = "run_in_menu"
 C.mod_keybind_scope_game_key = "run_in_game"
+C.mod_keybind_callback_key = "callback"
 
 LuaModManager._persist_scripts = LuaModManager._persist_scripts or {}
 
@@ -114,10 +115,12 @@ function LuaModManager:Keybinds()
 	return self._keybinds
 end
 
-function LuaModManager:GetNumberOfKeybinds()
+function LuaModManager:GetNumberOfJsonKeybinds()
 	local i = 0
 	for k, v in pairs( self._keybinds ) do
-		i = i + 1
+		if v._is_json then
+			i = i + 1
+		end
 	end
 	return i
 end
@@ -126,15 +129,20 @@ function LuaModManager:PlayerKeybinds()
 	return self._player_keybinds
 end
 
-function LuaModManager:AddKeybinding( keybind, path )
+function LuaModManager:AddJsonKeybinding( keybind, path )
 
 	local tbl = clone( keybind )
+	tbl._is_json = true
 	tbl[ C.mod_keybind_path_key ] = path
 	tbl[ C.mod_keybind_script_key ] = path .. tbl[ C.mod_keybind_script_key ]
 
 	local keybind_id = tbl[ C.mod_keybind_id_key ]
 	self._keybinds[ keybind_id ] = tbl
 
+end
+
+function LuaModManager:AddKeybinding( keybind_id, callback )
+	self._keybinds[ keybind_id ] = callback
 end
 
 function LuaModManager:GetPlayerKeybind( keybind_id )

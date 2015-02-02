@@ -9,7 +9,7 @@ local keybind_set_delay = 0.5
 
 -- Keybinds Menu
 Hooks:Add("MenuManager_Base_SetupKeybindsMenu", "Base_SetupKeybindsMenu", function( menu_manager, nodes )
-	display_keybinds_menu = LuaModManager:GetNumberOfKeybinds() > 0
+	display_keybinds_menu = LuaModManager:GetNumberOfJsonKeybinds() > 0
 	if display_keybinds_menu then
 		MenuHelper:NewMenu( keybinds_menu_id )
 	end
@@ -50,8 +50,8 @@ Hooks:Add("MenuManager_Base_BuildKeybindsMenu", "Base_BuildKeybindsMenu", functi
 	end
 end)
 
-Hooks:Add("CustomizeControllerOnKeySet", "Base_Keybinds_CustomizeControllerOnKeySet", function( item )
-	LuaModManager:SetPlayerKeybind( item._name, item._input_name_list[1] )
+Hooks:Add("CustomizeControllerOnKeySet", "Base_Keybinds_CustomizeControllerOnKeySet", function( keybind, key )
+	LuaModManager:SetPlayerKeybind( keybind, key )
 	set_keybind_time = Application:time()
 end)
 
@@ -77,18 +77,32 @@ function LuaModManager:UpdateBindings( state )
 
 			local keybind = LuaModManager:Keybinds()[ keybind_id ]
 			if keybind then
-				local key_pressed = self._input:pressed( Idstring(key) )
-				local should_run = keybind[ state == "MENU" and C.mod_keybind_scope_menu_key or C.mod_keybind_scope_game_key ] or true
 
-				if should_run and key_pressed then
-					if Application:time() - set_keybind_time >= keybind_set_delay then
-						local script = keybind[ C.mod_keybind_script_key ]
-						dofile( script )
-					end
+				local key_pressed = self._input:pressed( Idstring(key) )
+				if key_pressed and Application:time() - set_keybind_time >= keybind_set_delay then
+					self:AttemptRunKeybind( keybind, state )
 				end
+
 			end
 
 		end
+	end
+
+end
+
+function LuaModManager:AttemptRunKeybind( keybind, state )
+
+	local keybind_type = type(keybind)
+	if keybind_type == "table" then
+		local should_run = keybind[ state == "MENU" and C.mod_keybind_scope_menu_key or C.mod_keybind_scope_game_key ]
+		if should_run then
+			local script = keybind[ C.mod_keybind_script_key ]
+			dofile( script )
+		end
+	end
+
+	if keybind_type == "function" then
+		keybind()
 	end
 
 end

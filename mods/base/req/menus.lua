@@ -36,7 +36,7 @@ end
 function Menu:GetMenu( menu_id )
 	local menu = self.menus[menu_id]
 	if menu == nil then
-		log("[Error] Could not find menu with id '" .. menu_id .. "'!")
+		log("[Error] Could not find menu with id '" .. tostring(menu_id) .. "'!")
 	end
 	return menu
 end
@@ -352,5 +352,148 @@ function Menu:AddMenuItem( parent_menu, child_menu, name, desc, menu_position, s
 	button._parameters.help_id = desc
 	button._parameters.next_node = child_menu
 	table.insert( parent_menu._items, menu_position, button )
+
+end
+
+function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
+
+	local file = io.open( file_path, "r" )
+	if file then
+
+		local file_content = file:read("*all")
+		file:close()
+
+		local content = json.decode( file_content )
+		local menu_id = content.menu_id
+		local parent_menu = content.parent_menu_id
+		local menu_name = content.title
+		local menu_desc = content.description
+		local items = content.items
+
+		Hooks:Add("MenuManagerSetupCustomMenus", "Base_SetupCustomMenus_Json_" .. menu_id, function( menu_manager, nodes )
+			if nodes[parent_menu] then
+				MenuHelper:NewMenu( menu_id )
+			else
+				log("[Error] Could not build menu from json, no node with id: " .. parent_menu)
+			end
+		end)
+
+		Hooks:Add("MenuManagerBuildCustomMenus", "Base_BuildCustomMenus_Json_" .. menu_id, function( menu_manager, nodes )
+			if nodes[parent_menu] then
+				nodes[menu_id] = MenuHelper:BuildMenu( menu_id )
+				MenuHelper:AddMenuItem( nodes[parent_menu], menu_id, menu_name, menu_desc )
+			end
+		end)
+
+		Hooks:Add("MenuManagerPopulateCustomMenus", "Base_PopulateCustomMenus_Json_" .. menu_id, function( menu_manager, nodes )
+
+			if not nodes[parent_menu] then
+				return
+			end
+
+			for k, item in pairs( items ) do
+
+				local type = item.type
+				local id = item.id
+				local title = item.title
+				local desc = item.description
+				local callback = item.callback
+				local priority = #items - k
+				local value = item.default_value
+				if data_table then
+					value = data_table[item.value] or item.default_value
+				end
+
+				if type == "button" then
+					MenuHelper:AddButton({
+						id = id,
+						title = title,
+						desc = desc,
+						callback = callback,
+						next_node = item.next_menu or nil,
+						menu_id = menu_id,
+						priority = priority,
+					})
+				end
+
+				if type == "toggle" then
+					MenuHelper:AddToggle({
+						id = id,
+						title = title,
+						desc = desc,
+						callback = callback,
+						value = value,
+						menu_id = menu_id,
+						priority = priority,
+					})
+				end
+
+				if type == "slider" then
+					MenuHelper:AddSlider({
+						id = id,
+						title = title,
+						desc = desc,
+						callback = callback,
+						value = value,
+						min = item.min or 0,
+						max = item.max or 1,
+						step = item.step or 0.1,
+						show_value = true,
+						menu_id = menu_id,
+						priority = priority
+					})
+				end
+
+				if type == "divider" then
+					MenuHelper:AddDivider({
+						id = "divider_" .. menu_id .. "_" .. tostring(priority),
+						size = item.size,
+						menu_id = menu_id,
+						priority = priority,
+					})
+				end
+
+				if type == "keybind" then
+
+					local key = ""
+					if item.keybind_id then
+						key = LuaModManager:GetPlayerKeybind( item.keybind_id ) or ""
+					end
+
+					MenuHelper:AddKeybinding({
+						id = id,
+						title = title,
+						desc = desc,
+						connection_name = item.keybind_id,
+						button = key,
+						binding = key,
+						menu_id = menu_id,
+						priority = priority,
+					})
+
+					LuaModManager:AddKeybinding( item.keybind_id, parent_class[item.func] )
+
+				end
+
+				if type == "multiple_choice" then
+					MenuHelper:AddMultipleChoice({
+						id = id,
+						title = title,
+						desc = desc,
+						callback = callback,
+						items = item.items,
+						value = value,
+						menu_id = menu_id,
+						priority = priority,
+					})
+				end
+
+			end
+
+		end)
+
+	else
+		log("[Error] Could not load file: " .. file_path)
+	end
 
 end
