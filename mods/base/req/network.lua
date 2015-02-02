@@ -1,45 +1,45 @@
 
-_G.GoonBase.Network = _G.GoonBase.Network or {}
-local GNetwork = _G.GoonBase.Network
+_G.LuaNetworking = _G.LuaNetworking or {}
+local LNetwork = _G.LuaNetworking
 
-GNetwork.HiddenChannel = 4
-GNetwork.AllPeers = "GNAP"
-GNetwork.AllPeersString = "{1}/{2}/{3}"
-GNetwork.SinglePeer = "GNSP"
-GNetwork.SinglePeerString = "{1}/{2}/{3}/{4}"
-GNetwork.ExceptPeer = "GNEP"
-GNetwork.ExceptPeerString = "{1}/{2}/{3}/{4}"
-GNetwork.Split = "[/]"
+LNetwork.HiddenChannel = 4
+LNetwork.AllPeers = "GNAP"
+LNetwork.AllPeersString = "{1}/{2}/{3}"
+LNetwork.SinglePeer = "GNSP"
+LNetwork.SinglePeerString = "{1}/{2}/{3}/{4}"
+LNetwork.ExceptPeer = "GNEP"
+LNetwork.ExceptPeerString = "{1}/{2}/{3}/{4}"
+LNetwork.Split = "[/]"
 
-function GNetwork:IsMultiplayer()
+function LNetwork:IsMultiplayer()
 	if managers.network == nil then
 		return false
 	end
 	return managers.network:session()
 end
 
-function GNetwork:IsHost()
+function LNetwork:IsHost()
 	if not Network then
 		return false
 	end
 	return not Network:is_client()
 end
 
-function GNetwork:IsClient()
+function LNetwork:IsClient()
 	if not Network then
 		return false
 	end
 	return Network:is_client()
 end
 
-function GNetwork:LocalPeerID()
+function LNetwork:LocalPeerID()
 	if managers.network == nil or managers.network:session() == nil or managers.network:session():local_peer() == nil then
 		return 0
 	end
 	return managers.network:session():local_peer():id() or 0
 end
 
-function GNetwork:TableToString(tbl)
+function LNetwork:TableToString(tbl)
 	local str = ""
 	for k, v in pairs(tbl) do
 		if str ~= "" then
@@ -50,7 +50,7 @@ function GNetwork:TableToString(tbl)
 	return str
 end
 
-function GNetwork:StringToTable(str)
+function LNetwork:StringToTable(str)
 	local tbl = {}
 	local tblPairs = string.split( str, "[,]" )
 	for k, v in pairs(tblPairs) do
@@ -60,7 +60,7 @@ function GNetwork:StringToTable(str)
 	return tbl
 end
 
-function GNetwork:GetNameFromPeerID(id)
+function LNetwork:GetNameFromPeerID(id)
 
 	for k, v in pairs( managers.network:session():peers() ) do
 		if k == id then
@@ -72,11 +72,11 @@ function GNetwork:GetNameFromPeerID(id)
 	
 end
 
-function GNetwork:GetPeers()
+function LNetwork:GetPeers()
 	return managers.network:session():peers()
 end
 
-function GNetwork:GetNumberOfPeers()
+function LNetwork:GetNumberOfPeers()
 	local i = 0
 	for k, v in pairs( managers.network:session():peers() ) do
 		i = i + 1
@@ -84,25 +84,25 @@ function GNetwork:GetNumberOfPeers()
 	return i
 end
 
-function GNetwork:SendToPeers(type, data)
-	local dataString = GNetwork.AllPeersString
-	dataString = dataString:gsub("{1}", GNetwork.AllPeers)
+function LNetwork:SendToPeers(type, data)
+	local dataString = LNetwork.AllPeersString
+	dataString = dataString:gsub("{1}", LNetwork.AllPeers)
 	dataString = dataString:gsub("{2}", type)
 	dataString = dataString:gsub("{3}", data)
-	GNetwork:SendStringThroughChat(dataString)
+	LNetwork:SendStringThroughChat(dataString)
 end
 
-function GNetwork:SendToPeer(peer, type, data)
-	local dataString = GNetwork.SinglePeerString
-	dataString = dataString:gsub("{1}", GNetwork.SinglePeer)
+function LNetwork:SendToPeer(peer, type, data)
+	local dataString = LNetwork.SinglePeerString
+	dataString = dataString:gsub("{1}", LNetwork.SinglePeer)
 	dataString = dataString:gsub("{2}", peer)
 	dataString = dataString:gsub("{3}", type)
 	dataString = dataString:gsub("{4}", data)
-	GNetwork:SendStringThroughChat(dataString)
+	LNetwork:SendStringThroughChat(dataString)
 end
 
-function GNetwork:SendToPeersExcept(peer, type, data)
-	local dataString = GNetwork.ExceptPeerString
+function LNetwork:SendToPeersExcept(peer, type, data)
+	local dataString = LNetwork.ExceptPeerString
 	local peerStr = peer
 	if type(peer) == "table" then
 		peerStr = ""
@@ -114,18 +114,18 @@ function GNetwork:SendToPeersExcept(peer, type, data)
 		end
 	end
 
-	dataString = dataString:gsub("{1}", GNetwork.ExceptPeer)
+	dataString = dataString:gsub("{1}", LNetwork.ExceptPeer)
 	dataString = dataString:gsub("{2}", peerStr)
 	dataString = dataString:gsub("{3}", type)
 	dataString = dataString:gsub("{4}", data)
-	GNetwork:SendStringThroughChat(dataString)
+	LNetwork:SendStringThroughChat(dataString)
 end
 
-function GNetwork:SendStringThroughChat(message)
+function LNetwork:SendStringThroughChat(message)
 	if ChatManager._receivers == nil then
 		ChatManager._receivers = {}
 	end
-	ChatManager:send_message( GNetwork.HiddenChannel, tostring(GNetwork:LocalPeerID()), message )
+	ChatManager:send_message( LNetwork.HiddenChannel, tostring(LNetwork:LocalPeerID()), message )
 end
 
 Hooks:Add("ChatManagerOnReceiveMessage", "ChatManagerOnReceiveMessage_Network", function(channel_id, name, message, color, icon)
@@ -137,10 +137,10 @@ Hooks:Add("ChatManagerOnReceiveMessage", "ChatManagerOnReceiveMessage_Network", 
 	log(s)
 
 	local senderID = nil
-	if GNetwork:IsMultiplayer() then
+	if LNetwork:IsMultiplayer() then
 
 		if name == managers.network:session():local_peer():name() then
-			senderID = GNetwork:LocalPeerID()
+			senderID = LNetwork:LocalPeerID()
 		end
 
 		for k, v in pairs( managers.network:session():peers() ) do
@@ -151,55 +151,55 @@ Hooks:Add("ChatManagerOnReceiveMessage", "ChatManagerOnReceiveMessage_Network", 
 
 	end
 
-	if senderID == GNetwork:LocalPeerID() then return end
+	if senderID == LNetwork:LocalPeerID() then return end
 
-	if tonumber(channel_id) == GNetwork.HiddenChannel then
-		GNetwork:ProcessChatString(senderID or name, message, color, icon)
+	if tonumber(channel_id) == LNetwork.HiddenChannel then
+		LNetwork:ProcessChatString(senderID or name, message, color, icon)
 	end
 
 end)
 
 Hooks:RegisterHook("NetworkReceivedData")
-function GNetwork:ProcessChatString(sender, message, color, icon)
+function LNetwork:ProcessChatString(sender, message, color, icon)
 
-	local splitData = string.split( message, GNetwork.Split )
+	local splitData = string.split( message, LNetwork.Split )
 	local msgType = splitData[1]
-	if msgType == GNetwork.AllPeers then
-		GNetwork:ProcessAllPeers(sender, message, color, icon)
+	if msgType == LNetwork.AllPeers then
+		LNetwork:ProcessAllPeers(sender, message, color, icon)
 	end
-	if msgType == GNetwork.SinglePeer then
-		GNetwork:ProcessSinglePeer(sender, message, color, icon)
+	if msgType == LNetwork.SinglePeer then
+		LNetwork:ProcessSinglePeer(sender, message, color, icon)
 	end
-	if msgType == GNetwork.ExceptPeer then
-		GNetwork:ProcessExceptPeer(sender, message, color, icon)
+	if msgType == LNetwork.ExceptPeer then
+		LNetwork:ProcessExceptPeer(sender, message, color, icon)
 	end
 	
 end
 
-function GNetwork:ProcessAllPeers(sender, message, color, icon)
-	local splitData = string.split( message, GNetwork.Split )
+function LNetwork:ProcessAllPeers(sender, message, color, icon)
+	local splitData = string.split( message, LNetwork.Split )
 	Hooks:Call("NetworkReceivedData", sender, splitData[2], splitData[3])
 end
 
-function GNetwork:ProcessSinglePeer(sender, message, color, icon)
+function LNetwork:ProcessSinglePeer(sender, message, color, icon)
 
-	local splitData = string.split( message, GNetwork.Split )
+	local splitData = string.split( message, LNetwork.Split )
 	local toPeer = tonumber( splitData[2] )
 
-	if toPeer == GNetwork:LocalPeerID() then
+	if toPeer == LNetwork:LocalPeerID() then
 		Hooks:Call("NetworkReceivedData", sender, splitData[3], splitData[4])
 	end
 
 end
 
-function GNetwork:ProcessExceptPeer(sender, message, color, icon)
+function LNetwork:ProcessExceptPeer(sender, message, color, icon)
 	
-	local splitData = string.split( message, GNetwork.Split )
+	local splitData = string.split( message, LNetwork.Split )
 	local exceptedPeers = string.split( splitData[2], "[,]" )
 
 	local excepted = false
 	for k, v in pairs(exceptedPeers) do
-		if tonumber(v) == GNetwork:LocalPeerID() then
+		if tonumber(v) == LNetwork:LocalPeerID() then
 			excepted = true
 		end
 	end
@@ -211,10 +211,9 @@ function GNetwork:ProcessExceptPeer(sender, message, color, icon)
 end
 
 -- Extensions
-
-GNetwork._networked_colour_string = "r:{1}|g:{2}|b:{3}|a:{4}"
-function GNetwork:PrepareNetworkedColourString(col)
-	local dataString = GNetwork._networked_colour_string
+LNetwork._networked_colour_string = "r:{1}|g:{2}|b:{3}|a:{4}"
+function LNetwork:PrepareNetworkedColourString(col)
+	local dataString = LNetwork._networked_colour_string
 	dataString = dataString:gsub("{1}", math.round_with_precision(col.r, 4))
 	dataString = dataString:gsub("{2}", math.round_with_precision(col.g, 4))
 	dataString = dataString:gsub("{3}", math.round_with_precision(col.b, 4))
@@ -222,7 +221,7 @@ function GNetwork:PrepareNetworkedColourString(col)
 	return dataString
 end
 
-function GNetwork:NetworkedColourStringToColour(str)
+function LNetwork:NetworkedColourStringToColour(str)
 
 	local data = string.split( str, "[|]" )
 	if #data < 4 then
