@@ -5,9 +5,11 @@ CloneClass( ModMenuCreator )
 CloneClass( MenuModInfoGui )
 
 Hooks:RegisterHook( "MenuManagerInitialize" )
+Hooks:RegisterHook( "MenuManagerPostInitialize" )
 function MenuManager.init( self, ... )
 	self.orig.init( self, ... )
 	Hooks:Call( "MenuManagerInitialize", self )
+	Hooks:Call( "MenuManagerPostInitialize", self )
 end
 
 Hooks:RegisterHook( "MenuManagerOnOpenMenu" )
@@ -21,7 +23,7 @@ function MenuManager.open_node( self, node_name, parameter_list )
 end
 
 -- Add menus
-Hooks:Add( "MenuManagerInitialize", "MenuManagerInitialize_Base_AddLuaModsMenu", function( menu_manager )
+Hooks:Add( "MenuManagerPostInitialize", "MenuManagerPostInitialize_Base", function( menu_manager )
 
 	local success, err = pcall(function()
 
@@ -175,15 +177,15 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 		local mod_disabled = not LuaModManager:IsModEnabled( v.path )
 		local path = v.path
 		local info = v.definition
-		local mod_name = info[ C.mod_name_key ] or "No Mod Name"
-		local mod_desc = info[ C.mod_desc_key ] or "No Mod Description"
-		local mod_version = info[ C.mod_version_key ] or "1.0"
-		local mod_author = info[ C.mod_author_key ] or "No Author"
-		local mod_contact = info[ C.mod_contact_key ] or "No Contact Details"
-		local mod_hooks = info[ C.mod_hooks_key ] or "No Hooks"
-		local mod_prehooks = info[ C.mod_prehooks_key ] or "No Pre-Hooks"
-		local mod_persist_scripts = info[ C.mod_persists_key ] or "No Persistent Scripts"
-		local mod_keybinds = info[ C.mod_keybinds_key ] or "No Keybinds"
+		local mod_name = info[ C.mod_name_key ] or text("base_mod_info_no_name")
+		local mod_desc = info[ C.mod_desc_key ] or text("base_mod_info_no_desc")
+		local mod_version = info[ C.mod_version_key ] or nil
+		local mod_author = info[ C.mod_author_key ] or text("base_mod_info_no_author")
+		local mod_contact = info[ C.mod_contact_key ] or text("base_mod_info_no_contact")
+		local mod_hooks = info[ C.mod_hooks_key ] or text("base_mod_info_no_hooks")
+		local mod_prehooks = info[ C.mod_prehooks_key ] or text("base_mod_info_no_prehooks")
+		local mod_persist_scripts = info[ C.mod_persists_key ] or text("base_mod_info_no_persist_scripts")
+		local mod_keybinds = info[ C.mod_keybinds_key ] or text("base_mod_info_no_keybinds")
 
 		table.insert(sorted_mods, mod_name)
 		mods[mod_name] = {
@@ -195,7 +197,9 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 		mods[mod_name].title = mods[mod_name].title .. ( mod_disabled and (" [" .. text("base_mod_info_disabled") .. "]") or "" )
 		local content = mods[mod_name].content
 		table.insert( content, mod_desc )
-		table.insert( content, text("base_mod_info_version") .. ": " .. mod_version )
+		if mod_version then
+			table.insert( content, text("base_mod_info_version") .. ": " .. mod_version )
+		end
 		table.insert( content, text("base_mod_info_author") .. ": " .. mod_author )
 		table.insert( content, text("base_mod_info_contact") .. ": " .. mod_contact )
 		table.insert( content, text("base_mod_info_path") .. ": " .. path )

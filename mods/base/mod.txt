@@ -9,6 +9,7 @@
 		{ "hook_id" : "lib/entry", "script_path" : "req/utils.lua" },
 		{ "hook_id" : "lib/entry", "script_path" : "req/hooks.lua" },
 		{ "hook_id" : "lib/entry", "script_path" : "req/delayed_calls.lua" },
+		{ "hook_id" : "lib/entry", "script_path" : "req/localization.lua" },
 		{ "hook_id" : "lib/entry", "script_path" : "req/menus.lua" },
 		{ "hook_id" : "lib/entry", "script_path" : "req/network.lua" },
 		{ "hook_id" : "lib/entry", "script_path" : "req/options.lua" },
@@ -40,10 +41,10 @@
 		{ 	"hook_id" : "core/lib/managers/menu/items/coremenuitemslider",
 			"script_path" : "lua/CoreMenuItemSlider.lua"
 		},
-		{ 	"hook_id" : "lib/setups/menusetup",
+		{ 	"hook_id" : "lib/managers/menumanager",
 			"script_path" : "req/lua_mods_menu.lua"
 		},
-		{ 	"hook_id" : "lib/setups/menusetup",
+		{ 	"hook_id" : "lib/managers/menumanager",
 			"script_path" : "req/mod_keybinds.lua"
 		}
 	]

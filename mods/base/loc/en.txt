@@ -3,6 +3,7 @@
 	"base_options_menu_lua_mods_desc" : "Check status, enable and disable your installed Lua mods",
 	"base_options_menu_keybinds" : "Mod Keybinds",
 	"base_options_menu_keybinds_desc" : "Customize keybinds for lua modifications",
+
 	"base_mod_info_version" : "Version",
 	"base_mod_info_author" : "Author",
 	"base_mod_info_contact" : "Contact",
@@ -12,4 +13,13 @@
 	"base_mod_info_hooks" : "Hooks",
 	"base_mod_info_persist" : "Persistent Scripts",
 	"base_mod_info_disabled" : "Disabled",
+
+	"base_mod_info_no_name" : "No Mod Name",
+	"base_mod_info_no_desc" : "No Mod Description",
+	"base_mod_info_no_author" : "No Author Specified",
+	"base_mod_info_no_contact" : "No Contact Details",
+	"base_mod_info_no_keybinds" : "No Keybinds",
+	"base_mod_info_no_hooks" : "No Hooks",
+	"base_mod_info_no_prehooks" : "No Pre-Hooks",
+	"base_mod_info_no_persist_scripts" : "No Persistent Scripts",
 }

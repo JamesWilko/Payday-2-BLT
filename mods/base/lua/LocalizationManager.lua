@@ -3,9 +3,10 @@ CloneClass( LocalizationManager )
 
 LocalizationManager._custom_localizations = LocalizationManager._custom_localizations or {}
 
+Hooks:RegisterHook("LocalizationManagerPostInit")
 function LocalizationManager.init( self )
 	self.orig.init( self )
-	self:load_localization_file( LuaModManager._base_path .. "loc/en.txt")
+	Hooks:Call( "LocalizationManagerPostInit", self )
 end
 
 function LocalizationManager.text( self, str, macros )
