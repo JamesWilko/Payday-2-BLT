@@ -12,7 +12,6 @@
 		{ "hook_id" : "lib/entry", "script_path" : "req/localization.lua" },
 		{ "hook_id" : "lib/entry", "script_path" : "req/menus.lua" },
 		{ "hook_id" : "lib/entry", "script_path" : "req/network.lua" },
-		{ "hook_id" : "lib/entry", "script_path" : "req/options.lua" },
 		{ "hook_id" : "lib/entry", "script_path" : "req/persist_scripts.lua" },
 		{ "hook_id" : "lib/entry", "script_path" : "req/SimpleMenu.lua" }
 	],

@@ -319,11 +319,6 @@ function Menu:AddMenuItem( parent_menu, child_menu, name, desc, menu_position, s
 		return
 	end
 
-	-- Put at end of menu
-	if menu_position == nil then
-		menu_position = #parent_menu._items + 1
-	end
-
 	-- Get menu position from string
 	if type( menu_position ) == "string" then
 		for k, v in pairs( parent_menu._items ) do
@@ -345,9 +340,14 @@ function Menu:AddMenuItem( parent_menu, child_menu, name, desc, menu_position, s
 		end
 	end
 
+	-- Put at end of menu, but before the back button
+	if menu_position == nil or type(menu_position) == "string" then
+		menu_position = #parent_menu._items
+	end
+
 	-- Insert in menu
 	local button = deep_clone( self.menubutton_to_clone )
-	button._parameters.name = name
+	button._parameters.name = child_menu
 	button._parameters.text_id = name
 	button._parameters.help_id = desc
 	button._parameters.next_node = child_menu
@@ -371,25 +371,15 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 		local items = content.items
 
 		Hooks:Add("MenuManagerSetupCustomMenus", "Base_SetupCustomMenus_Json_" .. menu_id, function( menu_manager, nodes )
-			if nodes[parent_menu] then
-				MenuHelper:NewMenu( menu_id )
-			else
-				log("[Error] Could not build menu from json, no node with id: " .. parent_menu)
-			end
+			MenuHelper:NewMenu( menu_id )
 		end)
 
 		Hooks:Add("MenuManagerBuildCustomMenus", "Base_BuildCustomMenus_Json_" .. menu_id, function( menu_manager, nodes )
-			if nodes[parent_menu] then
-				nodes[menu_id] = MenuHelper:BuildMenu( menu_id )
-				MenuHelper:AddMenuItem( nodes[parent_menu], menu_id, menu_name, menu_desc )
-			end
+			nodes[menu_id] = MenuHelper:BuildMenu( menu_id )
+			MenuHelper:AddMenuItem( nodes[parent_menu], menu_id, menu_name, menu_desc )
 		end)
 
 		Hooks:Add("MenuManagerPopulateCustomMenus", "Base_PopulateCustomMenus_Json_" .. menu_id, function( menu_manager, nodes )
-
-			if not nodes[parent_menu] then
-				return
-			end
 
 			for k, item in pairs( items ) do
 

@@ -84,10 +84,11 @@ function MenuManager._base_process_menu( menu_manager, menu_name, parent_menu_na
 end
 
 -- Add lua mods menu
-ModMenuCreator._mod_menu_modifies = {
-	["base_lua_mods_menu"] = "create_lua_mods_menu"
-}
 function ModMenuCreator.modify_node(self, original_node, data)
+
+	ModMenuCreator._mod_menu_modifies = {
+		[ LuaModManager.Constants._lua_mods_menu_id ] = "create_lua_mods_menu"
+	}
 
 	local node_name = original_node._parameters.name
 	if self._mod_menu_modifies then
@@ -103,6 +104,7 @@ function ModMenuCreator.modify_node(self, original_node, data)
 	end
 
 	return self.orig.modify_node(self, original_node, data)
+
 end
 
 function ModMenuCreator.create_lua_mods_menu(self, node)

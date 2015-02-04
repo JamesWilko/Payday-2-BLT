@@ -1,6 +1,6 @@
 {
 	"menu_id" : "json_example_menu",
-	"parent_menu_id" : "options",
+	"parent_menu_id" : "lua_mod_options_menu",
 	"title" : "my_custom_menu",
 	"description" : "my_custom_menu_desc",
 	"items" : [

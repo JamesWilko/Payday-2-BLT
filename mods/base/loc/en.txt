@@ -3,6 +3,8 @@
 	"base_options_menu_lua_mods_desc" : "Check status, enable and disable your installed Lua mods",
 	"base_options_menu_keybinds" : "Mod Keybinds",
 	"base_options_menu_keybinds_desc" : "Customize keybinds for lua modifications",
+	"base_options_menu_lua_mod_options" : "Mod Options",
+	"base_options_menu_lua_mod_options_desc" : "Customize your lua mods",
 
 	"base_mod_info_version" : "Version",
 	"base_mod_info_author" : "Author",
