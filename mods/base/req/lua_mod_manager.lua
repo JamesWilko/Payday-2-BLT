@@ -69,6 +69,15 @@ local function clone( o )
 	return res
 end
 
+function LuaModManager:WasModEnabledAtLoadTime( mod_name )
+	-- Use a separate table for checking if mods are enabled, so that we don't end up showing that mods
+	-- are "enabled" when somebody flags a mod for being enabled and then reloads the mods menu
+	if not self._enabled_mods_on_load then
+		self._enabled_mods_on_load = clone( self._enabled_mods )
+	end
+	return (self._enabled_mods_on_load[mod_name] == nil or self._enabled_mods_on_load[mod_name] == true)
+end
+
 function LuaModManager:IsModEnabled( mod_name )
 	return (self._enabled_mods[mod_name] == nil or self._enabled_mods[mod_name] == true)
 end
@@ -87,6 +96,7 @@ function LuaModManager:ToggleModState( mod_name )
 		end
 		self:Save()
 	end
+	return self._enabled_mods[mod_name]
 end
 
 function LuaModManager:EnableMod( mod_name )
@@ -97,6 +107,10 @@ end
 function LuaModManager:DisableMod( mod_name )
 	self:SetModEnabledState( mod_name, false )
 	self:Save()
+end
+
+function LuaModManager:IsFlaggedForEnabledChange( mod_name )
+	return self:IsModEnabled( mod_name ) ~= self:WasModEnabledAtLoadTime( mod_name )
 end
 
 function LuaModManager:PersistScripts()	

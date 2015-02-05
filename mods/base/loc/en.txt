@@ -15,6 +15,9 @@
 	"base_mod_info_hooks" : "Hooks",
 	"base_mod_info_persist" : "Persistent Scripts",
 	"base_mod_info_disabled" : "Disabled",
+	"base_mod_info_to_be_disabled" : "Will be disabled on restart",
+	"base_mod_info_to_be_enabled" : "Will be enabled on restart",
+	"base_mod_info_disabled_impossible" : "Cannot be disabled",
 
 	"base_mod_info_no_name" : "No Mod Name",
 	"base_mod_info_no_desc" : "No Mod Description",

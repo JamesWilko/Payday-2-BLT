@@ -176,9 +176,11 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 
 	for k, v in pairs( LuaModManager.Mods ) do
 
-		local mod_disabled = not LuaModManager:IsModEnabled( v.path )
+		local mod_disabled = not LuaModManager:WasModEnabledAtLoadTime( v.path )
+		local mod_flagged = LuaModManager:IsFlaggedForEnabledChange( v.path )
 		local path = v.path
 		local info = v.definition
+		local mod_tag = " [{0}]"
 		local mod_name = info[ C.mod_name_key ] or text("base_mod_info_no_name")
 		local mod_desc = info[ C.mod_desc_key ] or text("base_mod_info_no_desc")
 		local mod_version = info[ C.mod_version_key ] or nil
@@ -195,8 +197,15 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 			conflicted = {},
 			title = nil
 		}
-		mods[mod_name].title = mod_name
-		mods[mod_name].title = mods[mod_name].title .. ( mod_disabled and (" [" .. text("base_mod_info_disabled") .. "]") or "" )
+
+		local title_str = mod_name
+		if mod_flagged then
+			title_str = title_str .. mod_tag:gsub( "{0}", mod_disabled and text("base_mod_info_to_be_enabled") or text("base_mod_info_to_be_disabled") )
+		else
+			title_str = title_str .. ( mod_disabled and mod_tag:gsub( "{0}", text("base_mod_info_disabled") ) or "" )
+		end
+		mods[mod_name].title = title_str
+
 		local content = mods[mod_name].content
 		table.insert( content, mod_desc )
 		if mod_version then
@@ -212,7 +221,26 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 
 		MenuCallbackHandler.base_toggle_lua_mod = function(self, item)
 			if item and item._parameters.mod_path then
-				LuaModManager:ToggleModState( item._parameters.mod_path )
+
+				local path_id = item._parameters.mod_path
+				local text_id = item._parameters.text_id
+				LuaModManager:ToggleModState( path_id )
+
+				local disabled = item:value() == "off" and true or false
+				local node_title = ""
+				if C.always_active_mods[path_id] then
+					item:set_value("on")
+					node_title = text_id .. mod_tag:gsub( "{0}", text("base_mod_info_disabled_impossible") )
+				else
+					node_title = text_id .. mod_tag:gsub( "{0}", disabled and text("base_mod_info_to_be_disabled") or text("base_mod_info_to_be_enabled") )
+				end
+				node._parameters.mods[text_id].title = node_title
+
+				local gui = MenuCallbackHandler._current_mod_info_gui
+				if gui then
+					gui:set_mod_info(item)
+				end
+
 			end
 		end
 
@@ -226,7 +254,11 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 			hightlight_color = mod_disabled and tweak_data.menu.default_disabled_text_color,
 			row_item_color = mod_disabled and tweak_data.menu.default_disabled_text_color,
 		}
-		self:create_toggle(node, params)
+		local toggle = self:create_toggle(node, params)
+		toggle:set_value( mod_disabled and "off" or "on" )
+		if mod_flagged then
+			toggle:set_value( mod_disabled and "on" or "off" )
+		end
 
 	end
 
@@ -241,6 +273,9 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 end
 
 function MenuModInfoGui.set_mod_info(self, item)
+
+	-- This is ugly as hell, but at least it gets us an easily usable reference to the mod gui
+	MenuCallbackHandler._current_mod_info_gui = self
 
 	self.mod_info_panel:clear()
 
