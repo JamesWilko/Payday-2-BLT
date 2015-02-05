@@ -210,22 +210,23 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 		add_hooks_list( content, mod_hooks, "base_mod_info_hooks" )
 		add_persist_scripts_list( content, mod_persist_scripts, "base_mod_info_persist" )
 
-		MenuCallbackHandler.base_toggle_lua_mod = function(this, item)
+		MenuCallbackHandler.base_toggle_lua_mod = function(self, item)
 			if item and item._parameters.mod_path then
 				LuaModManager:ToggleModState( item._parameters.mod_path )
 			end
 		end
 
-		self:create_item(node, {
+		local params = {
 			text_id = mod_name,
 			name = mod_name,
 			mod_path = path,
 			localize = false,
 			enabled = true,
 			callback = "base_toggle_lua_mod",
-			hightlight_color = mod_disabled and tweak_data.screen_colors.important_1,
-			row_item_color = mod_disabled and tweak_data.screen_colors.important_2,
-		})
+			hightlight_color = mod_disabled and tweak_data.menu.default_disabled_text_color,
+			row_item_color = mod_disabled and tweak_data.menu.default_disabled_text_color,
+		}
+		self:create_toggle(node, params)
 
 	end
 

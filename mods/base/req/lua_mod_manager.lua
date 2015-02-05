@@ -161,12 +161,23 @@ end
 
 function LuaModManager:SaveTableToJson( tbl, file_path )
 
-	local file = io.open(file_path, "w+")
-	if file then
-		file:write( json.encode( tbl ) )
-		file:close()
+	local count = 0
+	for k, v in pairs( tbl ) do
+		count = count + 1
+	end
+
+	if tbl and count > 0 then
+
+		local file = io.open(file_path, "w+")
+		if file then
+			file:write( json.encode( tbl ) )
+			file:close()
+		else
+			log("[Error] Could not save to file '" .. file_path .. "', data may be lost!")
+		end
+
 	else
-		log("[Error] Could not save to file '" .. file_path .. "', data may be lost!")
+		log("[Warning] Attempting to save empty data table '" .. file_path .. "', skipping...")
 	end
 
 end
