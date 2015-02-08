@@ -3,6 +3,7 @@ if not _G["LuaModManager"] then
 	declare( "LuaModManager", {} )
 end
 LuaModManager = LuaModManager or {}
+LuaModManager.Revision = 100
 LuaModManager.Constants = LuaModManager.Constants or {}
 
 local C = LuaModManager.Constants

@@ -487,3 +487,29 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 	end
 
 end
+
+function Menu:ResetItemsToDefaultValue( item, items_table, value )
+
+	if type(items_table) ~= "table" then
+		local s = tostring(items_table)
+		items_table = {}
+		items_table[s] = true
+	end
+
+	local node_items = item._parameters.gui_node.row_items
+	for k, v in pairs( node_items ) do
+
+		if items_table[v.item._parameters.name] and v.item.set_value then
+
+			v.item:set_value( value )
+			for x, y in pairs( v.item._parameters.callback ) do
+				y(v.item)
+			end
+
+			v.item:reload(v, v.node)
+
+		end
+
+	end
+
+end

@@ -59,7 +59,16 @@ Hooks:Add( "MenuManagerInitialize", "MenuManagerInitialize_JsonMenuExample", fun
 	end
 
 	MenuCallbackHandler.callback_test_button = function(self, item)
+
 		log("Pressed Button")
+
+		-- Reset slider to 0 on press
+		local items_to_reset = {
+			["json_menu_slider"] = true,
+		}
+		local default_value = 0
+		MenuHelper:ResetItemsToDefaultValue( item, items_to_reset, default_value )
+
 	end
 
 	MenuCallbackHandler.callback_test_multi = function(self, item)
