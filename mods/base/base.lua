@@ -1,7 +1,8 @@
 
 -- Create our console
-local console = console
-console.CreateConsole()
+if true then
+	console.CreateConsole()
+end
 
 -- Vars
 if not _G then return end
@@ -28,6 +29,7 @@ _mods_folders 	= _mods_folders or {}
 _mods 			= _mods or {}
 _prehooks 		= _prehooks or {}
 _posthooks 		= _posthooks or {}
+_wildcard_hooks	= _wildcard_hooks or {}
 
 -- Load JSON
 if not _loaded_json then
@@ -81,6 +83,11 @@ if not _require_orig then
 		call_require_hook( _prehooks, path )
 		local res = _require_orig( path_orig )
 		call_require_hook( _posthooks, path )
+		for k, v in ipairs( _wildcard_hooks ) do
+			declare( C.required_script_global, path )
+			declare( C.mod_path_global, v.mod_path )
+			dofile( v.script )
+		end
 
 		return res
 
@@ -162,8 +169,13 @@ if _loaded_mod_folders and _mods then
 						mod_path = mod.path,
 						script = mod.path .. script
 					}
-					destination_table[ hook_id ] = destination_table[ hook_id ] or {}
-					table.insert( destination_table[ hook_id ], tbl )
+
+					if hook_id ~= C.mod_hook_wildcard_key then
+						destination_table[ hook_id ] = destination_table[ hook_id ] or {}
+						table.insert( destination_table[ hook_id ], tbl )
+					else
+						table.insert( _wildcard_hooks, tbl )
+					end
 
 				end
 			end

@@ -40,6 +40,7 @@ C.mod_hook_id_key = "hook_id"
 C.mod_script_path_key = "script_path"
 C.mod_persists_global_key = "global"
 C.mod_persists_path_key = "path"
+C.mod_hook_wildcard_key = "*"
 
 C.mod_keybinds_key = "keybinds"
 C.mod_keybind_id_key = "keybind_id"
