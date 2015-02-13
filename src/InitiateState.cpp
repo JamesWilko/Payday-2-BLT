@@ -6,6 +6,7 @@
 #include "console/console.h"
 #include "threading/queue.h"
 #include "http/http.h"
+#include "graphics/loader.h"
 
 #include <thread>
 
@@ -266,6 +267,7 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 static HTTPManager mainManager;
 
 void InitiateStates(){
+	StartupLoaderWindow();
 
 	main_thread_id = std::this_thread::get_id();
 

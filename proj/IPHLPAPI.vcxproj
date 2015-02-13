@@ -76,11 +76,13 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>iphp.def</ModuleDefinitionFile>
-      <AdditionalDependencies>libcurl_a.lib;detours.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcurl_a.lib;detours.lib;opengl32.lib;glew32s.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\console\console.cpp" />
+    <ClCompile Include="..\src\graphics\fonts.cpp" />
+    <ClCompile Include="..\src\graphics\loader.cpp" />
     <ClCompile Include="..\src\http\http.cpp" />
     <ClCompile Include="..\src\iphp.cpp" />
     <ClCompile Include="..\src\InitiateState.cpp" />
@@ -91,6 +93,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\console\console.h" />
+    <ClInclude Include="..\src\graphics\graphics.h" />
+    <ClInclude Include="..\src\graphics\loader.h" />
     <ClInclude Include="..\src\http\http.h" />
     <ClInclude Include="..\src\InitState.h" />
     <ClInclude Include="..\src\signatures\signatures.h" />
