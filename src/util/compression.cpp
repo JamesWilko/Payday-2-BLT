@@ -51,7 +51,7 @@ bool ZIPArchive::ReadFile(){
 	int fileHeader = mainStream.readType<int>();
 	if (fileHeader != 0x04034b50) return false;
 
-	printf("Version Needed: %d.%d\n", mainStream.readType<char>(), mainStream.readType<char>());
+	int versionNeeded = mainStream.readType<short>();
 
 	// Ignore 'general purpose bit flag'
 	mainStream.readType<short>();
@@ -97,7 +97,7 @@ bool ZIPArchive::WriteFile(ZIPFileData* data){
 	outFile.open(finalWritePath.c_str(), std::ios::out | std::ios::binary);
 	if (!outFile.good()){
 		outFile.close();
-		return;
+		return false;
 	}
 	outFile.write(data->decompressedData.c_str(), data->uncompressedSize);
 	outFile.close();
