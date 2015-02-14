@@ -104,6 +104,17 @@ int luaF_getfiles(lua_State* L){
 	return 1;
 }
 
+int luaF_unzipfile(lua_State* L){
+	size_t len;
+	const char* archivePath = lua_tolstring(L, 1, &len);
+	const char* extractPath = lua_tolstring(L, 2, &len);
+
+	ZIPArchive* archive = new ZIPArchive(archivePath, extractPath);
+	archive->ReadArchive();
+	delete archive;
+	return 0;
+}
+
 int luaF_pcall(lua_State* L){
 	int args = lua_gettop(L);
 
@@ -238,6 +249,7 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	CREATE_LUA_FUNCTION(luaF_getdir, "getdir")
 	CREATE_LUA_FUNCTION(luaF_getfiles, "getfiles")
 	CREATE_LUA_FUNCTION(luaF_print, "log")
+	CREATE_LUA_FUNCTION(luaF_unzipfile, "unzip")
 
 	luaL_Reg consoleLib[] = { { "CreateConsole", luaF_createconsole }, { "DestroyConsole", luaF_destroyconsole }, { NULL, NULL } };
 	luaI_openlib(L, "console", consoleLib, 0);

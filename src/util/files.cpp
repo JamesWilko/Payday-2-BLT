@@ -61,4 +61,17 @@ namespace Util{
 		
 		return str;
 	}
+
+	bool DirectoryExists(std::string dir){
+		DWORD ftyp = GetFileAttributes(dir.c_str());
+		if (ftyp & FILE_ATTRIBUTE_DIRECTORY) return true;
+		return false;
+	}
+
+	void EnsurePathWritable(std::string path){
+		int finalSlash = path.find_last_of('/');
+		std::string finalPath = path.substr(0, finalSlash);
+		if (DirectoryExists(finalPath)) return;
+		CreateDirectory(finalPath.c_str(), NULL);
+	}
 }
