@@ -160,7 +160,7 @@ void return_lua_http(void* data, std::string& urlcontents){
 	lua_rawgeti(ourData->L, LUA_REGISTRYINDEX, ourData->funcRef);
 	lua_pushlstring(ourData->L, urlcontents.c_str(), urlcontents.length());
 	lua_pushinteger(ourData->L, ourData->requestIdentifier);
-	lua_pcall(ourData->L, 1, 0, 0);
+	lua_pcall(ourData->L, 2, 0, 0);
 	luaL_unref(ourData->L, LUA_REGISTRYINDEX, ourData->funcRef);
 	luaL_unref(ourData->L, LUA_REGISTRYINDEX, ourData->progressRef);
 	delete ourData;

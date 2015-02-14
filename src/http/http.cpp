@@ -60,6 +60,8 @@ void HTTPManager::SSL_Unlock(int lockno){
 
 HTTPItem::HTTPItem(){
 	progress = NULL;
+	byteprogress = 0;
+	bytetotal = 0;
 }
 
 size_t write_http_data(char* ptr, size_t size, size_t nmemb, void* data){
@@ -69,17 +71,34 @@ size_t write_http_data(char* ptr, size_t size, size_t nmemb, void* data){
 	return size*nmemb;
 }
 
+struct HTTPProgressNotification{
+	HTTPItem* ourItem;
+	long byteProgress;
+	long byteTotal;
+};
+
 void run_http_progress_event(void* data){
-	HTTPItem* ourItem = (HTTPItem*)data;
-	ourItem->progress(ourItem->data, ourItem->byteprogress, ourItem->bytetotal);
+	HTTPProgressNotification* ourNotify = (HTTPProgressNotification*)data;
+	HTTPItem* ourItem = ourNotify->ourItem;
+	ourItem->progress(ourItem->data, ourNotify->byteProgress, ourNotify->byteTotal);
+	delete ourNotify;
 }
 
 int http_progress_call(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow){
 	HTTPItem* ourItem = (HTTPItem*)clientp;
 	if (!ourItem->progress) return 0;
+	if (dltotal == 0 || dlnow == 0) return 0;
+	if (dltotal == dlnow) return 0;
+	if (ourItem->byteprogress >= dlnow) return 0;
 	ourItem->byteprogress = dlnow;
 	ourItem->bytetotal = dltotal;
-	EventQueueM::GetSingleton()->AddToQueue(run_http_progress_event, ourItem);
+
+	HTTPProgressNotification* notify = new HTTPProgressNotification();
+	notify->ourItem = ourItem;
+	notify->byteProgress = dlnow;
+	notify->byteTotal = dltotal;
+
+	EventQueueM::GetSingleton()->AddToQueue(run_http_progress_event, notify);
 	return 0;
 }
 
@@ -107,6 +126,7 @@ void launch_thread_http(HTTPItem* item){
 	
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_http_data);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, item);
+
 	curl_easy_perform(curl);
 	curl_easy_cleanup(curl);
 

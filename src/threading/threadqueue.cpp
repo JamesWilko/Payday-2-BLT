@@ -33,7 +33,6 @@ void EventQueueM::ProcessEvents(){
 
 	std::deque<EventItem*>::iterator it;
 	for (it = eventClone.begin(); it != eventClone.end(); it++){
-		Logging::Log("Event Ran");
 		(*it)->RunFunction();
 		delete (*it);
 	}
@@ -43,7 +42,6 @@ void EventQueueM::AddToQueue(EventItem* newItem){
 	criticalLock.lock();
 	eventQueue.push_back(newItem);
 	criticalLock.unlock();
-	Logging::Log("Event Added to Queue");
 }
 
 void EventQueueM::AddToQueue(EventFunction func, void* data){
