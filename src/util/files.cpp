@@ -64,6 +64,7 @@ namespace Util{
 
 	bool DirectoryExists(std::string dir){
 		DWORD ftyp = GetFileAttributes(dir.c_str());
+		if (ftyp == INVALID_FILE_ATTRIBUTES) return false;
 		if (ftyp & FILE_ATTRIBUTE_DIRECTORY) return true;
 		return false;
 	}

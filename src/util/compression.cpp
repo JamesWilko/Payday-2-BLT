@@ -91,9 +91,14 @@ bool ZIPArchive::ReadFile(){
 
 bool ZIPArchive::WriteFile(ZIPFileData* data){
 	std::string finalWritePath = extractTo + "/" + data->filepath;
+	Logging::Log("Extracting to " + finalWritePath);
 	Util::EnsurePathWritable(finalWritePath);
 	std::ofstream outFile;
 	outFile.open(finalWritePath.c_str(), std::ios::out | std::ios::binary);
+	if (!outFile.good()){
+		outFile.close();
+		return;
+	}
 	outFile.write(data->decompressedData.c_str(), data->uncompressedSize);
 	outFile.close();
 	return true;
