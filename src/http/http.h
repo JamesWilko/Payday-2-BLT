@@ -7,12 +7,18 @@
 #include <list>
 
 typedef void(*HTTPCallback)(void* data, std::string& urlContents);
+typedef void(*HTTPProgress)(void* data, long progress, long total);
 
 struct HTTPItem {
+	HTTPItem();
 	HTTPCallback call;
+	HTTPProgress progress;
 	std::string url;
 	std::string httpContents;
 	void* data;
+
+	long byteprogress;
+	long bytetotal;
 };
 
 class HTTPManager {

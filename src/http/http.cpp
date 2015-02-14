@@ -58,11 +58,29 @@ void HTTPManager::SSL_Unlock(int lockno){
 	openssl_locks[lockno].unlock();
 }
 
+HTTPItem::HTTPItem(){
+	progress = NULL;
+}
+
 size_t write_http_data(char* ptr, size_t size, size_t nmemb, void* data){
 	std::string newData = std::string(ptr, size*nmemb);
 	HTTPItem* mainItem = (HTTPItem*)data;
 	mainItem->httpContents += newData;
 	return size*nmemb;
+}
+
+void run_http_progress_event(void* data){
+	HTTPItem* ourItem = (HTTPItem*)data;
+	ourItem->progress(ourItem->data, ourItem->byteprogress, ourItem->bytetotal);
+}
+
+int http_progress_call(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow){
+	HTTPItem* ourItem = (HTTPItem*)clientp;
+	if (!ourItem->progress) return 0;
+	ourItem->byteprogress = dlnow;
+	ourItem->bytetotal = dltotal;
+	EventQueueM::GetSingleton()->AddToQueue(run_http_progress_event, ourItem);
+	return 0;
 }
 
 void run_http_event(void* data){
@@ -78,6 +96,14 @@ void launch_thread_http(HTTPItem* item){
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60);
+
+	if (item->progress){
+		curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, http_progress_call);
+		curl_easy_setopt(curl, CURLOPT_XFERINFODATA, item);
+		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+	}
 	
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_http_data);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, item);

@@ -150,6 +150,8 @@ int luaF_dofile(lua_State* L){
 
 struct lua_http_data {
 	int funcRef;
+	int progressRef;
+	int requestIdentifier;
 	lua_State* L;
 };
 
@@ -157,13 +159,34 @@ void return_lua_http(void* data, std::string& urlcontents){
 	lua_http_data* ourData = (lua_http_data*)data;
 	lua_rawgeti(ourData->L, LUA_REGISTRYINDEX, ourData->funcRef);
 	lua_pushlstring(ourData->L, urlcontents.c_str(), urlcontents.length());
+	lua_pushinteger(ourData->L, ourData->requestIdentifier);
 	lua_pcall(ourData->L, 1, 0, 0);
 	luaL_unref(ourData->L, LUA_REGISTRYINDEX, ourData->funcRef);
+	luaL_unref(ourData->L, LUA_REGISTRYINDEX, ourData->progressRef);
 	delete ourData;
 }
 
+void progress_lua_http(void* data, long progress, long total){
+	lua_http_data* ourData = (lua_http_data*)data;
+	if (ourData->progressRef == 0) return;
+	lua_rawgeti(ourData->L, LUA_REGISTRYINDEX, ourData->progressRef);
+	lua_pushinteger(ourData->L, ourData->requestIdentifier);
+	lua_pushinteger(ourData->L, progress);
+	lua_pushinteger(ourData->L, total);
+	lua_pcall(ourData->L, 3, 0, 0);
+}
+
+static int HTTPReqIdent = 0;
+
 int luaF_dohttpreq(lua_State* L){
 	Logging::Log("Incoming HTTP Request/Request");
+
+	int args = lua_gettop(L);
+	int progressReference = 0;
+	if (args >= 3){
+		progressReference = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+
 	int functionReference = luaL_ref(L, LUA_REGISTRYINDEX);
 	size_t len;
 	const char* url_c = lua_tolstring(L, 1, &len);
@@ -174,15 +197,24 @@ int luaF_dohttpreq(lua_State* L){
 
 	lua_http_data* ourData = new lua_http_data();
 	ourData->funcRef = functionReference;
+	ourData->progressRef = progressReference;
 	ourData->L = L;
+
+	HTTPReqIdent++;
+	ourData->requestIdentifier = HTTPReqIdent;
 
 	HTTPItem* reqItem = new HTTPItem();
 	reqItem->call = return_lua_http;
 	reqItem->data = ourData;
 	reqItem->url = url;
 
+	if (progressReference != 0){
+		reqItem->progress = progress_lua_http;
+	}
+
 	HTTPManager::GetSingleton()->LaunchHTTPRequest(reqItem);
-	return 0;
+	lua_pushinteger(L, HTTPReqIdent);
+	return 1;
 }
 
 CConsole* gbl_mConsole = NULL;
