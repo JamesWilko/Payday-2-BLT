@@ -61,6 +61,14 @@ CREATE_CALLABLE_CLASS_SIGNATURE(luaL_newstate, int, "\x8B\x44\x24\x0C\x56\x8B\xF
 #define LUA_ERRERR	5
 #define LUA_ERRFILE     (LUA_ERRERR+1)
 
+void lua_newcall(lua_State* L, int args, int returns){
+	int result = lua_pcall(L, args, returns, 0);
+	if (result != 0) {
+		size_t len;
+		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
+	}
+}
+
 int luaF_getdir(lua_State* L){
 	size_t len;
 	const char* dirc = lua_tolstring(L, 1, &len);
@@ -119,6 +127,11 @@ int luaF_pcall(lua_State* L){
 	int args = lua_gettop(L);
 
 	int result = lua_pcall(L, args - 1, -1, 0);
+	if (result == LUA_ERRRUN){
+		size_t len;
+		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
+		return 0;
+	}
 	lua_pushboolean(L, result == 0);
 	lua_insert(L, 1);
 
@@ -318,6 +331,7 @@ void InitiateStates(){
 
 	FuncDetour* gameUpdateDetour = new FuncDetour((void**)&do_game_update, do_game_update_new);
 	FuncDetour* newStateDetour = new FuncDetour((void**)&luaL_newstate, luaL_newstate_new);
+	FuncDetour* luaCallDetour = new FuncDetour((void**)&lua_call, lua_newcall);
 	
 	new EventQueueM();
 }
