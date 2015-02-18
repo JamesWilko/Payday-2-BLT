@@ -123,6 +123,13 @@ int luaF_unzipfile(lua_State* L){
 	return 0;
 }
 
+int luaF_removeDirectory(lua_State* L){
+	size_t len;
+	const char* directory = lua_tolstring(L, 1, &len);
+	Util::RemoveEmptyDirectory(directory);
+	return 0;
+}
+
 int luaF_pcall(lua_State* L){
 	int args = lua_gettop(L);
 
@@ -291,13 +298,14 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	CREATE_LUA_FUNCTION(luaF_pcall, "pcall")
 	CREATE_LUA_FUNCTION(luaF_dofile, "dofile")
 	CREATE_LUA_FUNCTION(luaF_dohttpreq, "dohttpreq")
-	CREATE_LUA_FUNCTION(luaF_getdir, "getdir")
-	CREATE_LUA_FUNCTION(luaF_getfiles, "getfiles")
 	CREATE_LUA_FUNCTION(luaF_print, "log")
 	CREATE_LUA_FUNCTION(luaF_unzipfile, "unzip")
 
 	luaL_Reg consoleLib[] = { { "CreateConsole", luaF_createconsole }, { "DestroyConsole", luaF_destroyconsole }, { NULL, NULL } };
 	luaI_openlib(L, "console", consoleLib, 0);
+
+	luaL_Reg fileLib[] = { { "GetDirectories", luaF_getdir }, { "GetFiles", luaF_getfiles }, { "RemoveDirectory", luaF_removeDirectory }, { NULL, NULL } };
+	luaI_openlib(L, "file", fileLib, 0);
 
 	int result;
 	Logging::Log("Initiating Hook");

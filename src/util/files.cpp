@@ -75,4 +75,8 @@ namespace Util{
 		if (DirectoryExists(finalPath)) return;
 		CreateDirectory(finalPath.c_str(), NULL);
 	}
+
+	void RemoveEmptyDirectory(std::string dir){
+		RemoveDirectory(dir.c_str());
+	}
 }
