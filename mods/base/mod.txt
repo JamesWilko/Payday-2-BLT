@@ -45,6 +45,9 @@
 		},
 		{ 	"hook_id" : "lib/managers/menumanager",
 			"script_path" : "req/mod_keybinds.lua"
+		},
+		{ 	"hook_id" : "lib/network/networkgame",
+			"script_path" : "Lua/NetworkGame.lua"
 		}
 	]
 }
