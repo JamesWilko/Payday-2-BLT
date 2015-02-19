@@ -11,7 +11,7 @@ namespace Util {
 	std::vector<std::string> GetDirectoryContents(std::string path, bool isDirs = false);
 	std::string GetFileContents(std::string filename);
 	void EnsurePathWritable(std::string path);
-	void RemoveEmptyDirectory(std::string dir);
+	bool RemoveEmptyDirectory(std::string dir);
 }
 
 

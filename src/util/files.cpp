@@ -76,7 +76,7 @@ namespace Util{
 		CreateDirectory(finalPath.c_str(), NULL);
 	}
 
-	void RemoveEmptyDirectory(std::string dir){
-		RemoveDirectory(dir.c_str());
+	bool RemoveEmptyDirectory(std::string dir){
+		return RemoveDirectory(dir.c_str());
 	}
 }

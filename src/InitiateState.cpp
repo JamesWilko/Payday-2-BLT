@@ -126,8 +126,9 @@ int luaF_unzipfile(lua_State* L){
 int luaF_removeDirectory(lua_State* L){
 	size_t len;
 	const char* directory = lua_tolstring(L, 1, &len);
-	Util::RemoveEmptyDirectory(directory);
-	return 0;
+	bool success = Util::RemoveEmptyDirectory(directory);
+	lua_pushboolean(L, success);
+	return 1;
 }
 
 int luaF_pcall(lua_State* L){
