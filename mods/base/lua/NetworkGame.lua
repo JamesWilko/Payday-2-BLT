@@ -28,3 +28,17 @@ function NetworkGame.on_peer_added(self, peer, peer_id)
 	self.orig.on_peer_added(self, peer, peer_id)
 	Hooks:Call("NetworkGameOnPeerAdded", peer, peer_id)
 end
+
+Hooks:Register("NetworkGameOnPeerRemoved")
+function NetworkGame.on_peer_removed(self, peer, peer_id, reason)
+	self.orig.on_peer_removed(self, peer, peer_id, reason)
+	Hooks:Call("NetworkGameOnPeerRemoved", peer, peer_id, reason)
+end
+
+Hooks:Register("NetworkGameOnLoadComplete")
+function NetworkGame.on_load_complete(self)
+	local local_peer = managers.network:session():local_peer()
+	local id = local_peer:id()
+	self.orig.on_load_complete(self)
+	Hooks:Call("NetworkGameOnLoadComplete", local_peer, id)
+end
