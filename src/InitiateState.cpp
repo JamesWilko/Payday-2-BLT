@@ -69,15 +69,22 @@ void lua_newcall(lua_State* L, int args, int returns){
 	}
 }
 
-int luaF_getdir(lua_State* L){
+int luaH_getcontents(lua_State* L, bool files){
 	size_t len;
 	const char* dirc = lua_tolstring(L, 1, &len);
 	std::string dir(dirc, len);
+	std::vector<std::string> directories;
 
-	std::vector<std::string> directories = Util::GetDirectoryContents(dir, true);
+	try {
+		directories = Util::GetDirectoryContents(dir, files);
+	}
+	catch (int e){
+		lua_pushboolean(L, false);
+		return 1;
+	}
 
 	lua_createtable(L, 0, 0);
-	
+
 	std::vector<std::string>::iterator it;
 	int index = 1;
 	for (it = directories.begin(); it < directories.end(); it++){
@@ -91,24 +98,19 @@ int luaF_getdir(lua_State* L){
 	return 1;
 }
 
+int luaF_getdir(lua_State* L){
+	return luaH_getcontents(L, true);
+}
+
 int luaF_getfiles(lua_State* L){
+	return luaH_getcontents(L, false);
+}
+
+int luaF_directoryExists(lua_State* L){
 	size_t len;
 	const char* dirc = lua_tolstring(L, 1, &len);
-	std::string dir(dirc, len);
-
-	std::vector<std::string> directories = Util::GetDirectoryContents(dir, false);
-
-	lua_createtable(L, 0, 0);
-
-	std::vector<std::string>::iterator it;
-	int index = 1;
-	for (it = directories.begin(); it < directories.end(); it++){
-		lua_pushinteger(L, index);
-		lua_pushlstring(L, it->c_str(), it->length());
-		lua_settable(L, -3);
-		index++;
-	}
-
+	bool doesExist = Util::DirectoryExists(dirc);
+	lua_pushboolean(L, doesExist);
 	return 1;
 }
 
@@ -305,7 +307,7 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	luaL_Reg consoleLib[] = { { "CreateConsole", luaF_createconsole }, { "DestroyConsole", luaF_destroyconsole }, { NULL, NULL } };
 	luaI_openlib(L, "console", consoleLib, 0);
 
-	luaL_Reg fileLib[] = { { "GetDirectories", luaF_getdir }, { "GetFiles", luaF_getfiles }, { "RemoveDirectory", luaF_removeDirectory }, { NULL, NULL } };
+	luaL_Reg fileLib[] = { { "GetDirectories", luaF_getdir }, { "GetFiles", luaF_getfiles }, { "RemoveDirectory", luaF_removeDirectory }, { "DirectoryExists", luaF_directoryExists }, { NULL, NULL } };
 	luaI_openlib(L, "file", fileLib, 0);
 
 	int result;

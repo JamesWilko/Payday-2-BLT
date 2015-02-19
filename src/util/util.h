@@ -12,6 +12,7 @@ namespace Util {
 	std::string GetFileContents(std::string filename);
 	void EnsurePathWritable(std::string path);
 	bool RemoveEmptyDirectory(std::string dir);
+	bool DirectoryExists(std::string dir);
 }
 
 
