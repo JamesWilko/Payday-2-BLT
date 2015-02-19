@@ -37,8 +37,8 @@ end
 
 Hooks:Register("NetworkGameOnLoadComplete")
 function NetworkGame.on_load_complete(self)
+	self.orig.on_load_complete(self)
 	local local_peer = managers.network:session():local_peer()
 	local id = local_peer:id()
-	self.orig.on_load_complete(self)
 	Hooks:Call("NetworkGameOnLoadComplete", local_peer, id)
 end
