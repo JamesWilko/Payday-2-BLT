@@ -48,7 +48,7 @@ Hooks:Add( "MenuManagerPostInitialize", "MenuManagerPostInitialize_Base", functi
 
 		-- Setup lua mods menu
 		menu_manager:_base_process_menu(
-			"menu_main",
+			{"menu_main"},
 			"mods_options",
 			"options",
 			"MenuManager_Base_SetupModsMenu",
@@ -58,7 +58,7 @@ Hooks:Add( "MenuManagerPostInitialize", "MenuManagerPostInitialize_Base", functi
 
 		-- Setup mod options/keybinds menu
 		menu_manager:_base_process_menu(
-			"menu_main",
+			{"menu_main", "menu_pause"},
 			"video",
 			"options",
 			"MenuManager_Base_SetupModOptionsMenu",
@@ -67,8 +67,8 @@ Hooks:Add( "MenuManagerPostInitialize", "MenuManagerPostInitialize_Base", functi
 		)
 
 		-- Allow custom menus on the main menu (and lobby) and the pause menu 
-		menu_manager:_base_process_menu( "menu_main" )
-		menu_manager:_base_process_menu( "menu_pause" )
+		menu_manager:_base_process_menu( {"menu_main"} )
+		menu_manager:_base_process_menu( {"menu_pause"} )
 
 	end)
 	if not success then
@@ -77,26 +77,30 @@ Hooks:Add( "MenuManagerPostInitialize", "MenuManagerPostInitialize_Base", functi
 
 end )
 
-function MenuManager._base_process_menu( menu_manager, menu_name, parent_menu_name, parent_menu_button, setup_hook, populate_hook, build_hook )
+function MenuManager._base_process_menu( menu_manager, menu_names, parent_menu_name, parent_menu_button, setup_hook, populate_hook, build_hook )
 
-	local menu = menu_manager._registered_menus[ menu_name ]
-	if menu then
+	for k, v in pairs( menu_names ) do
 
-		local nodes = menu.logic._data._nodes
-		local hook_id_setup = setup_hook or "MenuManagerSetupCustomMenus"
-		local hook_id_populate = populate_hook or "MenuManagerPopulateCustomMenus"
-		local hook_id_build = build_hook or "MenuManagerBuildCustomMenus"
+		local menu = menu_manager._registered_menus[ v ]
+		if menu then
 
-		MenuHelper:SetupMenu( nodes, parent_menu_name or "video" )
-		MenuHelper:SetupMenuButton( nodes, parent_menu_button or "options" )
+			local nodes = menu.logic._data._nodes
+			local hook_id_setup = setup_hook or "MenuManagerSetupCustomMenus"
+			local hook_id_populate = populate_hook or "MenuManagerPopulateCustomMenus"
+			local hook_id_build = build_hook or "MenuManagerBuildCustomMenus"
 
-		Hooks:RegisterHook( hook_id_setup )
-		Hooks:RegisterHook( hook_id_populate )
-		Hooks:RegisterHook( hook_id_build )
+			MenuHelper:SetupMenu( nodes, parent_menu_name or "video" )
+			MenuHelper:SetupMenuButton( nodes, parent_menu_button or "options" )
 
-		Hooks:Call( hook_id_setup, menu_manager, nodes )
-		Hooks:Call( hook_id_populate, menu_manager, nodes )
-		Hooks:Call( hook_id_build, menu_manager, nodes )
+			Hooks:RegisterHook( hook_id_setup )
+			Hooks:RegisterHook( hook_id_populate )
+			Hooks:RegisterHook( hook_id_build )
+
+			Hooks:Call( hook_id_setup, menu_manager, nodes )
+			Hooks:Call( hook_id_populate, menu_manager, nodes )
+			Hooks:Call( hook_id_build, menu_manager, nodes )
+
+		end
 
 	end
 
