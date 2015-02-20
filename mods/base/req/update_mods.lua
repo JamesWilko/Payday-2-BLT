@@ -13,13 +13,17 @@ Hooks:Add("MenuManagerOnOpenMenu", "Base_ModUpdates_MenuManagerOnOpenMenu", func
 
 	-- Check for updates after going to the main menu
 	if menu == "menu_main" then
-		LuaModUpdates:ShowUpdatesAvailableNotification({})
-		LuaModUpdates:CheckForUpdates()
+
+		if not LuaNetworking:IsMultiplayer() then
+			LuaModUpdates:ShowUpdatesAvailableNotification({})
+			LuaModUpdates:CheckForUpdates()
+		end
+
+		-- Remove temporary hook dll
+		LuaModUpdates:RemoveTemporaryDLL()
+
 	end
-
-	-- Remove temporary hook dll
-	LuaModUpdates:RemoveTemporaryDLL()
-
+	
 end)
 
 function LuaModUpdates:RemoveTemporaryDLL()
