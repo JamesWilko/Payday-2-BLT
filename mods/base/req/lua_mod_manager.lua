@@ -71,17 +71,19 @@ C.hook_dll_temp_name = "IPHLPAPI_temp.dll"
 
 LuaModManager._persist_scripts = LuaModManager._persist_scripts or {}
 
-LuaModManager._enabled_mods = LuaModManager._enabled_mods or {}
 LuaModManager._base_path = C.mods_directory .. C.lua_base_directory
-LuaModManager._mod_manager_file_path = LuaModManager._base_path .. C.mod_manager_file
+LuaModManager._save_path = C.mods_directory .. C.saves_directory
+
+LuaModManager._enabled_mods = LuaModManager._enabled_mods or {}
+LuaModManager._mod_manager_file_path = LuaModManager._save_path .. C.mod_manager_file
 
 LuaModManager._keybinds = LuaModManager._keybinds or {}
 LuaModManager._player_keybinds = LuaModManager._player_keybinds or {}
-LuaModManager._mod_keybinds_file_path = LuaModManager._base_path .. C.mod_keybinds_file
+LuaModManager._mod_keybinds_file_path = LuaModManager._save_path .. C.mod_keybinds_file
 
 LuaModManager._updates = LuaModManager._updates or {}
 LuaModManager._updates_enabled = LuaModManager._updates_enabled or {}
-LuaModManager._mod_updates_file_path = LuaModManager._base_path .. C.mod_updates_file
+LuaModManager._mod_updates_file_path = LuaModManager._save_path .. C.mod_updates_file
 
 local function clone( o )
 	local res = {}
