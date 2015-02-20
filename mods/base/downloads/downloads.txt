@@ -1,0 +1,4 @@
+
+# Downloads
+This is the downloads folder for the Payday 2 BLT.  
+All archives downloaded from the Payday 2 BLT update system will be downloaded here before being extracted and installed.  

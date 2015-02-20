@@ -1,0 +1,4 @@
+
+# Saves
+This is a folder for mods to save their users data in.  
+All data should be saved in this saves directory to ensure that no data is lost during the update process.  
