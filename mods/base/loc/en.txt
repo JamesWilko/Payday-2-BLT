@@ -27,4 +27,46 @@
 	"base_mod_info_no_hooks" : "No Hooks",
 	"base_mod_info_no_prehooks" : "No Pre-Hooks",
 	"base_mod_info_no_persist_scripts" : "No Persistent Scripts",
+
+	"base_mod_notifications_none" : "No Notifications",
+	"base_mod_notifications_prev" : "<",
+	"base_mod_notifications_next" : ">",
+	"base_mod_notifications_count" : "$current/$max",
+
+	"base_mod_updates_all_up_to_date" : "All mods up to date!",
+	"base_mod_updates_updates_required" : " $count Update$s Required",
+	"base_mod_updates_updates_required_row" : "        $mod",
+	"base_mod_updates_click_manager" : "[Click to View Updates Manager]",
+
+	"base_mod_updates_update_all" : "Update All Mods",
+	"base_mod_automically_check_for_updates" : "$mod_name Updates",
+	"base_mod_automically_check_for_updates_desc" : "Automatically check the server for updates for the mod $mod_name every time the game is loaded",
+	"base_mod_check_for_updates_now" : "Update $mod_name Now",
+	"base_mod_check_for_updates_now_desc" : "Check the server for updates for $mod_name immediately",
+
+	"base_mod_updates_show_update_available" : "$mod_name Update Available",
+	"base_mod_updates_show_update_available_message" : "An update for $mod_name is available!\nIt can be automatically downloaded for by visiting the Update Manager in the lower-left!",
+
+	"base_mod_updates_update_mod_now" : "Update $mod_name Now",
+	"base_mod_update_update_available" : "There is an update available for $mod_name!\nDo you want to update $mod_name now?",
+	"base_mod_updates_open_update_manager" : "Open Update Manager",
+	"base_mod_updates_open_update_notes" : "View Patch Notes (Steam Overlay Required)",
+	"base_mod_updates_update_now" : "Update Now",
+	"base_mod_updates_update_later" : "Update Later",
+
+	"base_mod_updates_show_multiple_update_available" : "Multiple Updates Available",
+	"base_mod_updates_show_multiple_update_available_message" : "Updates are available for the following mods:\n$mods\nYou can update them by visiting the Update Manager in the lower-left!",
+	"base_mod_updates_update_all_now" : "Update All Mods Now",
+
+	"base_mod_update_no_update_available_title" : "$mod_name Up-to-Date!",
+	"base_mod_update_no_update_available" : "You have the latest version of $mod_name.\nDo you want to redownload and reinstall $mod_name automatically?",
+	"base_mod_update_no_update_available_ok" : "OK",
+	"base_mod_update_no_update_available_force" : "Force Redownload",
+
+	"base_mod_download_downloading_mod" : "Downloading $mod_name",
+	"base_mod_download_download_progress" : "Downloaded $downloaded kb / $total kb",
+	"base_mod_download_download_progress_extract" : "Extracting archive...",
+	"base_mod_download_download_progress_complete" : "Download Complete, Please restart your game!",
+	"base_mod_download_download_progress_failed" : "Download Failed, Please try again! :(",
+
 }

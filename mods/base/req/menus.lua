@@ -202,25 +202,24 @@ function Menu:AddMultipleChoice( multi_data )
 
 end
 
-function Menu:AddKeybinding( button_data )
+function Menu:AddKeybinding( bind_data )
 
 	local data = {
 		type = "MenuItemCustomizeController",
 	}
 
 	local params = {
-		name = button_data.id,
-		text_id = managers.localization:text(button_data.title),
-		connection_name = button_data.connection_name,
-		binding = button_data.binding,
-		localize = "false",
-		button = button_data.button,
-		callback = button_data.callback,
+		name = bind_data.id,
+		text_id = bind_data.title,
+		connection_name = bind_data.connection_name,
+		binding = bind_data.binding,
+		button = bind_data.button,
+		callback = bind_data.callback,
 	}
 
-	local menu = self:GetMenu( button_data.menu_id )
+	local menu = self:GetMenu( bind_data.menu_id )
 	local item = menu:create_item(data, params)
-	item._priority = button_data.priority or 0
+	item._priority = bind_data.priority or 0
 
 	menu._items_list = menu._items_list or {}
 	table.insert( menu._items_list, item )

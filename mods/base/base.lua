@@ -9,7 +9,7 @@ if not _G then return end
 local _G = _G
 local io = io
 local print = print
-local getdir = getdir
+local file = file
 
 if not declare then
 	declare = function(var, val)
@@ -42,6 +42,11 @@ if not _G[ C.logs_path_global ] then
 	declare( C.logs_path_global, C.mods_directory .. C.logs_directory )
 end
 
+-- Set saves folder
+if not _G[ C.save_path_global ] then
+	declare( C.save_path_global, C.mods_directory .. C.saves_directory )
+end
+
 -- IO Helper
 if io then
 
@@ -52,6 +57,51 @@ if io then
 			return true
 		end
 		return false
+	end
+
+	io.remove_directory_and_files = function( path, do_log )
+
+		if not file.DirectoryExists( path ) then
+			log("[Error] Directory does not exist: " .. path)
+			return false
+		end
+
+		local dirs = file.GetDirectories( path )
+		if dirs then
+			for k, v in pairs( dirs ) do
+				local child_path = path .. v .. "/"
+				if do_log then log("Removing directory: " .. child_path) end
+				io.remove_directory_and_files( child_path, do_log )
+				local r = file.RemoveDirectory( child_path )
+				if not r then
+					log("[Error] Could not remove directory: " .. child_path)
+					return false
+				end
+			end
+		end
+
+		local files = file.GetFiles( path )
+		if files then
+			for k, v in pairs( files ) do
+				local file_path = path .. v
+				if do_log then log("Removing files: " .. file_path) end
+				local r, error_str = os.remove( file_path )
+				if not r then
+					log("[Error] Could not remove file: " .. file_path .. ", " .. error_str)
+					return false
+				end
+			end
+		end
+
+		if do_log then log("Removing directory: " .. path) end
+		local r = file.RemoveDirectory( path )
+		if not r then
+			log("[Error] Could not remove directory: " .. path)
+			return false
+		end
+
+		return true
+
 	end
 
 end
@@ -111,37 +161,41 @@ if not _loaded_mod_folders then
 	end
 
 	print("Loading mods for state (" .. tostring(_G) .. ")")
-	_mods_folders = getdir( C.mods_directory )
+	_mods_folders = file.GetDirectories( C.mods_directory )
 
-	for k, v in pairs( _mods_folders ) do
+	if _mods_folders then
 
-		if not C.excluded_mods_directories[v] then
+		for k, v in pairs( _mods_folders ) do
 
-			print("Loading mod: " .. tostring(v) .. "...")
-			local mod_path = C.mods_directory .. v .. "/"
-			local mod_def_file = mod_path .. C.mod_definition_file
-			local is_readable = io.file_is_readable and io.file_is_readable(mod_def_file) or false
-			if is_readable then
+			if not C.excluded_mods_directories[v] then
 
-				local file = io.open(mod_def_file)
-				if file then
+				print("Loading mod: " .. tostring(v) .. "...")
+				local mod_path = C.mods_directory .. v .. "/"
+				local mod_def_file = mod_path .. C.mod_definition_file
+				local is_readable = io.file_is_readable and io.file_is_readable(mod_def_file) or false
+				if is_readable then
 
-					local file_contents = file:read("*all")
-					local mod_content = json.decode(file_contents)
-					if mod_content then
-						local data = {
-							path = mod_path,
-							definition = mod_content,
-							priority = mod_content.priority or 0,
-						}
-						table.insert( _mods, data )
+					local file = io.open(mod_def_file)
+					if file then
+
+						local file_contents = file:read("*all")
+						local mod_content = json.decode(file_contents)
+						if mod_content then
+							local data = {
+								path = mod_path,
+								definition = mod_content,
+								priority = mod_content.priority or 0,
+							}
+							table.insert( _mods, data )
+						end
+						file:close()
+
 					end
-					file:close()
 
+				else
+					print("Could not read or find " .. C.mod_definition_file .. " for modification: " .. v)
 				end
 
-			else
-				print("Could not read or find " .. C.mod_definition_file .. " for modification: " .. v)
 			end
 
 		end
@@ -206,6 +260,17 @@ if _loaded_mod_folders and _mods then
 
 	end
 
+	local add_updates = function( mod )
+
+		local updates = mod.definition[C.mod_update_key]
+		if updates then
+			for k, update in pairs( updates ) do
+				LuaModManager:AddUpdateCheck( mod.definition, mod.path, update )
+			end
+		end
+
+	end
+
 	-- Prioritize
 	table.sort( _mods, function(a, b)
 		return a.priority > b.priority
@@ -225,6 +290,9 @@ if _loaded_mod_folders and _mods then
 
 			-- Load keybinds
 			add_keybind_scripts( v )
+
+			-- Load updates
+			add_updates( v )
 
 		else
 			log("[Mods] Mod '" .. v.path .. "' is disabled!")

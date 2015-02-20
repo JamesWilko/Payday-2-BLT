@@ -20,11 +20,11 @@ Hooks:Add("MenuManager_Base_BuildModsMenu", "Base_BuildModsMenu", function( menu
 end)
 
 -- Mod Options Menu
-Hooks:Add("MenuManagerSetupCustomMenus", "Base_SetupModOptionsMenu", function( menu_manager, nodes )
+Hooks:Add("MenuManager_Base_SetupModOptionsMenu", "Base_SetupModOptionsMenu", function( menu_manager, nodes )
 	MenuHelper:NewMenu( lua_mod_options_menu_id )
 end)
 
-Hooks:Add("MenuManagerBuildCustomMenus", "Base_BuildModOptionsMenu", function( menu_manager, nodes )
+Hooks:Add("MenuManager_Base_BuildModOptionsMenu", "Base_BuildModOptionsMenu", function( menu_manager, nodes )
 
 	-- Add mod options menu
 	nodes[lua_mod_options_menu_id] = MenuHelper:BuildMenu( lua_mod_options_menu_id )

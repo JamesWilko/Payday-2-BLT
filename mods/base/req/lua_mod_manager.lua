@@ -10,22 +10,28 @@ local C = LuaModManager.Constants
 C.mods_directory = "mods/"
 C.lua_base_directory = "base/"
 C.logs_directory = "logs/"
+C.downloads_directory = "downloads/"
+C.saves_directory = "saves/"
 C.json_module = "req/json.lua"
 C.mod_manager_file = "mod_manager.txt"
 C.mod_keybinds_file = "mod_keybinds.txt"
+C.mod_updates_file = "mod_updates.txt"
 
 C.excluded_mods_directories = {
 	["logs"] = true,
+	["saves"] = true,
 }
 
 C.always_active_mods = {
 	["mods/base/"] = true,
 	["mods/logs/"] = true,
+	["mods/saves/"] = true,
 }
 
 C.required_script_global = "RequiredScript"
 C.mod_path_global = "ModPath"
 C.logs_path_global = "LogsPath"
+C.save_path_global = "SavePath"
 
 C.mod_definition_file = "mod.txt"
 C.mod_name_key = "name"
@@ -52,6 +58,17 @@ C.mod_keybind_scope_menu_key = "run_in_menu"
 C.mod_keybind_scope_game_key = "run_in_game"
 C.mod_keybind_callback_key = "callback"
 
+C.mod_update_key = "updates"
+C.mod_update_revision_key = "revision"
+C.mod_update_identifier_key = "identifier"
+C.mod_update_install_key = "install_dir"
+C.mod_update_install_folder_key = "install_folder"
+C.mod_update_name_key = "display_name"
+
+C.hook_dll_id = "payday2bltdll"
+C.hook_dll_name = "IPHLPAPI.dll"
+C.hook_dll_temp_name = "IPHLPAPI_temp.dll"
+
 LuaModManager._persist_scripts = LuaModManager._persist_scripts or {}
 
 LuaModManager._enabled_mods = LuaModManager._enabled_mods or {}
@@ -62,6 +79,10 @@ LuaModManager._keybinds = LuaModManager._keybinds or {}
 LuaModManager._player_keybinds = LuaModManager._player_keybinds or {}
 LuaModManager._mod_keybinds_file_path = LuaModManager._base_path .. C.mod_keybinds_file
 
+LuaModManager._updates = LuaModManager._updates or {}
+LuaModManager._updates_enabled = LuaModManager._updates_enabled or {}
+LuaModManager._mod_updates_file_path = LuaModManager._base_path .. C.mod_updates_file
+
 local function clone( o )
 	local res = {}
 	for k, v in pairs( o ) do
@@ -69,6 +90,18 @@ local function clone( o )
 	end
 	setmetatable( res, getmetatable(o) )
 	return res
+end
+
+function LuaModManager:GetMod( mod_path )
+
+	if self.Mods then
+		for k, v in pairs( self.Mods ) do
+			if v.path == mod_path then
+				return v
+			end
+		end
+	end
+
 end
 
 function LuaModManager:WasModEnabledAtLoadTime( mod_name )
@@ -170,9 +203,50 @@ function LuaModManager:SetPlayerKeybind( keybind_id, key )
 	self:Save()
 end
 
+function LuaModManager:UpdateChecks()
+	return self._updates
+end
+
+function LuaModManager:AddUpdateCheck( mod_table, mod_id, update_tbl )
+
+	local tbl = {
+		mod = mod_id,
+		mod_table = mod_table,
+		revision = update_tbl[ C.mod_update_revision_key ],
+		identifier = update_tbl[ C.mod_update_identifier_key ],
+		install_dir = update_tbl[ C.mod_update_install_key ] or nil,
+		install_folder = update_tbl[ C.mod_update_install_folder_key ] or nil,
+		display_name = update_tbl[ C.mod_update_name_key ] or nil,
+	}
+
+	if tbl.identifier == nil then
+		log("[Error] Could not add automatic update for " .. tostring(mod_id) .. " as it has no identifier key!")
+		return
+	end
+
+	if tbl.revision == nil then
+		log("[Error] Could not add automatic update for " .. tostring(mod_id) .. " as it has no revision key!")
+		return
+	end
+
+	table.insert( self._updates, tbl )
+
+end
+
+function LuaModManager:AreModUpdatesEnable( mod_id )
+	return (self._updates_enabled[mod_id] == nil or self._updates_enabled[mod_id] == true)
+end
+
+function LuaModManager:SetModUpdatesState( mod_id, state )
+	log( ("[Updates] Setting automatic updates for mod '{1}' to: {2}"):gsub("{1}", mod_id):gsub("{2}", tostring(state)) )
+	self._updates_enabled[mod_id] = state
+	self:Save()
+end
+
 function LuaModManager:Save()
 	self:SaveTableToJson( self._enabled_mods, self._mod_manager_file_path )
 	self:SaveTableToJson( self._player_keybinds, self._mod_keybinds_file_path )
+	self:SaveTableToJson( self._updates_enabled, self._mod_updates_file_path )
 end
 
 function LuaModManager:SaveTableToJson( tbl, file_path )
@@ -201,6 +275,7 @@ end
 function LuaModManager:Load()
 	self._enabled_mods = self:LoadJsonFileToTable( self._mod_manager_file_path ) or self._enabled_mods
 	self._player_keybinds = self:LoadJsonFileToTable( self._mod_keybinds_file_path ) or self._player_keybinds
+	self._updates_enabled = self:LoadJsonFileToTable( self._mod_updates_file_path ) or self._updates_enabled
 end
 
 function LuaModManager:LoadJsonFileToTable( file_path )

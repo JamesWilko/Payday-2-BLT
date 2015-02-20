@@ -22,6 +22,25 @@ function MenuManager.open_node( self, node_name, parameter_list )
 	self.orig.open_node( self, node_name, parameter_list )
 end
 
+function MenuManager:show_download_progress( mod_name )
+
+	local dialog_data = {}
+	dialog_data.title = managers.localization:text("base_mod_download_downloading_mod", { ["mod_name"] = mod_name })
+	dialog_data.mod_name = mod_name or "No Mod Name"
+
+	local ok_button = {}
+	ok_button.cancel_button = true
+	ok_button.text = managers.localization:text("dialog_ok")
+
+	dialog_data.focus_button = 1
+	dialog_data.button_list = {
+		ok_button
+	}
+
+	managers.system_menu:show_download_progress( dialog_data )
+
+end
+
 -- Add menus
 Hooks:Add( "MenuManagerPostInitialize", "MenuManagerPostInitialize_Base", function( menu_manager )
 
@@ -37,14 +56,14 @@ Hooks:Add( "MenuManagerPostInitialize", "MenuManagerPostInitialize_Base", functi
 			"MenuManager_Base_BuildModsMenu"
 		)
 
-		-- Setup mod keybinds menu
+		-- Setup mod options/keybinds menu
 		menu_manager:_base_process_menu(
 			"menu_main",
 			"video",
 			"options",
-			"MenuManager_Base_SetupKeybindsMenu",
-			"MenuManager_Base_PopulateKeybindsMenu",
-			"MenuManager_Base_BuildKeybindsMenu"
+			"MenuManager_Base_SetupModOptionsMenu",
+			"MenuManager_Base_PopulateModOptionsMenu",
+			"MenuManager_Base_BuildModOptionsMenu"
 		)
 
 		-- Allow custom menus on the main menu (and lobby) and the pause menu 

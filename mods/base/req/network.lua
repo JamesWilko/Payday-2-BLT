@@ -212,7 +212,7 @@ end
 
 -- Extensions
 LNetwork._networked_colour_string = "r:{1}|g:{2}|b:{3}|a:{4}"
-function LNetwork:PrepareNetworkedColourString(col)
+function LNetwork:ColourToString(col)
 	local dataString = LNetwork._networked_colour_string
 	dataString = dataString:gsub("{1}", math.round_with_precision(col.r, 4))
 	dataString = dataString:gsub("{2}", math.round_with_precision(col.g, 4))
@@ -221,7 +221,7 @@ function LNetwork:PrepareNetworkedColourString(col)
 	return dataString
 end
 
-function LNetwork:NetworkedColourStringToColour(str)
+function LNetwork:StringToColour(str)
 
 	local data = string.split( str, "[|]" )
 	if #data < 4 then

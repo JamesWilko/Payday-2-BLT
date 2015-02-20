@@ -8,14 +8,14 @@ local set_keybind_time = 0
 local keybind_set_delay = 0.5
 
 -- Keybinds Menu
-Hooks:Add("MenuManager_Base_SetupKeybindsMenu", "Base_SetupKeybindsMenu", function( menu_manager, nodes )
+Hooks:Add("MenuManager_Base_SetupModOptionsMenu", "Base_SetupKeybindsMenu", function( menu_manager, nodes )
 	display_keybinds_menu = LuaModManager:GetNumberOfJsonKeybinds() > 0
 	if display_keybinds_menu then
 		MenuHelper:NewMenu( keybinds_menu_id )
 	end
 end)
 
-Hooks:Add("MenuManager_Base_PopulateKeybindsMenu", "Base_PopulateKeybindsMenu", function( menu_manager, nodes )
+Hooks:Add("MenuManager_Base_PopulateModOptionsMenu", "Base_PopulateKeybindsMenu", function( menu_manager, nodes )
 	
 	if display_keybinds_menu then
 
@@ -43,7 +43,7 @@ Hooks:Add("MenuManager_Base_PopulateKeybindsMenu", "Base_PopulateKeybindsMenu", 
 
 end)
 
-Hooks:Add("MenuManager_Base_BuildKeybindsMenu", "Base_BuildKeybindsMenu", function( menu_manager, nodes )
+Hooks:Add("MenuManager_Base_BuildModOptionsMenu", "Base_BuildKeybindsMenu", function( menu_manager, nodes )
 	if display_keybinds_menu then
 		nodes[keybinds_menu_id] = MenuHelper:BuildMenu( keybinds_menu_id )
 		MenuHelper:AddMenuItem( nodes.options, keybinds_menu_id, "base_options_menu_keybinds", "base_options_menu_keybinds_desc", 7 )

@@ -1,3 +1,4 @@
+
 local mt = getmetatable(_G)
 if mt == nil then
 	mt = {}
