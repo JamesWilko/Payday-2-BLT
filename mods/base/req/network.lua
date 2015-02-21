@@ -32,52 +32,6 @@ function LNetwork:IsClient()
 	return Network:is_client()
 end
 
-function LNetwork:InGameState()
-	if not game_state_machine then return false end
-	return string.find(game_state_machine:current_state_name(), "game")
-end
-
-function LNetwork:InLoadingState()
-	if not BaseNetworkHandler then return false end
-	return BaseNetworkHandler._gamestate_filter.waiting_for_players[ game_state_machine:last_queued_state_name() ]
-end
-
-function LNetwork:InHeist()
-	if not BaseNetworkHandler then return false end
-	return BaseNetworkHandler._gamestate_filter.any_ingame_playing[ game_state_machine:last_queued_state_name() ]
-end
-
-function LNetwork:InCustody()
-	local player = managers.player:local_player()
-	local in_custody = false
-	if managers and managers.trade and not alive( player ) then
-		in_custody = managers.trade:is_peer_in_custody(managers.network:session():local_peer():id())
-	end
-	return in_custody
-end
-
-function LNetwork:IsPrimaryEquipped(type)
-	local primary = managers.blackmarket:equipped_primary()
-	if primary then
-		local category = tweak_data.weapon[ primary.weapon_id ].category
-		if category == string.lower(type) then
-			return true
-		end
-	end
-	return false
-end
-
-function LNetwork:IsSecondaryEquipped(type)
-	local secondary = managers.blackmarket:equipped_secondary()
-	if secondary then
-	local category = tweak_data.weapon[ secondary.weapon_id ].category
-		if category == string.lower(type) then
-			return true
-		end
-	end
-	return false
-end
-
 function LNetwork:LocalPeerID()
 	if managers.network == nil or managers.network:session() == nil or managers.network:session():local_peer() == nil then
 		return 0
