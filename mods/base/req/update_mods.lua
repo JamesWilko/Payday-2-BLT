@@ -195,7 +195,7 @@ function LuaModUpdates.ModDownloadFinished( data, http_id )
 	local file_path = download_path .. tostring(mod_id) .. ".zip"
 	log("[Updates] Saving mod to file path: " .. file_path)
 
-	local file = io.open( file_path, "wb" )
+	local file = io.open( file_path, "wb+" )
 	if file then
 
 		file:write( data )

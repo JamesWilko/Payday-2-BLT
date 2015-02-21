@@ -72,7 +72,7 @@ Hooks:Add( "MenuManagerPostInitialize", "MenuManagerPostInitialize_Base", functi
 
 	end)
 	if not success then
-		log("[Error] " .. err)
+		log("[Error] " .. tostring(err))
 	end
 
 end )

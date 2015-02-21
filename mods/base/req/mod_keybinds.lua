@@ -46,7 +46,7 @@ end)
 Hooks:Add("MenuManager_Base_BuildModOptionsMenu", "Base_BuildKeybindsMenu", function( menu_manager, nodes )
 	if display_keybinds_menu then
 		nodes[keybinds_menu_id] = MenuHelper:BuildMenu( keybinds_menu_id )
-		MenuHelper:AddMenuItem( nodes.options, keybinds_menu_id, "base_options_menu_keybinds", "base_options_menu_keybinds_desc", 7 )
+		MenuHelper:AddMenuItem( nodes.options, keybinds_menu_id, "base_options_menu_keybinds", "base_options_menu_keybinds_desc", "lua_mod_options_menu", "after" )
 	end
 end)
 
