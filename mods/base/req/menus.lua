@@ -58,8 +58,9 @@ function Menu:AddButton( button_data )
 		help_id = button_data.desc,
 		callback = button_data.callback,
 		back_callback = button_data.back_callback,
-		disabled_color = Color(0.25, 1, 1, 1),
+		disabled_color = button_data.disabled_color or Color(0.25, 1, 1, 1),
 		next_node = button_data.next_node,
+		localize = button_data.localized,
 	}
 
 	local menu = self:GetMenu( button_data.menu_id )
@@ -131,7 +132,8 @@ function Menu:AddToggle( toggle_data )
 		help_id = toggle_data.desc,
 		callback = toggle_data.callback,
 		disabled_color = toggle_data.disabled_color or Color( 0.25, 1, 1, 1 ),
-		icon_by_text = toggle_data.icon_by_text or false
+		icon_by_text = toggle_data.icon_by_text or false,
+		localize = toggle_data.localized,
 	}
 
 	local menu = self:GetMenu( toggle_data.menu_id )
@@ -159,6 +161,7 @@ function Menu:AddSlider( slider_data )
 		help_id = slider_data.desc,
 		callback = slider_data.callback,
 		disabled_color = slider_data.disabled_color or Color( 0.25, 1, 1, 1 ),
+		localize = slider_data.localized,
 	}
 
 	local menu = self:GetMenu( slider_data.menu_id )
@@ -189,7 +192,8 @@ function Menu:AddMultipleChoice( multi_data )
 		text_id = multi_data.title,
 		help_id = multi_data.desc,
 		callback = multi_data.callback,
-		filter = true
+		filter = true,
+		localize = multi_data.localized,
 	}
 	
 	local menu = self:GetMenu( multi_data.menu_id )
@@ -215,6 +219,7 @@ function Menu:AddKeybinding( bind_data )
 		binding = bind_data.binding,
 		button = bind_data.button,
 		callback = bind_data.callback,
+		localize = bind_data.localized,
 	}
 
 	local menu = self:GetMenu( bind_data.menu_id )
@@ -389,6 +394,7 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 				local callback = item.callback
 				local priority = #items - k
 				local value = item.default_value
+				local localized = item.localized
 				if data_table then
 					value = data_table[item.value] or item.default_value
 				end
@@ -402,6 +408,7 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 						next_node = item.next_menu or nil,
 						menu_id = menu_id,
 						priority = priority,
+						localized = localized,
 					})
 				end
 
@@ -414,6 +421,7 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 						value = value,
 						menu_id = menu_id,
 						priority = priority,
+						localized = localized,
 					})
 				end
 
@@ -429,7 +437,8 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 						step = item.step or 0.1,
 						show_value = true,
 						menu_id = menu_id,
-						priority = priority
+						priority = priority,
+						localized = localized,
 					})
 				end
 
@@ -458,6 +467,7 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 						binding = key,
 						menu_id = menu_id,
 						priority = priority,
+						localized = localized,
 					})
 
 					LuaModManager:AddKeybinding( item.keybind_id, parent_class[item.func] )
@@ -474,6 +484,7 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 						value = value,
 						menu_id = menu_id,
 						priority = priority,
+						localized = localized,
 					})
 				end
 

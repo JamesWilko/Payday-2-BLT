@@ -233,7 +233,7 @@ Hooks:Add("MenuComponentManagerPreSetActiveComponents", "Base_Notifications_Menu
 
 	if node then
 		local node_name = node._parameters.name
-		if node_name == "main" then
+		if node._default_item_name and node_name == "main" then
 			table.insert( components, "lua_mod_notifications" )
 		end
 	end
