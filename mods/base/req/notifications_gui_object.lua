@@ -250,7 +250,7 @@ function NotificationsGuiObject:update()
 		notification_message_text:set_top(math.round(total_money_text:bottom()))
 		self._max_left_len = math.max(self._max_left_len, notification_message_text:w())
 
-		self._panel:set_size(update_icon:w() + self._max_left_len + 15 + self._max_right_len + 10, math.max(notification_message_text:bottom(), mastermind_text:bottom()) + 8)
+		self._panel:set_size(self._panel:w(), math.max(notification_message_text:bottom(), mastermind_text:bottom()) + 8)
 		self._panel:set_bottom(self._panel:parent():h() - 200)
 
 		self._panel_box:close()

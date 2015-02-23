@@ -3,7 +3,7 @@ NotificationsManager = NotificationsManager or {}
 local Notify = NotificationsManager
 Notify._notifications = {}
 Notify._current_notification = 1
-Notify._NOTIFICATION_TIME = 5
+Notify._NOTIFICATION_TIME = 6.5
 Notify._time_to_next_notification = Notify._NOTIFICATION_TIME
 
 Hooks:RegisterHook("NotificationManagerOnNotificationsUpdated")
@@ -136,6 +136,7 @@ function Notify:ShowNextNotification( suppress_sound )
 	if not suppress_sound then
 		managers.menu_component:post_event("highlight")
 	end
+	self:_OnUpdated()
 
 end
 
@@ -148,6 +149,7 @@ function Notify:ShowPreviousNotification( suppress_sound )
 	if not suppress_sound then
 		managers.menu_component:post_event("highlight")
 	end
+	self:_OnUpdated()
 
 end
 
@@ -179,6 +181,9 @@ function Notify:MarkNotificationAsRead( id )
 end
 
 function Notify:_OnUpdated()
+	if not self:GetCurrentNotification().read then
+		managers.menu_component:post_event("job_appear")
+	end
 	Hooks:Call("NotificationManagerOnNotificationsUpdated", self, self._notifications)
 end
 
