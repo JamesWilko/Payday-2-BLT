@@ -290,10 +290,22 @@ function Menu:BuildMenu( menu_id, data )
 
 				if type(data.back_callback) == "table" then
 					for k, v in pairs( data.back_callback ) do
+
+						if type(v) == "string" then
+							data.back_callback = MenuCallbackHandler[v]
+						end
+
 						table.insert( menu._parameters.back_callback, v )
+
 					end
 				else
+					
+					if type(data.back_callback) == "string" then
+						data.back_callback = MenuCallbackHandler[data.back_callback]
+					end
+
 					table.insert( menu._parameters.back_callback, data.back_callback )
+
 				end
 
 			end
@@ -373,14 +385,23 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 		local menu_name = content.title
 		local menu_desc = content.description
 		local items = content.items
+		local back_callback = content.back_callback
+		local area_bg = content.area_bg
 
 		Hooks:Add("MenuManagerSetupCustomMenus", "Base_SetupCustomMenus_Json_" .. menu_id, function( menu_manager, nodes )
 			MenuHelper:NewMenu( menu_id )
 		end)
 
 		Hooks:Add("MenuManagerBuildCustomMenus", "Base_BuildCustomMenus_Json_" .. menu_id, function( menu_manager, nodes )
-			nodes[menu_id] = MenuHelper:BuildMenu( menu_id )
+
+			local data = {
+				back_callback = back_callback,
+				area_bg = area_bg,
+			}
+			nodes[menu_id] = MenuHelper:BuildMenu( menu_id, data )
+
 			MenuHelper:AddMenuItem( nodes[parent_menu], menu_id, menu_name, menu_desc )
+
 		end)
 
 		Hooks:Add("MenuManagerPopulateCustomMenus", "Base_PopulateCustomMenus_Json_" .. menu_id, function( menu_manager, nodes )

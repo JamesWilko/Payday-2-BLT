@@ -90,6 +90,8 @@ function LuaModUpdates:FetchUpdatesFromAPI( path, callback )
 						table.insert( mods_needing_updates, v )
 					end
 
+				else
+					log( ("[Updates] Received no update data for '{1}'"):gsub("{1}", v.identifier) ) 
 				end
 
 			end
