@@ -220,6 +220,7 @@ function Menu:AddKeybinding( bind_data )
 		button = bind_data.button,
 		callback = bind_data.callback,
 		localize = bind_data.localized,
+		is_custom_keybind = true,
 	}
 
 	local menu = self:GetMenu( bind_data.menu_id )

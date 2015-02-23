@@ -245,7 +245,7 @@ end
 	return, 		A Vector3 containing the location that the player is looking at, or false if the player was not looking at anything
 			or was looking at something past the maximum_range
 ]]
-function Utils.GetPlayerAimPos( player, maximum_range )
+function Utils:GetPlayerAimPos( player, maximum_range )
 	local ray = GetCrosshairRay(player:camera():position(), player:camera():position() + player:camera():forward() * (maximum_range or 100000))
 	if not ray then
 		return false
@@ -261,7 +261,7 @@ end
 	slot_mask, 	The collision group to check against the ray, defaults to all objects the player can shoot
 	return, 	A table containing the ray information
 ]]
-function Utils.GetCrosshairRay( from, to, slot_mask )
+function Utils:GetCrosshairRay( from, to, slot_mask )
 
 	slot_mask = slot_mask or "bullet_impact_targets"
 

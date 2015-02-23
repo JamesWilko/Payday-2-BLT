@@ -7,23 +7,28 @@ function MenuNodeGui._key_press(self, o, key, input_id, item, no_add)
 	if managers.system_menu:is_active() then
 		return
 	end
+
 	if self._skip_first_mouse_0 then
 		self._skip_first_mouse_0 = false
 		if input_id == "mouse" and key == Idstring("0") then
 			return
 		end
 	end
+
 	local row_item = self:row_item(item)
 	if key == Idstring("esc") then
-		self:_end_customize_controller(o, item)
-		return
+		if not item._parameters.is_custom_keybind then
+			self:_end_customize_controller(o, item)
+			return
+		end
 	end
 	if input_id ~= "mouse" or not Input:mouse():button_name_str(key) then
 	end
-	local key_name = "" .. Input:keyboard():button_name_str(key)
+	local key_name = "" .. ( key == Idstring("esc") and "" or Input:keyboard():button_name_str(key) )
 	if not no_add and input_id == "mouse" then
 		key_name = "mouse " .. key_name or key_name
 	end
+
 	local forbidden_btns = {
 		"esc",
 		"tab",
@@ -43,17 +48,23 @@ function MenuNodeGui._key_press(self, o, key, input_id, item, no_add)
 		"mouse 9",
 		""
 	}
-	for _, btn in ipairs(forbidden_btns) do
-		if Idstring(btn) == key then
-			managers.menu:show_key_binding_forbidden({KEY = key_name})
-			self:_end_customize_controller(o, item)
-			return
+
+	if not key_name:is_nil_or_empty() then
+		for _, btn in ipairs(forbidden_btns) do
+			if Idstring(btn) == key then
+				managers.menu:show_key_binding_forbidden({KEY = key_name})
+				self:_end_customize_controller(o, item)
+				return
+			end
 		end
 	end
+
 	local connections = managers.controller:get_settings(managers.controller:get_default_wrapper_type()):get_connection_map()
 	for _, name in ipairs(MenuCustomizeControllerCreator.CONTROLS) do
+
 		local connection = connections[name]
 		if connection._btn_connections then
+
 			for name, btn_connection in pairs(connection._btn_connections) do
 				if btn_connection.name == key_name and item:parameters().binding ~= btn_connection.name then
 					managers.menu:show_key_binding_collision({
@@ -64,7 +75,9 @@ function MenuNodeGui._key_press(self, o, key, input_id, item, no_add)
 					return
 				end
 			end
+
 		else
+
 			for _, b_name in ipairs(connection:get_input_name_list()) do
 				if tostring(b_name) == key_name and item:parameters().binding ~= b_name then
 					managers.menu:show_key_binding_collision({
@@ -75,7 +88,9 @@ function MenuNodeGui._key_press(self, o, key, input_id, item, no_add)
 					return
 				end
 			end
+
 		end
+
 	end
 
 	if item:parameters().axis then
@@ -115,6 +130,7 @@ function MenuNodeGui._key_press(self, o, key, input_id, item, no_add)
 		Hooks:Call( "CustomizeControllerOnKeySet", item:parameters().connection_name, key_button )
 
 	end
+
 	managers.controller:rebind_connections()
 	self:_end_customize_controller(o, item)
 
