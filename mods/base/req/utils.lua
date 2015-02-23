@@ -246,7 +246,7 @@ end
 			or was looking at something past the maximum_range
 ]]
 function Utils:GetPlayerAimPos( player, maximum_range )
-	local ray = GetCrosshairRay(player:camera():position(), player:camera():position() + player:camera():forward() * (maximum_range or 100000))
+	local ray = self:GetCrosshairRay(player:camera():position(), player:camera():position() + player:camera():forward() * (maximum_range or 100000))
 	if not ray then
 		return false
 	end
