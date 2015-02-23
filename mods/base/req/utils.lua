@@ -125,6 +125,119 @@ function math.round_with_precision( num, idp )
 end
 
 --[[
+	IsInGameState()
+		Returns true if you are in GameState (loadout, ingame, end screens like victory and defeat) and false 
+		if you are not.
+]]
+function Utils:IsInGameState()
+	if not game_state_machine then
+		return false
+	end
+	return string.find(game_state_machine:current_state_name(), "game")
+end
+
+--[[
+	IsInLoadingState()
+		Returns true if you are in a loading state, and false if you are not.
+]]
+function Utils:IsInLoadingState()
+	if not BaseNetworkHandler then
+		return false
+	end
+	return BaseNetworkHandler._gamestate_filter.waiting_for_players[ game_state_machine:last_queued_state_name() ]
+end
+
+--[[
+	IsInHeist()
+		Returns true if you are currently in game (you're able to use your weapons, spot, call teammates etc) and
+		false if you are not. Only returns true if currently ingame, does not check for GameState like IsInGameState().
+]]
+function Utils:IsInHeist()
+	if not BaseNetworkHandler then
+		return false
+	end
+	return BaseNetworkHandler._gamestate_filter.any_ingame_playing[ game_state_machine:last_queued_state_name() ]
+end
+
+--[[
+	IsInCustody()
+		Returns true if the local player is in custody, and false if not.
+]]
+function Utils:IsInCustody()
+	local player = managers.player:local_player()
+	local in_custody = false
+	if managers and managers.trade and not alive( player ) then
+		in_custody = managers.trade:is_peer_in_custody(managers.network:session():local_peer():id())
+	end
+	return in_custody
+end
+
+--[[
+	IsCurrentPrimaryOfCategory(type)
+		Checks current primary weapon's weapon class.
+	type, the weapon class to check for.  "assault_rifle", "snp", "shotgun"; refer to weapontweakdata
+]]
+function Utils:IsCurrentPrimaryOfCategory(type)
+	local primary = managers.blackmarket:equipped_primary()
+	if primary then
+		local category = tweak_data.weapon[ primary.weapon_id ].category
+		return category == string.lower(type)
+	end
+	return false
+end
+
+--[[
+	IsCurrentSecondaryOfCategory(type)
+		Checks current secondary weapon's weapon class.
+	type, the weapon class to check for.  "pistol", "shotgun", "smg"; refer to weapontweakdata
+]]
+function Utils:IsCurrentSecondaryOfCategory(type)
+	local secondary = managers.blackmarket:equipped_secondary()
+	if secondary then
+		local category = tweak_data.weapon[ secondary.weapon_id ].category
+		return category == string.lower(type)
+	end
+	return false
+end
+
+--[[
+	IsCurrentWeapon(type)
+		Checks current equipped weapon's name ID.
+	type, the weapon's ID.  "aug", "glock_18c", "new_m4", "colt_1911"; refer to weaponfactorytweakdata
+]]
+function Utils:IsCurrentWeapon(type)
+	local weapon = managers.player:local_player():inventory():equipped_unit():base()._name_id
+	if weapon then
+		return weapon == string.lower(type)
+	end
+	return false
+end
+
+--[[
+	IsCurrentWeaponPrimary()
+		Checks if current equipped weapon is your primary weapon.
+]]
+function Utils:IsCurrentWeaponPrimary()
+	local weapon = managers.player:local_player():inventory():equipped_unit():base():selection_index()
+	local curstate = managers.player._current_state
+	if weapon then
+		return (curstate ~= "mask_off" and weapon == 2)
+	end
+end
+
+--[[
+	IsCurrentWeaponPrimary()
+		Checks if current equipped weapon is your secondary weapon.
+]]
+function Utils:IsCurrentWeaponSecondary()
+	local weapon = managers.player:local_player():inventory():equipped_unit():base():selection_index()
+	local curstate = managers.player._current_state
+	if weapon then
+		return (curstate ~= "mask_off" and weapon == 1)
+	end
+end
+
+--[[
 	Utils:GetPlayerAimPos( player, maximum_range )
 		Gets the point in the world, as a Vector3, where the player is aiming at
 	player, 		The player to get the aiming position of
