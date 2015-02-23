@@ -62,10 +62,14 @@ end
 
 function LNetwork:GetNameFromPeerID(id)
 
-	for k, v in pairs( managers.network:session():peers() ) do
-		if k == id then
-			return v:name()
+	if managers.network and managers.network:session() and managers.network:session():peers() then
+		
+		for k, v in pairs( managers.network:session():peers() ) do
+			if k == id then
+				return v:name()
+			end
 		end
+
 	end
 
 	return "No Name"
