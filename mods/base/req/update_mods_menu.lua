@@ -31,13 +31,16 @@ end
 
 function LuaModUpdates:ShowUpdateAvailableMessage( mod_tbl )
 
-	local loc_table = { ["mod_name"] = self:GetModFriendlyName(mod_tbl.mod) }
+	local loc_table = { ["mod_name"] = self:GetModFriendlyName(mod_tbl.identifier) }
 	local menu_title = managers.localization:text("base_mod_updates_show_update_available", loc_table)
 	local menu_message = managers.localization:text("base_mod_updates_show_update_available_message", loc_table)
 	local menu_options = {
 		[1] = {
 			text = managers.localization:text("base_mod_updates_update_mod_now", loc_table),
-			callback = LuaModUpdates.DoUpdateAllModsNow,
+			callback = function()
+				LuaModUpdates:OpenUpdateManagerNode()
+				LuaModUpdates.ForceDownloadAndInstallMod(mod_tbl.identifier)
+			end,
 		},
 		[2] = {
 			text = managers.localization:text("base_mod_updates_open_update_manager"),
@@ -77,7 +80,11 @@ Hooks:Add("MenuManagerPopulateCustomMenus", "Base_ModUpdatesMenu_PopulateCustomM
 		if item and item._parameters then
 			local mod_path = item._parameters.text_id:gsub("button_check_for_updates_", "")
 			if mod_path then
-				LuaModUpdates:CheckModForUpdateAndShowOptions( mod_path )
+
+				LuaModUpdates:CheckForUpdates( function(updater, mods)
+					LuaModUpdates:CheckModForUpdateAndShowOptions( mod_path )
+				end )
+
 			end
 		end
 	end
