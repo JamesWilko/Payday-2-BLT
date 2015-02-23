@@ -16,7 +16,7 @@ Hooks:Add("MenuManagerOnOpenMenu", "Base_ModUpdates_MenuManagerOnOpenMenu", func
 
 		if not LuaNetworking:IsMultiplayer() then
 			LuaModUpdates:ShowUpdatesAvailableNotification({})
-			LuaModUpdates:CheckForUpdates()
+			LuaModUpdates:CheckForUpdates( LuaModUpdates.ShowUpdatesAvailableCallback )
 		end
 
 		-- Remove temporary hook dll
@@ -35,68 +35,92 @@ function LuaModUpdates:RemoveTemporaryDLL()
 end
 
 Hooks:RegisterHook("ModUpdates_CheckedModForUpdates")
-function LuaModUpdates:CheckForUpdates()
+function LuaModUpdates:CheckForUpdates( callback )
 
-	local path_str = LuaModUpdates._updates_api_path
+	local url_path = LuaModUpdates._updates_api_path
 	local i = 0
 
 	for k, v in pairs( LuaModManager:UpdateChecks() ) do
 		if LuaModManager:AreModUpdatesEnable( v.mod ) then
 
 			if i > 0 then
-				path_str = path_str .. "&"
+				url_path = url_path .. "&"
 			end
 
-			path_str = path_str .. LuaModUpdates._updates_api_mod:gsub("{1}", i)
-			path_str = path_str:gsub("{2}", v.identifier)
+			url_path = url_path .. LuaModUpdates._updates_api_mod:gsub("{1}", i)
+			url_path = url_path:gsub("{2}", v.identifier)
 			i = i + 1
 
 		end
 	end
 
 	if i > 0 then
-		dohttpreq( path_str, LuaModUpdates.RetrievedModsFromServer )
+		LuaModUpdates:FetchUpdatesFromAPI( url_path, callback )
 	end
 
 end
 
-function LuaModUpdates.RetrievedModsFromServer( data, id )
+function LuaModUpdates:FetchUpdatesFromAPI( path, callback )
 
-	if data:is_nil_or_empty() then
-		log("[Error] Could not connect to PaydayMods.com API!")
-		return
-	end
-
-	local server_data = json.decode( data )
-	if server_data then
-
-		for k, v in pairs( server_data ) do
-			log( ("[Updates] Received update data for '{1}', server revision: {2}"):gsub("{1}", k):gsub("{2}", v.revision) )
+	dohttpreq( path, function( data, id )
+		
+		local psuccess, perror = pcall(function()
+		
+		if data:is_nil_or_empty() then
+			log("[Error] Could not connect to PaydayMods.com API!")
+			return
 		end
 
-		local mods_needing_updates = {}
-		for k, v in pairs( LuaModManager:UpdateChecks() ) do
+		local server_data = json.decode( data )
+		if server_data then
 
-			local mod_data = server_data[v.identifier]
-			local local_version = tonumber( v.revision ) or 1
-			local server_version = tonumber( mod_data.revision ) or 1
-
-			v.update_required = local_version < server_version
-			if local_version < server_version then
-				table.insert( mods_needing_updates, v )
+			for k, v in pairs( server_data ) do
+				log( ("[Updates] Received update data for '{1}', server revision: {2}"):gsub("{1}", k):gsub("{2}", v.revision) )
 			end
 
+			local mods_needing_updates = {}
+			for k, v in pairs( LuaModManager:UpdateChecks() ) do
+
+				local mod_data = server_data[v.identifier]
+				if mod_data then
+
+					local local_version = tonumber( v.revision ) or 1
+					local server_version = tonumber( mod_data.revision ) or 1
+
+					v.update_required = local_version < server_version
+					if local_version < server_version then
+						table.insert( mods_needing_updates, v )
+					end
+
+				end
+
+			end
+
+			LuaModUpdates:ShowUpdatesAvailableNotification( mods_needing_updates )
+
+			if callback then
+				callback( self, mods_needing_updates )
+			end
+
+		else
+			log("[Error] Could not decode server updates data!")
 		end
 
-		LuaModUpdates:ShowUpdatesAvailableNotification( mods_needing_updates )
-		if #mods_needing_updates == 1 then
-			LuaModUpdates:ShowUpdateAvailableMessage( mods_needing_updates[1] )
-		elseif #mods_needing_updates > 1 then
-			LuaModUpdates:ShowMultiUpdateAvailableMessage( mods_needing_updates )
+		end)
+		if not psuccess then
+			log("[Error] " .. perror)
 		end
 
-	else
-		log("[Error] Could not decode server updates data!")
+	end )
+
+end
+
+function LuaModUpdates:ShowUpdatesAvailableCallback( mods )
+
+	if #mods == 1 then
+		LuaModUpdates:ShowUpdateAvailableMessage( mods[1] )
+	elseif #mods > 1 then
+		LuaModUpdates:ShowMultiUpdateAvailableMessage( mods )
 	end
 
 end
