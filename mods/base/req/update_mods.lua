@@ -64,8 +64,6 @@ function LuaModUpdates:FetchUpdatesFromAPI( path, callback )
 
 	dohttpreq( path, function( data, id )
 		
-		local psuccess, perror = pcall(function()
-		
 		if data:is_nil_or_empty() then
 			log("[Error] Could not connect to PaydayMods.com API!")
 			return
@@ -104,11 +102,6 @@ function LuaModUpdates:FetchUpdatesFromAPI( path, callback )
 
 		else
 			log("[Error] Could not decode server updates data!")
-		end
-
-		end)
-		if not psuccess then
-			log("[Error] " .. perror)
 		end
 
 	end )
