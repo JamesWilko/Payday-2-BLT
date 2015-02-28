@@ -143,11 +143,12 @@ function LuaModUpdates:ShowUpdatesAvailableNotification( mods_to_update )
 		["s"] = count > 1 and "s" or "",
 	}
 	local title = count < 1 and managers.localization:text("base_mod_updates_all_up_to_date") or managers.localization:text("base_mod_updates_updates_required", loc_table)
+	local prio = count < 1 and 101 or 1001
 
 	if NotificationsManager:NotificationExists( LuaModUpdates._notification_id ) then
-		NotificationsManager:UpdateNotification( LuaModUpdates._notification_id, title, message, 1001, LuaModUpdates.NotificationClickCallback )
+		NotificationsManager:UpdateNotification( LuaModUpdates._notification_id, title, message, prio, LuaModUpdates.NotificationClickCallback )
 	else
-		NotificationsManager:AddNotification( LuaModUpdates._notification_id, title, message, 1001, LuaModUpdates.NotificationClickCallback )
+		NotificationsManager:AddNotification( LuaModUpdates._notification_id, title, message, prio, LuaModUpdates.NotificationClickCallback )
 	end
 
 end

@@ -55,7 +55,7 @@ function Utils.DoSaveTable( tbl, cmp, fileName, fileIsOpen, preText )
 	end
 
 	cmp = cmp or {}
-	if type(tbl) == "table" then
+	if tbl and type(tbl) == "table" then
 		for k, v in pairs(tbl) do
 			if type(v) == "table" and not cmp[v] then
 				cmp[v] = true
@@ -66,7 +66,7 @@ function Utils.DoSaveTable( tbl, cmp, fileName, fileIsOpen, preText )
 			end
 		end
 	else
-		file:write( preText .. tbl .. "\n")
+		file:write( preText .. tostring(tbl) .. "\n")
 	end
 
 	if fileIsOpen == nil then
