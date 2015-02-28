@@ -137,6 +137,7 @@ function Notify:ShowNextNotification( suppress_sound )
 		managers.menu_component:post_event("highlight")
 	end
 	self:_OnUpdated()
+	self:_ResetTimeToNextNotification()
 
 end
 
@@ -150,6 +151,7 @@ function Notify:ShowPreviousNotification( suppress_sound )
 		managers.menu_component:post_event("highlight")
 	end
 	self:_OnUpdated()
+	self:_ResetTimeToNextNotification()
 
 end
 
@@ -187,6 +189,10 @@ function Notify:_OnUpdated()
 	Hooks:Call("NotificationManagerOnNotificationsUpdated", self, self._notifications)
 end
 
+function Notify:_ResetTimeToNextNotification()
+	NotificationsManager._time_to_next_notification = NotificationsManager._NOTIFICATION_TIME
+end
+
 -- Auto-scroll notifications
 Hooks:Add("MenuUpdate", "Base_Notifications_MenuUpdate", function(t, dt)
 
@@ -195,7 +201,7 @@ Hooks:Add("MenuUpdate", "Base_Notifications_MenuUpdate", function(t, dt)
 		NotificationsManager._time_to_next_notification = NotificationsManager._time_to_next_notification - dt
 		if NotificationsManager._time_to_next_notification <= 0 then
 			NotificationsManager:ShowNextNotification( true )
-			NotificationsManager._time_to_next_notification = NotificationsManager._NOTIFICATION_TIME
+			NotificationsManager:_ResetTimeToNextNotification()
 		end
 
 	end
