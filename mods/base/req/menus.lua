@@ -67,6 +67,10 @@ function Menu:AddButton( button_data )
 	local item = menu:create_item(data, params)
 	item._priority = button_data.priority or 0
 
+	if button_data.disabled then
+		item:set_enabled( not button_data.disabled )
+	end
+
 	menu._items_list = menu._items_list or {}
 	table.insert( menu._items_list, item )
 
@@ -140,6 +144,11 @@ function Menu:AddToggle( toggle_data )
 	local item = menu:create_item( data, params )
 	item:set_value( toggle_data.value and "on" or "off" )
 	item._priority = toggle_data.priority or 0
+
+	if toggle_data.disabled then
+		item:set_enabled( not toggle_data.disabled )
+	end
+
 	menu._items_list = menu._items_list or {}
 	table.insert( menu._items_list, item )
 
@@ -200,6 +209,10 @@ function Menu:AddMultipleChoice( multi_data )
 	local item = menu:create_item(data, params)
 	item._priority = multi_data.priority or 0
 	item:set_value( multi_data.value or 1 )
+
+	if multi_data.disabled then
+		item:set_enabled( not multi_data.disabled )
+	end
 
 	menu._items_list = menu._items_list or {}
 	table.insert( menu._items_list, item )
