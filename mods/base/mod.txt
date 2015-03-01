@@ -62,6 +62,9 @@
 		{ 	"hook_id" : "core/lib/managers/menu/coremenulogic",
 			"script_path" : "lua/CoreMenuLogic.lua"
 		},
+		{ 	"hook_id" : "lib/managers/chatmanager",
+			"script_path" : "lua/ChatManager.lua"
+		},
 		{ 	"hook_id" : "lib/managers/menumanager",
 			"script_path" : "req/lua_mods_menu.lua"
 		},
