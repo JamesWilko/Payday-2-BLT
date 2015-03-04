@@ -300,16 +300,19 @@ Hooks:Add("MenuComponentManagerOnMousePressed", "Base_ModUpdates_MenuComponentMa
 
 		local click_threshold = 0.15
 		local x_percent = ( x - menu._notifications_gui._panel:x() ) / menu._notifications_gui._panel:w()
+		local num_notifs = #NotificationsManager:GetNotifications()
 
-		if x_percent < click_threshold then
-			NotificationsManager:ShowPreviousNotification()
-			menu._notifications_gui:LoadNotifications()
-			return true
-		end
-		if x_percent > (1 - click_threshold) then
-			NotificationsManager:ShowNextNotification()
-			menu._notifications_gui:LoadNotifications()
-			return true
+		if num_notifs > 1 then
+			if x_percent < click_threshold then
+				NotificationsManager:ShowPreviousNotification()
+				menu._notifications_gui:LoadNotifications()
+				return true
+			end
+			if x_percent > (1 - click_threshold) then
+				NotificationsManager:ShowNextNotification()
+				menu._notifications_gui:LoadNotifications()
+				return true
+			end
 		end
 
 		NotificationsManager:ClickNotification()
