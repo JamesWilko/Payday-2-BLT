@@ -57,6 +57,7 @@ C.mod_keybind_path_key = "path"
 C.mod_keybind_scope_menu_key = "run_in_menu"
 C.mod_keybind_scope_game_key = "run_in_game"
 C.mod_keybind_callback_key = "callback"
+C.mod_keybind_localize_key = "localized"
 
 C.mod_update_key = "updates"
 C.mod_update_revision_key = "revision"

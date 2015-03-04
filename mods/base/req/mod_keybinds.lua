@@ -25,6 +25,7 @@ Hooks:Add("MenuManager_Base_PopulateModOptionsMenu", "Base_PopulateKeybindsMenu"
 			local keybind_name = v[ C.mod_keybind_name_key ]
 			local keybind_desc = v[ C.mod_keybind_desc_key ]
 			local keybind_script = v[ C.mod_keybind_script_key ]
+			local keybind_localized = v[ C.mod_keybind_localize_key ]
 			local key = LuaModManager:GetPlayerKeybind( keybind_id ) or ""
 
 			MenuHelper:AddKeybinding({
@@ -35,6 +36,7 @@ Hooks:Add("MenuManager_Base_PopulateModOptionsMenu", "Base_PopulateKeybindsMenu"
 				button = key,
 				binding = key,
 				menu_id = keybinds_menu_id,
+				localized = keybind_localized,
 			})
 
 		end
