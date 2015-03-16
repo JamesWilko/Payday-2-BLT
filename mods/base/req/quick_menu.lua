@@ -3,6 +3,10 @@ QuickMenu = QuickMenu or class()
 QuickMenu._menu_id_key = "quick_menu_id_"
 QuickMenu._menu_id_index = 0
 
+function QuickMenu:new( ... )
+	return self:init( ... )
+end
+
 function QuickMenu:init( title, text, options, show_immediately )
 
 	QuickMenu._menu_id_index = QuickMenu._menu_id_index + 1
