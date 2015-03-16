@@ -11,7 +11,7 @@
 			"identifier" : "payday2blt",
 		},
 		{
-			"revision" : 1,
+			"revision" : "./mods/saves/blt_revision.txt",
 			"identifier" : "payday2bltdll",
 			"install_dir" : ".",
 			"display_name" : "Payday 2 BLT Hook DLL",

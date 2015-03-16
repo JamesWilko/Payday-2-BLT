@@ -3,7 +3,6 @@ if not _G["LuaModManager"] then
 	declare( "LuaModManager", {} )
 end
 LuaModManager = LuaModManager or {}
-LuaModManager.Revision = 100
 LuaModManager.Constants = LuaModManager.Constants or {}
 
 local C = LuaModManager.Constants
@@ -228,8 +227,38 @@ function LuaModManager:AddUpdateCheck( mod_table, mod_id, update_tbl )
 	end
 
 	if tbl.revision == nil then
-		log("[Error] Could not add automatic update for " .. tostring(mod_id) .. " as it has no revision key!")
+		log("[Error] Could not add automatic update for " .. tostring(tbl.display_name or mod_id) .. " as it has no revision key!")
 		return
+	end
+
+	-- Load revision from file if necessary
+	if type(tbl.revision) == "string" then
+
+		local path = tbl.revision
+		if tbl.revision:sub(1, 2) == "./" then
+			path = tbl.revision:sub( 3, tbl.revision:len() )
+		else
+			path = tbl.install_dir .. tbl.install_folder .. "/" .. tbl.revision
+		end
+
+		local file = io.open( path, "r" )
+		if file then
+			local data = file:read("*all")
+			data = tonumber(data)
+			if data then
+				tbl.revision = data
+			else
+				tbl.revision = nil
+			end
+		else
+			tbl.revision = nil
+		end
+
+		if tbl.revision == nil then
+			log("[Error] Could not load revision file for " .. tostring(tbl.display_name or mod_id) .. "!")
+			return
+		end
+
 	end
 
 	table.insert( self._updates, tbl )
