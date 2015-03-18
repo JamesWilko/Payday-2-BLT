@@ -295,6 +295,12 @@ function Menu:BuildMenu( menu_id, data )
 
 		-- Back callback
 		if data then
+
+			if data.focus_changed_callback then
+				menu._parameters.focus_changed_callback = {
+					MenuCallbackHandler[data.focus_changed_callback]
+				}
+			end
 			
 			if data.back_callback then
 
@@ -336,6 +342,7 @@ function Menu:BuildMenu( menu_id, data )
 	self:AddBackButton( menu_id )
 
 	-- Build menu data
+	menu._parameters.menu_id = menu_id
 	self.menus[menu_id] = menu
 
 	return self.menus[menu_id]
@@ -399,6 +406,7 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 		local menu_name = content.title
 		local menu_desc = content.description
 		local items = content.items
+		local focus_changed_callback = content.focus_changed_callback
 		local back_callback = content.back_callback
 		local area_bg = content.area_bg
 
@@ -409,6 +417,7 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 		Hooks:Add("MenuManagerBuildCustomMenus", "Base_BuildCustomMenus_Json_" .. menu_id, function( menu_manager, nodes )
 
 			local data = {
+				focus_changed_callback = focus_changed_callback,
 				back_callback = back_callback,
 				area_bg = area_bg,
 			}
