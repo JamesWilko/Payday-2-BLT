@@ -30,6 +30,14 @@ end
 ]]
 function Hooks:AddHook( key, id, func )
 	self._registered_hooks[key] = self._registered_hooks[key] or {}
+	-- Update existing hook
+	for k, v in pairs( self._registered_hooks[key] ) do
+		if v.id == id then
+			v.func = func
+			return
+		end
+	end
+	-- Add new hook, if id doesn't exist
 	local tbl = {
 		id = id,
 		func = func
