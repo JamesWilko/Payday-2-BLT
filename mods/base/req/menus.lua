@@ -65,7 +65,7 @@ function Menu:AddButton( button_data )
 
 	local menu = self:GetMenu( button_data.menu_id )
 	local item = menu:create_item(data, params)
-	item._priority = button_data.priority or 0
+	item._priority = button_data.priority
 
 	if button_data.disabled then
 		item:set_enabled( not button_data.disabled )
@@ -143,7 +143,7 @@ function Menu:AddToggle( toggle_data )
 	local menu = self:GetMenu( toggle_data.menu_id )
 	local item = menu:create_item( data, params )
 	item:set_value( toggle_data.value and "on" or "off" )
-	item._priority = toggle_data.priority or 0
+	item._priority = toggle_data.priority
 
 	if toggle_data.disabled then
 		item:set_enabled( not toggle_data.disabled )
@@ -176,7 +176,7 @@ function Menu:AddSlider( slider_data )
 	local menu = self:GetMenu( slider_data.menu_id )
 	local item = menu:create_item(data, params)
 	item:set_value( math.clamp(slider_data.value, data.min, data.max) or data.min )
-	item._priority = slider_data.priority or 0
+	item._priority = slider_data.priority
 
 	if slider_data.disabled then
 		item:set_enabled( not slider_data.disabled )
@@ -207,7 +207,7 @@ function Menu:AddMultipleChoice( multi_data )
 	
 	local menu = self:GetMenu( multi_data.menu_id )
 	local item = menu:create_item(data, params)
-	item._priority = multi_data.priority or 0
+	item._priority = multi_data.priority
 	item:set_value( multi_data.value or 1 )
 
 	if multi_data.disabled then
@@ -238,7 +238,7 @@ function Menu:AddKeybinding( bind_data )
 
 	local menu = self:GetMenu( bind_data.menu_id )
 	local item = menu:create_item(data, params)
-	item._priority = bind_data.priority or 0
+	item._priority = bind_data.priority
 
 	menu._items_list = menu._items_list or {}
 	table.insert( menu._items_list, item )
@@ -261,7 +261,7 @@ function Menu:BuildMenu( menu_id, data )
 		local priority_items = {}
 		local nonpriority_items = {}
 		for k, v in pairs( menu._items_list ) do
-			if v._priority ~= nil and v._priority > 0 then
+			if v._priority ~= nil then
 				table.insert( priority_items, v )
 			else
 				table.insert( nonpriority_items, v )
@@ -413,7 +413,6 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 				area_bg = area_bg,
 			}
 			nodes[menu_id] = MenuHelper:BuildMenu( menu_id, data )
-
 			MenuHelper:AddMenuItem( nodes[parent_menu], menu_id, menu_name, menu_desc )
 
 		end)
