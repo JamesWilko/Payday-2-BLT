@@ -30,7 +30,11 @@ end
 ]]
 function Hooks:AddHook( key, id, func )
 	self._registered_hooks[key] = self._registered_hooks[key] or {}
-	self._registered_hooks[key][id] = func
+	local tbl = {
+		id = id,
+		func = func
+	}
+	table.insert( self._registered_hooks[key], tbl )
 end
 
 --[[
@@ -66,8 +70,12 @@ end
 function Hooks:Remove( id )
 
 	for k, v in pairs(self._registered_hooks) do
-		if type(v) == "table" and v[id] ~= nil then
-			v[id] = nil
+		if type(v) == "table" then
+			for x, y in pairs( v ) do
+				if y.id == id then
+					y = nil
+				end
+			end
 		end
 	end
 	
@@ -81,10 +89,14 @@ end
 ]]
 function Hooks:Call( key, ... )
 
-	if self._registered_hooks[key] ~= nil then
-		for k, v in pairs(self._registered_hooks[key]) do
-			if v ~= nil and type(v) == "function" then
-				v( ... )
+	if not self._registered_hooks[key] then
+		return
+	end
+
+	for k, v in pairs(self._registered_hooks[key]) do
+		if v then
+			if type(v.func) == "function" then
+				v.func( ... )
 			end
 		end
 	end
@@ -100,11 +112,15 @@ end
 ]]
 function Hooks:ReturnCall( key, ... )
 
-	if self._registered_hooks[key] ~= nil then
-		for k, v in pairs(self._registered_hooks[key]) do
-			if v ~= nil and type(v) == "function" then
+	if not self._registered_hooks[key] then
+		return
+	end
 
-				local r = v( ... )
+	for k, v in pairs(self._registered_hooks[key]) do
+		if v then
+			if type(v.func) == "function" then
+
+				local r = v.func( ... )
 				if r ~= nil then
 					return r
 				end
