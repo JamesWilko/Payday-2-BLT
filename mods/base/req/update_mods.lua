@@ -85,6 +85,7 @@ function LuaModUpdates:FetchUpdatesFromAPI( path, callback )
 					local local_version = tonumber( v.revision ) or 1
 					local server_version = tonumber( mod_data.revision ) or 1
 
+					v.server_revision = server_version
 					v.update_required = local_version < server_version
 					if local_version < server_version then
 						table.insert( mods_needing_updates, v )
@@ -233,11 +234,27 @@ function LuaModUpdates.ModDownloadFinished( data, http_id )
 			end
 
 			-- Special case for hook dll
-			if mod_id == C.hook_dll_id then
+			if mod_id == C.hook_dll_id or mod_id == "testmod" then
+
 				local hook_result, hook_error = os.rename( C.hook_dll_name, C.hook_dll_temp_name )
 				if not hook_result then
 					log( "[Error] Could not update hook DLL! " .. tostring(hook_error) )
+					return
 				end
+
+				if mod_table.revision_path and mod_table.server_revision then
+
+					local revision_file = io.open( mod_table.revision_path, "w+" )
+					if revision_file then
+						revision_file:write( tostring(mod_table.server_revision) )
+						revision_file:close()
+					end
+
+				else
+					log( "[Error] No revision path or server revision found in mod table, aborting update of DLL" )
+					return
+				end
+
 			end
 
 		end

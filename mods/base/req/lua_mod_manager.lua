@@ -237,6 +237,7 @@ function LuaModManager:AddUpdateCheck( mod_table, mod_id, update_tbl )
 		local path = tbl.revision
 		if tbl.revision:sub(1, 2) == "./" then
 			path = tbl.revision:sub( 3, tbl.revision:len() )
+			tbl.revision_path = path
 		else
 			path = tbl.install_dir .. tbl.install_folder .. "/" .. tbl.revision
 		end
