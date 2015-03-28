@@ -276,3 +276,13 @@ function Utils:GetCrosshairRay( from, to, slot_mask )
 	return colRay
 
 end
+
+--[[
+	Utils:ToggleItemToBoolean( item )
+		Gets the string value of a toggle item and converts it to a boolean value
+	item, 		The toggle menu item to get a boolean value from
+	return, 	True if the toggle item is on, false otherwise
+]]
+function Utils:ToggleItemToBoolean( item )
+	return item:value() == "on" and true or false
+end
