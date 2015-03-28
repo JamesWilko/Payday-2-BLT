@@ -28,3 +28,9 @@ function MenuComponentManager.mouse_pressed( self, o, button, x, y )
 	end
 	return r
 end
+
+Hooks:RegisterHook("MenuComponentManagerOnMouseMoved")
+function MenuComponentManager.mouse_moved( self, o, x, y )
+	self.orig.mouse_moved( self, o, x, y )
+	Hooks:Call("MenuComponentManagerOnMouseMoved", self, o, x, y)
+end

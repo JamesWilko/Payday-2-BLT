@@ -2,6 +2,12 @@
 NotificationsGuiObject = NotificationsGuiObject or class()
 NotificationsGuiObject._edge_padding = 2
 
+local HIGHLIGHT_VISIBLE = 0.3
+local HIGHLIGHT_INVISIBLE = 0
+local VISIBILITY_THRESHOLD = 0.001
+local CHANGE_NOTIF_THRESHOLD = 0.15
+local HIGHLIGHT_PADDING = 2
+
 function NotificationsGuiObject:init(ws)
 
 	local panel = ws:panel():panel()
@@ -13,8 +19,32 @@ function NotificationsGuiObject:init(ws)
 	local max_left_len = 0
 	local max_right_len = 0
 	local extra_w = font_size * 4
-
 	local icon_size = 16
+
+	local highlight_rect = panel:rect({
+		name = "highlight",
+		color = tweak_data.screen_colors.button_stage_3,
+		alpha = HIGHLIGHT_INVISIBLE,
+		blend_mode = "add",
+		layer = 0,
+	})
+
+	local highlight_left_rect = panel:rect({
+		name = "highlight_left",
+		color = tweak_data.screen_colors.button_stage_3,
+		alpha = HIGHLIGHT_INVISIBLE,
+		blend_mode = "add",
+		layer = 0,
+	})
+
+	local highlight_right_rect = panel:rect({
+		name = "highlight_right",
+		color = tweak_data.screen_colors.button_stage_3,
+		alpha = HIGHLIGHT_INVISIBLE,
+		blend_mode = "add",
+		layer = 0,
+	})
+
 	local update_icon = panel:bitmap({
 		texture = "guis/textures/pd2/blackmarket/inv_newdrop",
 		w = icon_size,
@@ -145,6 +175,9 @@ function NotificationsGuiObject:init(ws)
 	update_icon:move(-5, 0)
 	self:_rec_round_object(panel)
 
+	self._highlight_rect = highlight_rect
+	self._highlight_left_rect = highlight_left_rect
+	self._highlight_right_rect = highlight_right_rect
 	self._heat_glow = heat_glow
 	self._focus = focus
 	self._update_icon = update_icon
@@ -158,6 +191,8 @@ function NotificationsGuiObject:init(ws)
 	self._prev_notification_text = prev_notification_text
 	self._next_notification_text = next_notification_text
 	self._notification_count_text = notification_count_text
+
+	self._hovering_on_notification = false
 
 	self:LoadNotifications()
 
@@ -239,7 +274,7 @@ function NotificationsGuiObject:update()
 	local total_money_text = self._total_money_text
 	local mastermind_text = self._mastermind_text
 
-	if update_icon and notification_title_text and notification_message_text and total_money_text and mastermind_text then
+	if alive(update_icon) and alive(notification_title_text) and alive(notification_message_text) and alive(total_money_text) and alive(mastermind_text) then
 
 		self:_make_fine_text(notification_title_text)
 		notification_title_text:set_left(math.round(update_icon:right()))
@@ -269,7 +304,7 @@ function NotificationsGuiObject:update()
 	local next_notification_text = self._next_notification_text
 	local notification_count_text = self._notification_count_text
 
-	if prev_notification_text and next_notification_text and notification_count_text then
+	if alive(prev_notification_text) and alive(next_notification_text) and alive(notification_count_text) then
 
 		local padding = self._edge_padding
 		local alpha = #NotificationsManager:GetNotifications() > 1 and 1 or 0
@@ -292,23 +327,62 @@ function NotificationsGuiObject:update()
 
 	end
 
+	local highlight_rect = self._highlight_rect
+	local highlight_left_rect = self._highlight_left_rect
+	local highlight_right_rect = self._highlight_right_rect
+
+	if alive(highlight_rect) and alive(highlight_left_rect) and alive(highlight_right_rect) then
+		
+		local panel = self._panel
+
+		highlight_rect:set_h( panel:h() - HIGHLIGHT_PADDING * 2 )
+		highlight_rect:set_w( panel:w() - HIGHLIGHT_PADDING * 2 )
+		highlight_rect:set_top( HIGHLIGHT_PADDING )
+		highlight_rect:set_left( HIGHLIGHT_PADDING )
+
+		highlight_left_rect:set_h( panel:h() - HIGHLIGHT_PADDING * 2 )
+		highlight_left_rect:set_w( panel:w() * CHANGE_NOTIF_THRESHOLD - HIGHLIGHT_PADDING * 2 )
+		highlight_left_rect:set_top( HIGHLIGHT_PADDING )
+		highlight_left_rect:set_left( HIGHLIGHT_PADDING )
+
+		highlight_right_rect:set_h( panel:h() - HIGHLIGHT_PADDING * 2 )
+		highlight_right_rect:set_w( panel:w() * CHANGE_NOTIF_THRESHOLD - HIGHLIGHT_PADDING * 2 )
+		highlight_right_rect:set_top( HIGHLIGHT_PADDING )
+		highlight_right_rect:set_right( panel:right() - HIGHLIGHT_PADDING )
+
+	end
+
+end
+
+function NotificationsGuiObject:SetHighlightVisibility( highlight, visible )
+
+	if visible then
+		if highlight:alpha() < HIGHLIGHT_VISIBLE - VISIBILITY_THRESHOLD then
+			highlight:set_alpha( HIGHLIGHT_VISIBLE )
+			managers.menu_component:post_event("highlight")
+		end
+	else
+		if highlight:alpha() > HIGHLIGHT_INVISIBLE + VISIBILITY_THRESHOLD then
+			highlight:set_alpha( HIGHLIGHT_INVISIBLE )
+		end
+	end
+
 end
 
 Hooks:Add("MenuComponentManagerOnMousePressed", "Base_ModUpdates_MenuComponentManagerOnMousePressed", function( menu, o, button, x, y )
 
 	if menu._notifications_gui and menu._notifications_gui._panel and menu._notifications_gui._panel:inside(x, y) then
 
-		local click_threshold = 0.15
 		local x_percent = ( x - menu._notifications_gui._panel:x() ) / menu._notifications_gui._panel:w()
 		local num_notifs = #NotificationsManager:GetNotifications()
 
 		if num_notifs > 1 then
-			if x_percent < click_threshold then
+			if x_percent < CHANGE_NOTIF_THRESHOLD then
 				NotificationsManager:ShowPreviousNotification()
 				menu._notifications_gui:LoadNotifications()
 				return true
 			end
-			if x_percent > (1 - click_threshold) then
+			if x_percent > (1 - CHANGE_NOTIF_THRESHOLD) then
 				NotificationsManager:ShowNextNotification()
 				menu._notifications_gui:LoadNotifications()
 				return true
@@ -317,6 +391,60 @@ Hooks:Add("MenuComponentManagerOnMousePressed", "Base_ModUpdates_MenuComponentMa
 
 		NotificationsManager:ClickNotification()
 		return true
+
+	end
+
+end)
+
+Hooks:Add("MenuComponentManagerOnMouseMoved", "Base_ModUpdates_MenuComponentManagerOnMouseMoved", function( menu, o, x, y )
+
+	if menu._notifications_gui then
+
+		local highlighted = false
+		local multiple_notifs = #NotificationsManager:GetNotifications() > 1
+
+		if multiple_notifs then
+
+			-- Next notification highlight
+			local highlight_right_rect = menu._notifications_gui._highlight_right_rect
+			if alive( highlight_right_rect ) then
+				local highlight_visible = highlight_right_rect:inside( x, y )
+				highlighted = highlighted or highlight_visible
+				menu._notifications_gui:SetHighlightVisibility( highlight_right_rect, highlight_visible )
+			end
+
+			-- Previous notification highlight
+			local highlight_left_rect = menu._notifications_gui._highlight_left_rect
+			if alive( highlight_left_rect ) then
+				local highlight_visible = highlight_left_rect:inside( x, y ) 
+				highlighted = highlighted or highlight_visible
+				menu._notifications_gui:SetHighlightVisibility( highlight_left_rect, highlight_visible )
+			end
+
+		end
+
+		-- Clickable area highlight
+		local highlight_rect = menu._notifications_gui._highlight_rect
+		if alive( highlight_rect ) then
+
+			local current_notif = NotificationsManager:GetCurrentNotification()
+			local x_percent = ( x - menu._notifications_gui._panel:x() ) / menu._notifications_gui._panel:w()
+			local highlight_visible = false
+			if multiple_notifs then
+				highlight_visible = highlight_rect:inside( x, y ) and x_percent > CHANGE_NOTIF_THRESHOLD and x_percent < (1 - CHANGE_NOTIF_THRESHOLD)
+			else
+				highlight_visible = highlight_rect:inside( x, y )
+			end
+			if current_notif and not current_notif.callback then
+				highlight_visible = false
+			end
+
+			menu._notifications_gui:SetHighlightVisibility( highlight_rect, highlight_visible )
+			highlighted = highlighted or highlight_visible
+
+		end
+
+		menu._notifications_gui._hovering_on_notification = highlighted
 
 	end
 

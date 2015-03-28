@@ -155,11 +155,14 @@ function Notify:ShowPreviousNotification( suppress_sound )
 
 end
 
-function Notify:ClickNotification()
+function Notify:ClickNotification( suppress_sound )
 
 	local notif = self:GetCurrentNotification()
 	if notif and notif.callback then
 		notif.callback()
+		if not suppress_sound then
+			managers.menu_component:post_event("menu_enter")
+		end
 	end
 
 end
@@ -198,10 +201,19 @@ Hooks:Add("MenuUpdate", "Base_Notifications_MenuUpdate", function(t, dt)
 
 	if #NotificationsManager:GetNotifications() > 1 then
 
-		NotificationsManager._time_to_next_notification = NotificationsManager._time_to_next_notification - dt
-		if NotificationsManager._time_to_next_notification <= 0 then
-			NotificationsManager:ShowNextNotification( true )
-			NotificationsManager:_ResetTimeToNextNotification()
+		local hovering = false
+		if managers.menu_component._notifications_gui then
+			hovering = managers.menu_component._notifications_gui._hovering_on_notification
+		end
+
+		if not hovering then
+
+			NotificationsManager._time_to_next_notification = NotificationsManager._time_to_next_notification - dt
+			if NotificationsManager._time_to_next_notification <= 0 then
+				NotificationsManager:ShowNextNotification( true )
+				NotificationsManager:_ResetTimeToNextNotification()
+			end
+
 		end
 
 	end
