@@ -31,6 +31,11 @@ end
 
 Hooks:RegisterHook("MenuComponentManagerOnMouseMoved")
 function MenuComponentManager.mouse_moved( self, o, x, y )
-	self.orig.mouse_moved( self, o, x, y )
-	Hooks:Call("MenuComponentManagerOnMouseMoved", self, o, x, y)
+	local hover, pointer = self.orig.mouse_moved( self, o, x, y )
+	local ohover, opointer = Hooks:ReturnCall("MenuComponentManagerOnMouseMoved", self, o, x, y)
+	if ohover ~= nil then
+		hover = ohover
+		pointer = opointer
+	end
+	return hover, pointer
 end

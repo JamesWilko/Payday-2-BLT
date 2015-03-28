@@ -445,6 +445,13 @@ Hooks:Add("MenuComponentManagerOnMouseMoved", "Base_ModUpdates_MenuComponentMana
 		end
 
 		menu._notifications_gui._hovering_on_notification = highlighted
+		if highlighted then
+			return true, "link"
+		else
+			if alive(highlight_rect) and highlight_rect:inside( x, y ) then
+				return true, "arrow"
+			end
+		end
 
 	end
 
