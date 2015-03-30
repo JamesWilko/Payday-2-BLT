@@ -12,7 +12,7 @@ LNetwork.ExceptPeerString = "{1}/{2}/{3}/{4}"
 LNetwork.Split = "[/]"
 
 function LNetwork:IsMultiplayer()
-	if managers.network == nil then
+	if not managers.network then
 		return false
 	end
 	return managers.network:session()

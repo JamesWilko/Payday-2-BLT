@@ -10,7 +10,7 @@ end
 function QuickMenu:init( title, text, options, show_immediately )
 
 	QuickMenu._menu_id_index = QuickMenu._menu_id_index + 1
-	self.menu_data = {
+	self.dialog_data = {
 		id = QuickMenu._menu_id_key .. tostring( QuickMenu._menu_id_index ),
 		title = title,
 		text = text,
@@ -45,10 +45,10 @@ function QuickMenu:init( title, text, options, show_immediately )
 		button.cancel_button = option.is_cancel_button or false
 
 		if option.is_focused_button then
-			self.menu_data.focus_button = #self.menu_data.button_list + 1
+			self.dialog_data.focus_button = #self.dialog_data.button_list + 1
 		end
 
-		table.insert( self.menu_data.button_list, button )
+		table.insert( self.dialog_data.button_list, button )
 
 	end
 
@@ -74,7 +74,7 @@ function QuickMenu:Show()
 
 	if not self.visible then
 		self.visible = true
-		managers.system_menu:show( self.menu_data )
+		managers.system_menu:show( self.dialog_data )
 	end
 
 end
@@ -86,7 +86,7 @@ end
 function QuickMenu:Hide()
 
 	if self.visible then
-		managers.system_menu:close( self.menu_data.id )
+		managers.system_menu:close( self.dialog_data.id )
 		self.visible = false
 	end
 
