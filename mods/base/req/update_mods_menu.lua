@@ -47,6 +47,11 @@ function LuaModUpdates:ShowUpdateAvailableMessage( mod_tbl )
 			callback = LuaModUpdates.OpenUpdateManagerNode,
 		},
 		[3] = {
+			text = managers.localization:text("base_mod_updates_open_update_notes"),
+			callback = LuaModUpdates.ShowModPatchNotes,
+			data = mod_tbl.identifier
+		},
+		[4] = {
 			text = managers.localization:text("base_mod_updates_update_later"),
 			is_cancel_button = true,
 		},
