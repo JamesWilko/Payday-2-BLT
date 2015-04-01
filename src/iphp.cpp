@@ -15,6 +15,7 @@ BOOL WINAPI DllMain(HINSTANCE hInst,DWORD reason,LPVOID)
 		{
 		hLThis = hInst;
 
+#ifndef BLT_AS_CLIENT
 		char bufd[200];
 		GetSystemDirectory(bufd, 200);
 		strcat_s(bufd, "\\IPHLPAPI.dll");
@@ -290,6 +291,7 @@ BOOL WINAPI DllMain(HINSTANCE hInst,DWORD reason,LPVOID)
 		p[264] = GetProcAddress(hL,"if_indextoname");
 		p[265] = GetProcAddress(hL,"if_nametoindex");
 		p[266] = GetProcAddress(hL,"register_icmp");
+#endif
 
 		InitiateStates();
 
@@ -297,12 +299,14 @@ BOOL WINAPI DllMain(HINSTANCE hInst,DWORD reason,LPVOID)
 	if (reason == DLL_PROCESS_DETACH)
 		{
 		DestroyStates();
+#ifndef BLT_AS_CLIENT
 		FreeLibrary(hL);
+#endif
 		}
 
 	return 1;
 	}
-
+#ifndef BLT_AS_CLIENT
 // AddIPAddress
 extern "C" __declspec(naked) void __stdcall __E__0__()
 	{
@@ -2705,4 +2709,4 @@ extern "C" __declspec(naked) void __stdcall __E__266__()
 		jmp p[266*4];
 		}
 	}
-
+#endif

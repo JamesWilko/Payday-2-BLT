@@ -1,11 +1,20 @@
 #include "InitState.h"
+#ifndef BLT_AS_CLIENT
 #include <detours.h>
+#endif
 
 #include "signatures/signatures.h"
 #include "util/util.h"
 #include "console/console.h"
 #include "threading/queue.h"
 #include "http/http.h"
+
+#ifdef BLT_AS_CLIENT
+#include "HookAPI.h"
+#define luaI_openlib	luaL_openlib
+#define LUA_ERRRUN	2
+#define LUA_ERRSYNTAX	3
+#else
 
 #include <thread>
 
@@ -69,6 +78,8 @@ void lua_newcall(lua_State* L, int args, int returns){
 	}
 }
 
+#endif
+
 int luaH_getcontents(lua_State* L, bool files){
 	size_t len;
 	const char* dirc = lua_tolstring(L, 1, &len);
@@ -78,7 +89,7 @@ int luaH_getcontents(lua_State* L, bool files){
 	try {
 		directories = Util::GetDirectoryContents(dir, files);
 	}
-	catch (int e){
+	catch (...){
 		lua_pushboolean(L, false);
 		return 1;
 	}
@@ -265,6 +276,9 @@ int luaF_print(lua_State* L){
 int updates = 0;
 std::thread::id main_thread_id;
 
+#ifdef BLT_AS_CLIENT
+void WINAPI do_game_update_new(lua_State* L, LPCSTR _, LPVOID __){
+#else
 void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 
 	// If someone has a better way of doing this, I'd like to know about it.
@@ -275,6 +289,8 @@ void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 	}
 
 	lua_State* L = (lua_State*)*((void**)thislol);
+#endif
+
 	if (updates == 0){
 		HTTPManager::GetSingleton()->init_locks();
 	}
@@ -284,9 +300,14 @@ void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 	}
 
 	updates++;
+#ifndef BLT_AS_CLIENT
 	return do_game_update(thislol, a, b);
+#endif
 }
 
+#ifdef BLT_AS_CLIENT
+void WINAPI luaL_newstate_new(lua_State* L, LPCSTR _, LPVOID __){
+#else
 // Random dude who wrote what's his face?
 // I 'unno, I stole this method from the guy who wrote the 'underground-light-lua-hook'
 // Mine worked fine, but this seems more elegant.
@@ -300,6 +321,8 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 
 	CREATE_LUA_FUNCTION(luaF_pcall, "pcall")
 	CREATE_LUA_FUNCTION(luaF_dofile, "dofile")
+#endif
+
 	CREATE_LUA_FUNCTION(luaF_dohttpreq, "dohttpreq")
 	CREATE_LUA_FUNCTION(luaF_print, "log")
 	CREATE_LUA_FUNCTION(luaF_unzipfile, "unzip")
@@ -317,17 +340,24 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	if (result == LUA_ERRSYNTAX){
 		size_t len;
 		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
+#ifdef BLT_AS_CLIENT
+		return;
+#else
 		return ret;
+#endif
 	}
 	result = lua_pcall(L, 0, 1, 0);
 	if (result == LUA_ERRRUN){
 		size_t len;
 		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
+#ifndef BLT_AS_CLIENT
 		return ret;
+#endif
 	}
-
+#ifndef BLT_AS_CLIENT
 	lua_settop(L, stack_size);
 	return ret;
+#endif
 }
 
 
@@ -337,12 +367,17 @@ void InitiateStates(){
 
 	main_thread_id = std::this_thread::get_id();
 
+#ifdef BLT_AS_CLIENT
+	RegisterCallback(GAMETICK_CALLBACK, do_game_update_new);
+	RegisterCallback(NEWSTATE_CALLBACK, luaL_newstate_new);
+#else
 	SignatureSearch::Search();
 
 
 	FuncDetour* gameUpdateDetour = new FuncDetour((void**)&do_game_update, do_game_update_new);
 	FuncDetour* newStateDetour = new FuncDetour((void**)&luaL_newstate, luaL_newstate_new);
 	FuncDetour* luaCallDetour = new FuncDetour((void**)&lua_call, lua_newcall);
+#endif
 	
 	new EventQueueM();
 }
