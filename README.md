@@ -31,4 +31,7 @@ The documentation is written in [markdown](http://daringfireball.net/projects/ma
 
 ## Developers
 The Payday 2 BLT was made by [James Wilkinson](http://jameswilko.com/) and [SirWaddlesworth](http://sirwaddlesworth.com/). We're friendly guys sometimes, so if you need help or want to discuss something you can reach us at any of the contact details we've got listed [over here](http://paydaymods.com/contact/).  
-We've also had help from a bunch of other people who've tested stuff, reported bugs, suggested changes, and everthing else. So thanks to GREAT BIG BUSHY BEARD, Kail, Dougley, and everybody else!  
+We've also had help from a bunch of other people who've tested stuff, reported bugs, suggested changes, and everthing else. So thanks to GREAT BIG BUSHY BEARD, Kail, Dougley, and everybody else!
+
+## Client Compilation
+BLT can be compiled with the preprocessor flag BLT_AS_CLIENT set which will produce a library that can be dropped into the lib/Native folder used by the existing hook. This results in providing all the required functionality for mods based around BLT without sacrificing compatibility with the existing hook's features. A binary version exists at the root of the project called PD2BLT.dll
