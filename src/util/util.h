@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <list>
 
 namespace Util {
@@ -13,6 +14,10 @@ namespace Util {
 	void EnsurePathWritable(std::string path);
 	bool RemoveEmptyDirectory(std::string dir);
 	bool DirectoryExists(std::string dir);
+	bool CreateDirectoryPath(std::string dir);
+	// String split from http://stackoverflow.com/a/236803
+	std::vector<std::string> &SplitString(const std::string &s, char delim, std::vector<std::string> &elems);
+	std::vector<std::string> SplitString(const std::string &s, char delim);
 }
 
 

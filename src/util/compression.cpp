@@ -90,7 +90,7 @@ bool ZIPArchive::ReadFile(){
 }
 
 bool ZIPArchive::WriteFile(ZIPFileData* data){
-	std::string finalWritePath = extractTo + "/" + data->filepath;
+	std::string finalWritePath = extractTo + data->filepath;
 	Logging::Log("Extracting to " + finalWritePath);
 	Util::EnsurePathWritable(finalWritePath);
 	std::ofstream outFile;

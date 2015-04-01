@@ -73,10 +73,38 @@ namespace Util{
 		int finalSlash = path.find_last_of('/');
 		std::string finalPath = path.substr(0, finalSlash);
 		if (DirectoryExists(finalPath)) return;
-		CreateDirectory(finalPath.c_str(), NULL);
+		CreateDirectoryPath(finalPath.c_str());
 	}
 
 	bool RemoveEmptyDirectory(std::string dir){
 		return RemoveDirectory(dir.c_str());
 	}
+
+	bool CreateDirectoryPath(std::string path){
+		std::string newPath = "";
+		std::vector<std::string> paths = Util::SplitString(path.c_str(), '/');
+		for (auto i : paths) {
+			newPath = newPath + i + "/";
+			CreateDirectory(newPath.c_str(), NULL);
+		}
+		return true;
+	}
+
+	std::vector<std::string> &SplitString(const std::string &s, char delim, std::vector<std::string> &elems) {
+		std::stringstream ss(s);
+		std::string item;
+		while (std::getline(ss, item, delim)) {
+			if (!item.empty()){
+				elems.push_back(item);
+			}
+		}
+		return elems;
+	}
+
+	std::vector<std::string> SplitString(const std::string &s, char delim) {
+		std::vector<std::string> elems;
+		SplitString(s, delim, elems);
+		return elems;
+	}
+
 }
