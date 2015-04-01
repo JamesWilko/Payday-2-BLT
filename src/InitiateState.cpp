@@ -382,6 +382,7 @@ void InitiateStates(){
 	FuncDetour* gameUpdateDetour = new FuncDetour((void**)&do_game_update, do_game_update_new);
 	FuncDetour* newStateDetour = new FuncDetour((void**)&luaL_newstate, luaL_newstate_new);
 	FuncDetour* luaCallDetour = new FuncDetour((void**)&lua_call, lua_newcall);
+	FuncDetour* luaCloseDetour = new FuncDetour((void**)&lua_close, luaF_close);
 	
 	new EventQueueM();
 }
