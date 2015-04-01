@@ -8,6 +8,7 @@
 #include "http/http.h"
 
 #include <thread>
+#include <list>
 
 class lua_State;
 
@@ -30,6 +31,7 @@ CREATE_CALLABLE_SIGNATURE(lua_setfield, void, "\x8B\x46\x08\x83\xE8\x08\x50\x8D\
 CREATE_CALLABLE_SIGNATURE(lua_createtable, void, "\x83\xC4\x0C\x89\x07\xC7\x47\x04\x05\x00\x00\x00\x83\x46\x08\x08\x5F", "xxxxxxxxx???xxxxx", -66, lua_State*, int, int)
 CREATE_CALLABLE_SIGNATURE(lua_insert, void, "\x8B\x4C\x24\x08\x56\x8B\x74\x24\x08\x8B\xD6\xE8\x50\xFE", "xxxxxxxxxxxxxx", 0, lua_State*, int)
 CREATE_CALLABLE_SIGNATURE(lua_newstate, lua_State*, "\x53\x55\x8B\x6C\x24\x0C\x56\x57\x8B\x7C\x24\x18\x68\x00\x00\x00\x00\x33\xDB", "xxxxxxxxxxxxx????xx", 0, lua_Alloc, void*)
+CREATE_CALLABLE_SIGNATURE(lua_close, void, "\x8B\x44\x24\x04\x8B\x48\x10\x56\x8B\x71\x70", "xxxxxxxxxxx", 0, lua_State*)
 
 CREATE_CALLABLE_SIGNATURE(lua_rawset, void, "\x8B\x4C\x24\x08\x53\x56\x8B\x74\x24\x0C\x57", "xxxxxxxxxxx", 0, lua_State*, int)
 CREATE_CALLABLE_SIGNATURE(lua_settable, void, "\x8B\x4C\x24\x08\x56\x8B\x74\x24\x08\x8B\xD6\xE8\x00\x00\x00\x00\x8B\x4E\x08\x8D\x51\xF8", "xxxxxxxxxxxx????xxxxxx", 0, lua_State*, int)
@@ -60,6 +62,25 @@ CREATE_CALLABLE_CLASS_SIGNATURE(luaL_newstate, int, "\x8B\x44\x24\x0C\x56\x8B\xF
 #define LUA_ERRMEM	4
 #define LUA_ERRERR	5
 #define LUA_ERRFILE     (LUA_ERRERR+1)
+
+std::list<lua_State*> activeStates;
+void add_active_state(lua_State* L){
+	activeStates.push_back(L);
+}
+
+void remove_active_state(lua_State* L){
+	activeStates.remove(L);
+}
+
+bool check_active_state(lua_State* L){
+	std::list<lua_State*>::iterator it;
+	for (it = activeStates.begin(); it != activeStates.end(); it++){
+		if (*it == L) {
+			return true;
+		}
+	}
+	return false;
+}
 
 void lua_newcall(lua_State* L, int args, int returns){
 	int result = lua_pcall(L, args, returns, 0);
@@ -180,6 +201,12 @@ struct lua_http_data {
 
 void return_lua_http(void* data, std::string& urlcontents){
 	lua_http_data* ourData = (lua_http_data*)data;
+
+	if (!check_active_state(ourData->L)) {
+		delete ourData;
+		return;
+	}
+
 	lua_rawgeti(ourData->L, LUA_REGISTRYINDEX, ourData->funcRef);
 	lua_pushlstring(ourData->L, urlcontents.c_str(), urlcontents.length());
 	lua_pushinteger(ourData->L, ourData->requestIdentifier);
@@ -191,6 +218,11 @@ void return_lua_http(void* data, std::string& urlcontents){
 
 void progress_lua_http(void* data, long progress, long total){
 	lua_http_data* ourData = (lua_http_data*)data;
+
+	if (!check_active_state(ourData->L)){
+		return;
+	}
+
 	if (ourData->progressRef == 0) return;
 	lua_rawgeti(ourData->L, LUA_REGISTRYINDEX, ourData->progressRef);
 	lua_pushinteger(ourData->L, ourData->requestIdentifier);
@@ -296,6 +328,8 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	lua_State* L = (lua_State*)*((void**)thislol);
 	if (!L) return ret;
 
+	add_active_state(L);
+
 	int stack_size = lua_gettop(L);
 
 	CREATE_LUA_FUNCTION(luaF_pcall, "pcall")
@@ -328,6 +362,11 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 
 	lua_settop(L, stack_size);
 	return ret;
+}
+
+void luaF_close(lua_State* L){
+	remove_active_state(L);
+	lua_close(L);
 }
 
 
