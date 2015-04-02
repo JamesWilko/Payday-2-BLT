@@ -9,19 +9,18 @@ void EventItem::RunFunction(){
 	mFunc(mData);
 }
 
-EventQueueM* EventQueueM::eventSingleton = NULL;
+EventQueueM EventQueueM::eventSingleton;
 
 EventQueueM::EventQueueM(){
-	if (eventSingleton) delete eventSingleton;
-	eventSingleton = this;
+
 }
 
-EventQueueM* EventQueueM::GetSingleton(){
+EventQueueM& EventQueueM::GetSingleton(){
 	return eventSingleton;
 }
 
 void EventQueueM::ProcessEvents(){
-	std::deque<EventItem*> eventClone;
+	std::deque<EventItem> eventClone;
 	criticalLock.lock();
 	if (eventQueue.size() <= 0){
 		criticalLock.unlock();
@@ -31,21 +30,17 @@ void EventQueueM::ProcessEvents(){
 	eventQueue.clear();
 	criticalLock.unlock();
 
-	std::deque<EventItem*>::iterator it;
-	for (it = eventClone.begin(); it != eventClone.end(); it++){
-		(*it)->RunFunction();
-		delete (*it);
-	}
+	for (auto&& it : eventClone)
+		it.RunFunction();
 }
 
-void EventQueueM::AddToQueue(EventItem* newItem){
+void EventQueueM::AddToQueue(EventItem&& newItem){
 	criticalLock.lock();
-	eventQueue.push_back(newItem);
+	eventQueue.emplace_back(newItem);
 	criticalLock.unlock();
 }
 
 void EventQueueM::AddToQueue(EventFunction func, void* data){
-	EventItem* nItem = new EventItem(func, data);
-	AddToQueue(nItem);
+	AddToQueue(EventItem(func, data));
 }
 

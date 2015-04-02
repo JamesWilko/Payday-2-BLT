@@ -21,14 +21,14 @@ class EventQueueM {
 public:
 	EventQueueM();
 	void ProcessEvents();
-	void AddToQueue(EventItem* newItem);
+	void AddToQueue(EventItem&& newItem);
 	void AddToQueue(EventFunction runFunction, void* dataToRun);
 
-	static EventQueueM* GetSingleton();
+	static EventQueueM& GetSingleton();
 private:
-	static EventQueueM* eventSingleton;
+	static EventQueueM eventSingleton;
 	std::mutex criticalLock;
-	std::deque<EventItem*> eventQueue;
+	std::deque<EventItem> eventQueue;
 };
 
 

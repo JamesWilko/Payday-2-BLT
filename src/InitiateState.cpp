@@ -276,7 +276,7 @@ int luaF_dohttpreq(lua_State* L){
 		reqItem->progress = progress_lua_http;
 	}
 
-	HTTPManager::GetSingleton()->LaunchHTTPRequest(reqItem);
+	HTTPManager::GetSingleton().LaunchHTTPRequest(reqItem);
 	lua_pushinteger(L, HTTPReqIdent);
 	return 1;
 }
@@ -317,11 +317,11 @@ void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 	}
 
 	if (updates == 0){
-		HTTPManager::GetSingleton()->init_locks();
+		HTTPManager::GetSingleton().init_locks();
 	}
 
 	if (updates > 1){
-		EventQueueM::GetSingleton()->ProcessEvents();
+		EventQueueM::GetSingleton().ProcessEvents();
 	}
 
 	updates++;
@@ -444,7 +444,7 @@ void GetSignatures(HMODULE hDLL) {
 	}
 }
 
-static HTTPManager mainManager;
+static HTTPManager& mainManager = HTTPManager::GetSingleton();
 
 void InitiateStates(){
 
