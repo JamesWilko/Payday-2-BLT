@@ -3,6 +3,8 @@
 
 #include <Windows.h>
 
+extern bool IS_STANDALONE;
+
 void InitiateStates();
 void DestroyStates();
 

@@ -5,6 +5,7 @@
 #include <mutex>
 #include <thread>
 #include <list>
+#include <memory>
 
 typedef void(*HTTPCallback)(void* data, std::string& urlContents);
 typedef void(*HTTPProgress)(void* data, long progress, long total);
@@ -22,23 +23,23 @@ struct HTTPItem {
 };
 
 class HTTPManager {
-public:
 	HTTPManager();
+public:
 	~HTTPManager();
 
 	void init_locks();
 
-	static HTTPManager* GetSingleton();
+	static HTTPManager& GetSingleton();
 
 	void SSL_Lock(int lockno);
 	void SSL_Unlock(int lockno);
 
 	void LaunchHTTPRequest(HTTPItem* callback);
 private:
-	static HTTPManager* httpSingleton;
-	std::mutex* openssl_locks;
+	static HTTPManager httpSingleton;
+	std::unique_ptr<std::mutex[]> openssl_locks;
 	int numLocks;
-	std::list<std::thread*> threadList;
+	std::list<std::thread> threadList;
 };
 
 

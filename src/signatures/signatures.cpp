@@ -35,25 +35,18 @@ unsigned long FindPattern(char* module, const char* pattern, const char* mask)
 	return NULL;
 }
 
-std::vector<SignatureF>* allSignatures = NULL;
+std::vector<SignatureF> allSignatures;
 
-SignatureSearch::SignatureSearch(void* adress, const char* signature, const char* mask, int offset){
-	// lazy-init, container gets 'emptied' when initialized on compile.
-	if (!allSignatures){
-		allSignatures = new std::vector<SignatureF>();
-	}
-
-	SignatureF ins = { signature, mask, offset, adress };
-	allSignatures->push_back(ins);
+SignatureSearch::SignatureSearch(void** adress, const char* signature, const char* mask, int offset){
+	allSignatures.emplace_back(SignatureF{signature, mask, offset, adress});
 }
 
 void SignatureSearch::Search(){
 	printf("Scanning for signatures.\n");
-	std::vector<SignatureF>::iterator it;
-	for (it = allSignatures->begin(); it < allSignatures->end(); it++){
-		*((void**)it->address) = (void*)(FindPattern("payday2_win32_release.exe", it->signature, it->mask) + it->offset);
-	}
+	for (auto&& it : allSignatures)
+		*it.address = (void*)(FindPattern("payday2_win32_release.exe", it.signature, it.mask) + it.offset);
 	printf("Signatures Found.\n");
+	allSignatures.clear(); //We don't need it, clear it.
 }
 
 

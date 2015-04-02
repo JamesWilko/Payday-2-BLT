@@ -6,13 +6,13 @@
 
 #include <thread>
 
-HTTPManager* HTTPManager::httpSingleton = NULL;
+HTTPManager HTTPManager::httpSingleton;
 
 void lock_callback(int mode, int type, const char* file, int line){
 	if (mode & CRYPTO_LOCK){
-		HTTPManager::GetSingleton()->SSL_Lock(type);
+		HTTPManager::GetSingleton().SSL_Lock(type);
 	} else {
-		HTTPManager::GetSingleton()->SSL_Unlock(type);
+		HTTPManager::GetSingleton().SSL_Unlock(type);
 	}
 }
 
@@ -20,10 +20,6 @@ HTTPManager::HTTPManager(){
 	// Curl Init
 	curl_global_init(CURL_GLOBAL_ALL);
 	Logging::Log("CURL INITD");
-
-	// Singleton
-	if (httpSingleton) delete httpSingleton;
-	httpSingleton = this;
 }
 
 HTTPManager::~HTTPManager(){
@@ -31,22 +27,18 @@ HTTPManager::~HTTPManager(){
 	Logging::Log("CURL CLOSED");
 	curl_global_cleanup();
 
-	delete[] openssl_locks;
-
-	std::list<std::thread*>::iterator it;
-	for (it = threadList.begin(); it != threadList.end(); it++){
-		(*it)->join();
-		delete *it;
-	}
+	for (auto&& it : threadList)
+		it.join();
+	threadList.clear();
 }
 
 void HTTPManager::init_locks(){
 	numLocks = CRYPTO_num_locks();
-	openssl_locks = new std::mutex[numLocks];
+	openssl_locks.reset(new std::mutex[numLocks]);
 	CRYPTO_set_locking_callback(lock_callback);
 }
 
-HTTPManager* HTTPManager::GetSingleton(){
+HTTPManager& HTTPManager::GetSingleton(){
 	return httpSingleton;
 }
 
@@ -98,7 +90,7 @@ int http_progress_call(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl
 	notify->byteProgress = dlnow;
 	notify->byteTotal = dltotal;
 
-	EventQueueM::GetSingleton()->AddToQueue(run_http_progress_event, notify);
+	EventQueueM::GetSingleton().AddToQueue(run_http_progress_event, notify);
 	return 0;
 }
 
@@ -131,7 +123,7 @@ void launch_thread_http(HTTPItem* item){
 	curl_easy_cleanup(curl);
 
 
-	EventQueueM::GetSingleton()->AddToQueue(run_http_event, item);
+	EventQueueM::GetSingleton().AddToQueue(run_http_event, item);
 }
 
 void HTTPManager::LaunchHTTPRequest(HTTPItem* callback){
@@ -139,5 +131,5 @@ void HTTPManager::LaunchHTTPRequest(HTTPItem* callback){
 	// This shit's gonna end eventually, how many threads are people going to launch?
 	// Probably a lot.
 	// I'll manage them I guess, but I've no idea when to tell them to join which I believe is part of the constructor.
-	threadList.push_back(new std::thread(launch_thread_http, callback));
+	threadList.emplace_back(std::thread(launch_thread_http, callback));
 }
