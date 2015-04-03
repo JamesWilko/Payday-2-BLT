@@ -60,7 +60,7 @@
 
 	"base_mod_update_no_update_available_title" : "$mod_name Up-to-Date!",
 	"base_mod_update_no_update_available" : "You have the latest version of $mod_name.\nDo you want to redownload and reinstall $mod_name automatically?",
-	"base_mod_update_no_update_available_ok" : "OK",
+	"base_mod_update_no_update_available_no_data" : "You have the latest version of $mod_name.",
 	"base_mod_update_no_update_available_force" : "Force Redownload",
 
 	"base_mod_download_downloading_mod" : "Downloading $mod_name",

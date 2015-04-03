@@ -219,6 +219,7 @@ if _loaded_mod_folders and _mods then
 				local script = hook[ C.mod_script_path_key ]
 				if hook_id and script then
 
+					hook_id = hook_id:lower()
 					local tbl = {
 						mod_path = mod.path,
 						script = mod.path .. script

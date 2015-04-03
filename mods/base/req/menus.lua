@@ -438,8 +438,8 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 				local priority = #items - k
 				local value = item.default_value
 				local localized = item.localized
-				if data_table then
-					value = data_table[item.value] or item.default_value
+				if data_table and data_table[item.value] ~= nil then
+					value = data_table[item.value]
 				end
 
 				if type == "button" then

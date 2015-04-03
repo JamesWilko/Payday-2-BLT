@@ -174,9 +174,9 @@ function LuaModUpdates:CheckModForUpdateAndShowOptions( mod_id )
 		if v.identifier == mod_id then
 
 			if v.update_required then
-				LuaModUpdates:ShowModRequiresUpdate( mod_id )
+				self:ShowModRequiresUpdate( mod_id )
 			else
-				LuaModUpdates:ShowModUpToDate( mod_id )
+				self:ShowModUpToDate( mod_id )
 			end
 			
 		end
@@ -186,20 +186,28 @@ end
 
 function LuaModUpdates:ShowModUpToDate( mod_id )
 
+	local message_id = self:VerifyModIsDownloadable( mod_id ) and "base_mod_update_no_update_available" or "base_mod_update_no_update_available_no_data"
+
 	local mod_name_tbl = { ["mod_name"] = self:GetModFriendlyName( mod_id ) }
 	local title = managers.localization:text("base_mod_update_no_update_available_title", mod_name_tbl)
-	local message = managers.localization:text("base_mod_update_no_update_available", mod_name_tbl)
-	local options = {
-		[1] = {
+	local message = managers.localization:text(message_id, mod_name_tbl)
+	local options = {}
+
+	if self:VerifyModIsDownloadable( mod_id ) then
+		local download_btn = {
 			text = managers.localization:text("base_mod_update_no_update_available_force"),
 			callback = LuaModUpdates.ForceDownloadAndInstallMod,
 			data = mod_id
-		},
-		[2] = {
-			text = managers.localization:text("base_mod_update_no_update_available_ok"),
-			is_cancel_button = true
 		}
+		table.insert( options, download_btn )
+	end
+	
+	local cancel_btn = {
+		text = managers.localization:text("dialog_ok"),
+		is_cancel_button = true
 	}
+	table.insert( options, cancel_btn )
+
 	QuickMenu:new( title, message, options, true )
 
 end

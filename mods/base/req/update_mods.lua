@@ -82,8 +82,8 @@ function LuaModUpdates:FetchUpdatesFromAPI( path, callback )
 				local mod_data = server_data[v.identifier]
 				if mod_data then
 
-					local local_version = tonumber( v.revision ) or 1
-					local server_version = tonumber( mod_data.revision ) or 1
+					local local_version = tonumber( v.revision ) or -1
+					local server_version = tonumber( mod_data.revision ) or -1
 
 					v.server_revision = server_version
 					v.update_required = local_version < server_version
@@ -155,15 +155,8 @@ function LuaModUpdates:ShowUpdatesAvailableNotification( mods_to_update )
 end
 
 function LuaModUpdates.NotificationClickCallback()
-
-	local node = managers.menu:active_menu().logic:selected_node()
-	if node and node._default_item_name and node._default_item_name == "crimenet" then
-
-		LuaModUpdates.OpenUpdateManagerNode()
-		return true
-
-	end
-
+	LuaModUpdates.OpenUpdateManagerNode()
+	return true
 end
 
 function LuaModUpdates.OpenUpdateManagerNode()
@@ -176,7 +169,20 @@ function LuaModUpdates.OpenUpdateManagerNode()
 
 end
 
+function LuaModUpdates:VerifyModIsDownloadable( mod_id )
+	for k, v in pairs( LuaModManager:UpdateChecks() ) do
+		if mod_id == v.identifier then
+			return v.server_revision and v.server_revision >= 0 or false
+		end
+	end
+	return false
+end
+
 function LuaModUpdates:DownloadAndStoreMod( mod_id )
+
+	if not self:VerifyModIsDownloadable( mod_id ) then
+		log("[Updates][Warning] Attempted to download a mod which is not on the server, halting...")
+	end
 
 	local url = self._updates_download_url:gsub("{1}", mod_id)
 	log( ("[Updates] Downloading mod data for {1}"):gsub("{1}", mod_id) )
@@ -234,7 +240,7 @@ function LuaModUpdates.ModDownloadFinished( data, http_id )
 			end
 
 			-- Special case for hook dll
-			if mod_id == C.hook_dll_id or mod_id == "testmod" then
+			if mod_id == C.hook_dll_id or mod_id == "testmod" or mod_id == "payday2bltdll_test" then
 
 				local hook_result, hook_error = os.rename( C.hook_dll_name, C.hook_dll_temp_name )
 				if not hook_result then
@@ -244,7 +250,7 @@ function LuaModUpdates.ModDownloadFinished( data, http_id )
 
 				if mod_table.revision_path and mod_table.server_revision then
 
-					local revision_file = io.open( mod_table.revision_path, "w+" )
+					local revision_file, file_err = io.open( mod_table.revision_path, "w+" )
 					if revision_file then
 						revision_file:write( tostring(mod_table.server_revision) )
 						revision_file:close()
