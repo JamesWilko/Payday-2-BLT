@@ -14,8 +14,9 @@ Hooks:Add("MenuManagerOnOpenMenu", "Base_ModUpdates_MenuManagerOnOpenMenu", func
 	-- Check for updates after going to the main menu
 	if menu == "menu_main" then
 
+		LuaModUpdates:ShowUpdatesAvailableNotification({})
+
 		if not LuaNetworking:IsMultiplayer() then
-			LuaModUpdates:ShowUpdatesAvailableNotification({})
 			LuaModUpdates:CheckForUpdates( LuaModUpdates.ShowUpdatesAvailableCallback )
 		end
 
@@ -218,7 +219,7 @@ function LuaModUpdates.ModDownloadFinished( data, http_id )
 	end
 
 	local C = LuaModManager.Constants
-	local download_path = C.mods_directory .. C.lua_base_directory .. C.downloads_directory
+	local download_path = C.mods_directory .. C.downloads_directory
 	local file_path = download_path .. tostring(mod_id) .. ".zip"
 	log("[Updates] Saving mod to file path: " .. file_path)
 
