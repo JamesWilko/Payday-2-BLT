@@ -344,13 +344,13 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 
 		stack_size = lua_gettop(L);
 
-		add_active_state(L);
 		CREATE_LUA_FUNCTION(luaF_pcall, "pcall")
 		CREATE_LUA_FUNCTION(luaF_dofile, "dofile")
 	}
 	else
 		L = thislol;
 
+	add_active_state(L);
 	CREATE_LUA_FUNCTION(luaF_dohttpreq, "dohttpreq")
 	CREATE_LUA_FUNCTION(luaF_print, "log")
 	CREATE_LUA_FUNCTION(luaF_unzipfile, "unzip")
