@@ -19,6 +19,7 @@ C.mod_updates_file = "mod_updates.txt"
 C.excluded_mods_directories = {
 	["logs"] = true,
 	["saves"] = true,
+	["downloads"] = true,
 }
 
 C.always_active_mods = {
