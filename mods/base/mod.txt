@@ -1,20 +1,22 @@
 {
-	"name" : "Payday 2 BLT",
-	"description" : "The collection of lua files that allow the lua hook to function."
-	"author" : "James Wilkinson",
-	"contact" : "jw@jameswilko.com",
+	"name" : "PAYDAY2 BLT: CSE",
+	"description" : "Core library and Lua framework of BLT: Club Sandwich Edition"
+	"author" : "Olipro",
+	"contact" : "nobody@example.com",
 	"version" : "1.0",
 	"priority" : 1001,
 	"updates" : [
 		{
+			"api_url" : "https://raw.github.com/HoxHud/BLT-CSE-bin/master/bltcse.ver",
 			"revision" : 1,
 			"identifier" : "payday2blt",
 		},
 		{
+			"api_url" : "https://raw.github.com/HoxHud/BLT-CSE-bin/master/bltcsedll.ver",
 			"revision" : "./mods/saves/blt_revision.txt",
 			"identifier" : "payday2bltdll",
 			"install_dir" : ".",
-			"display_name" : "Payday 2 BLT Hook DLL",
+			"display_name" : "Payday 2 BLT:CSE DLL",
 		}
 	]
 	"pre_hooks" : [
