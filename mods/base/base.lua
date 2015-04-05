@@ -125,13 +125,13 @@ if not _require_orig then
 
 	end
 
-	require = function( path )
+	require = function( path, ... )
 
 		local path_orig = path
 		path = path:lower()
 
 		call_require_hook( _prehooks, path )
-		local res = _require_orig( path_orig )
+		local res = _require_orig( path_orig, ... )
 		call_require_hook( _posthooks, path )
 		for k, v in ipairs( _wildcard_hooks ) do
 			declare( C.required_script_global, path )

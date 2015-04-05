@@ -64,10 +64,11 @@ C.mod_update_identifier_key = "identifier"
 C.mod_update_install_key = "install_dir"
 C.mod_update_install_folder_key = "install_folder"
 C.mod_update_name_key = "display_name"
+C.mod_url_name_key = "api_url"
 
 C.hook_dll_id = "payday2bltdll"
-C.hook_dll_name = "IPHLPAPI.dll"
-C.hook_dll_temp_name = "IPHLPAPI_temp.dll"
+C.hook_dll_name = "lib/native/PD2BLTCS.dll"
+C.hook_dll_temp_name = "lib/PD2BLTCS_temp.dll"
 
 LuaModManager._persist_scripts = LuaModManager._persist_scripts or {}
 
@@ -219,6 +220,7 @@ function LuaModManager:AddUpdateCheck( mod_table, mod_id, update_tbl )
 		install_dir = update_tbl[ C.mod_update_install_key ] or nil,
 		install_folder = update_tbl[ C.mod_update_install_folder_key ] or nil,
 		display_name = update_tbl[ C.mod_update_name_key ] or nil,
+		api_url = update_tbl[ C.mod_url_name_key ] or nil,
 	}
 
 	if tbl.identifier == nil then

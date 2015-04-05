@@ -242,7 +242,9 @@ function LuaModUpdates.ForceDownloadAndInstallMod( data )
 end
 
 function LuaModUpdates.ShowModPatchNotes( data )
-	local url = LuaModUpdates._updates_notes_url:gsub("{1}", data)
+	local mod_table = LuaModUpdates:GetModTable( mod_id ) or {}
+
+	local url = mod_table.notes_url or LuaModUpdates._updates_notes_url:gsub("{1}", data)
 	Steam:overlay_activate("url", url)
 	LuaModUpdates:ShowModRequiresUpdate( data )
 end

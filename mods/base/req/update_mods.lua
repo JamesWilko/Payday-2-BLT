@@ -38,32 +38,33 @@ end
 Hooks:RegisterHook("ModUpdates_CheckedModForUpdates")
 function LuaModUpdates:CheckForUpdates( callback )
 
-	local url_path = LuaModUpdates._updates_api_path
+	local url_path = {LuaModUpdates._updates_api_path}
 	local i = 0
 
 	for k, v in pairs( LuaModManager:UpdateChecks() ) do
 		if LuaModManager:AreModUpdatesEnable( v.mod ) then
-
-			if i > 0 then
-				url_path = url_path .. "&"
+			if v.api_url then
+				table.insert(url_path, v.api_url:gsub("{1}", i):gsub("{2}", v.identifier))
+			else
+				local url = LuaModUpdates._updates_api_mod:gsub("{1}", i):gsub("{2}", v.identifier)
+				if i > 0 then
+					url_path[1] = url_path[1] .. "&"
+				end
+				url_path[1] = url_path[1] .. url
+				i = i + 1
 			end
-
-			url_path = url_path .. LuaModUpdates._updates_api_mod:gsub("{1}", i)
-			url_path = url_path:gsub("{2}", v.identifier)
-			i = i + 1
-
 		end
 	end
 
-	if i > 0 then
+	if i > 0 or #url_path > 1 then
 		LuaModUpdates:FetchUpdatesFromAPI( url_path, callback )
 	end
 
 end
 
-function LuaModUpdates:FetchUpdatesFromAPI( path, callback )
+function LuaModUpdates:FetchUpdatesFromAPI( reqs, callback )
 
-	dohttpreq( path, function( data, id )
+	local function http_clbk( data, id )
 		
 		if data:is_nil_or_empty() then
 			log("[Error] Could not connect to PaydayMods.com API!")
@@ -88,6 +89,9 @@ function LuaModUpdates:FetchUpdatesFromAPI( path, callback )
 
 					v.server_revision = server_version
 					v.update_required = local_version < server_version
+					v.download_url = mod_data.download_url
+					v.notes_url = mod_data.notes_url
+
 					if local_version < server_version then
 						table.insert( mods_needing_updates, v )
 					end
@@ -108,7 +112,11 @@ function LuaModUpdates:FetchUpdatesFromAPI( path, callback )
 			log("[Error] Could not decode server updates data!")
 		end
 
-	end )
+	end
+
+	for _,path in ipairs(reqs) do
+		dohttpreq(path, http_clbk)
+	end
 
 end
 
@@ -185,7 +193,9 @@ function LuaModUpdates:DownloadAndStoreMod( mod_id )
 		log("[Updates][Warning] Attempted to download a mod which is not on the server, halting...")
 	end
 
-	local url = self._updates_download_url:gsub("{1}", mod_id)
+	local mod_table = LuaModUpdates:GetModTable( mod_id ) or {}
+
+	local url = mod_table.download_url or self._updates_download_url:gsub("{1}", mod_id)
 	log( ("[Updates] Downloading mod data for {1}"):gsub("{1}", mod_id) )
 
 	local http_id = dohttpreq( url, LuaModUpdates.ModDownloadFinished, LuaModUpdates.UpdateDownloadDialog )
