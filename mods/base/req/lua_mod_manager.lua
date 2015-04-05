@@ -67,8 +67,8 @@ C.mod_update_name_key = "display_name"
 C.mod_url_name_key = "api_url"
 
 C.hook_dll_id = "payday2bltdll"
-C.hook_dll_name = "lib/native/PD2BLTCS.dll"
-C.hook_dll_temp_name = "lib/PD2BLTCS_temp.dll"
+C.hook_dll_name = BLTDLLInfo.hook_dll_path
+C.hook_dll_temp_name = BLTDLLInfo.hook_dll_safe_path .. BLTDLLInfo.hook_dll_file:gsub(".dll", "_temp.dll")
 
 LuaModManager._persist_scripts = LuaModManager._persist_scripts or {}
 

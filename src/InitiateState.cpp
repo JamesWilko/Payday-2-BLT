@@ -14,6 +14,7 @@
 #define LUA_GLOBALSINDEX	(-10002)
 
 bool IS_STANDALONE = true;
+std::string moduleFile;
 
 typedef void lua_State;
 typedef const char* (*lua_Reader) (lua_State *L, void *data, size_t *size);
@@ -333,6 +334,7 @@ void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 // Mine worked fine, but this seems more elegant.
 
 //If you want elegant, make an actual class member function and recast it through vararg abuse. -Olipro.
+EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, int clue){
 	lua_State *L = nullptr;
 	int ret = 0, stack_size = 0;
@@ -361,6 +363,30 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	luaL_Reg fileLib[] = { { "GetDirectories", luaF_getdir }, { "GetFiles", luaF_getfiles }, { "RemoveDirectory", luaF_removeDirectory }, { "DirectoryExists", luaF_directoryExists }, { NULL, NULL } };
 	luaL_openlib(L, "file", fileLib, 0);
 
+	static std::string dir, file, safe_path;
+	if (!dir.length())
+	{
+		TCHAR buf[MAX_PATH];
+		std::copy(moduleFile.begin(), moduleFile.end(), buf);
+		PathRemoveFileSpec(buf);
+		dir = safe_path = buf;
+		std::copy(moduleFile.begin(), moduleFile.end(), buf);
+		PathStripPath(buf);
+		file = buf;
+		if (!IS_STANDALONE) safe_path += "/../";
+	}
+	lua_createtable(L, 2, 0);
+	lua_pushlstring(L, moduleFile.c_str(), moduleFile.length());
+	lua_setfield(L, -2, "hook_dll_path");
+	lua_pushlstring(L, dir.c_str(), dir.length());
+	lua_setfield(L, -2, "hook_dll_dir");
+	lua_pushlstring(L, file.c_str(), file.length());
+	lua_setfield(L, -2, "hook_dll_file");
+	lua_pushlstring(L, safe_path.c_str(), safe_path.length());
+	lua_setfield(L, -2, "hook_dll_safe_path");
+
+	lua_setfield(L, LUA_GLOBALSINDEX, "BLTDLLInfo");
+
 	int result;
 	Logging::Log("Initiating Hook");
 	
@@ -376,6 +402,7 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
 		return ret;
 	}
+
 	if (IS_STANDALONE)
 		lua_settop(L, stack_size);
 	return ret;

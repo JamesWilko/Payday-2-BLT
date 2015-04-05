@@ -44,7 +44,7 @@ function LuaModUpdates:CheckForUpdates( callback )
 	for k, v in pairs( LuaModManager:UpdateChecks() ) do
 		if LuaModManager:AreModUpdatesEnable( v.mod ) then
 			if v.api_url then
-				table.insert(url_path, v.api_url:gsub("{1}", i):gsub("{2}", v.identifier))
+				url_path[#url_path+1] = v.api_url:gsub("{1}", i):gsub("{2}", v.identifier)
 			else
 				local url = LuaModUpdates._updates_api_mod:gsub("{1}", i):gsub("{2}", v.identifier)
 				if i > 0 then
@@ -266,7 +266,7 @@ function LuaModUpdates.ModDownloadFinished( data, http_id )
 						revision_file:write( tostring(mod_table.server_revision) )
 						revision_file:close()
 					end
-
+					install_dir = BLTDLLInfo.hook_dll_dir
 				else
 					log( "[Error] No revision path or server revision found in mod table, aborting update of DLL" )
 					return

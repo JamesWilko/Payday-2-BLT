@@ -17,6 +17,10 @@ BOOL WINAPI DllMain(HINSTANCE hInst,DWORD reason,LPVOID)
 		if (GetProcAddress(GetModuleHandle("IPHLPAPI.dll"), "RegisterCallback"))
 			IS_STANDALONE = false;
 
+		TCHAR imagePath[MAX_PATH];
+		DWORD len = GetModuleFileName(hInst, imagePath, MAX_PATH);
+		moduleFile = std::string(imagePath, len) + std::string("\0", 1);
+
 		if (IS_STANDALONE) {
 			char bufd[MAX_PATH];
 			GetSystemDirectory(bufd, MAX_PATH);
