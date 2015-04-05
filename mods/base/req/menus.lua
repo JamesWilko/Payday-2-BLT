@@ -554,15 +554,22 @@ function Menu:ResetItemsToDefaultValue( item, items_table, value )
 
 		if items_table[v.item._parameters.name] and v.item.set_value then
 
-			v.item:set_value( value )
+			local item_type = v.item._type
+
+			if item_type == "toggle" then
+				v.item:set_value( value and "on" or "off" )
+			else
+				v.item:set_value( value )
+			end
+
 			for x, y in pairs( v.item._parameters.callback ) do
 				y(v.item)
 			end
 
-			v.item:reload(v, v.node)
-
 		end
 
 	end
+
+	managers.viewport:resolution_changed()
 
 end
