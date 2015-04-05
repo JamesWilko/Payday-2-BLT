@@ -415,8 +415,9 @@ void luaF_close(lua_State* L){
 }
 
 void GetSignatures(HMODULE hDLL) {
+	CREATE_CALLABLE_SIGNATURE(lua_call, void, "\x8B\x44\x24\x08\x56\x8B\x74\x24\x08\x8B\x56\x08", "xxxxxxxxxxxx", 0, lua_State*, int, int) //this needs to fuck off
 	if (IS_STANDALONE) {
-		CREATE_CALLABLE_SIGNATURE(lua_call, void, "\x8B\x44\x24\x08\x56\x8B\x74\x24\x08\x8B\x56\x08", "xxxxxxxxxxxx", 0, lua_State*, int, int)
+
 		CREATE_CALLABLE_SIGNATURE(lua_pcall, int, "\x8B\x4C\x24\x10\x83\xEC\x08\x56\x8B\x74\x24\x10", "xxxxxxxxxxxx", 0, lua_State*, int, int, int)
 		CREATE_CALLABLE_SIGNATURE(lua_gettop, int, "\x8B\x4C\x24\x04\x8B\x41\x08\x2B\x41\x0C", "xxxxxxxxxx", 0, lua_State*)
 		CREATE_CALLABLE_SIGNATURE(lua_settop, void, "\x8B\x4C\x24\x08\x8B\x44\x24\x04\x85", "xxxxxxxxx", 0, lua_State*, int)
@@ -445,7 +446,7 @@ void GetSignatures(HMODULE hDLL) {
 		CREATE_CALLABLE_CLASS_SIGNATURE(do_game_update, void*, "\x8B\x44\x24\x08\x56\x50\x8B\xF1\x8B\x0E", "xxxxxxxxxx", 0, int*, int*)
 		CREATE_CALLABLE_CLASS_SIGNATURE(luaL_newstate, int, "\x8B\x44\x24\x0C\x56\x8B\xF1\x85", "xxxxxxxx", 0, char, char, int)
 	} else {
-		RESOLVE(hDLL, lua_call);
+		//RESOLVE(hDLL, lua_call);
 		RESOLVE(hDLL, lua_pcall);
 		RESOLVE(hDLL, lua_gettop);
 		RESOLVE(hDLL, lua_settop);
@@ -478,19 +479,17 @@ void InitiateStates(){
 	main_thread_id = std::this_thread::get_id();
 
 	GetSignatures(GetModuleHandle("IPHLPAPI.dll"));
+	SignatureSearch::Search();
 	if (!IS_STANDALONE) {
 		RegisterCallback(GAMETICK_CALLBACK, [](lua_State* L, LPCSTR, LPVOID) { do_game_update_new(L, 0, nullptr, nullptr); }, nullptr);
 		RegisterCallback(NEWSTATE_CALLBACK, [](lua_State* L, LPCSTR, LPVOID) { luaL_newstate_new(L, 0, 0, 0, 0); }, nullptr);
 		RegisterCallback(CLOSESTATE_CALLBACK, [](lua_State* L, LPCSTR, LPVOID) { luaF_close(L); }, nullptr);
 	} else {
-		SignatureSearch::Search();
-
-
 		FuncDetour* gameUpdateDetour = new FuncDetour((void**)&do_game_update, do_game_update_new);
 		FuncDetour* newStateDetour = new FuncDetour((void**)&luaL_newstate, luaL_newstate_new);
-		FuncDetour* luaCallDetour = new FuncDetour((void**)&lua_call, lua_newcall); //lua_pcall exists for a reason, don't do this.
 		FuncDetour* luaCloseDetour = new FuncDetour((void**)&lua_close, luaF_close);
 	}
+	FuncDetour* luaCallDetour = new FuncDetour((void**)&lua_call, lua_newcall); //If a Lua bug happens and the game doesn't crash, did it really happen? *facepalm*
 	
 	new EventQueueM();
 }
