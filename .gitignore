@@ -1,4 +1,5 @@
 bin/
+lib/detours*
 proj/Debug/addons.obj
 proj/Debug/console.obj
 *.obj
