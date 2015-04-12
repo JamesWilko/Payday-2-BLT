@@ -179,14 +179,20 @@ if not _loaded_mod_folders then
 					if file then
 
 						local file_contents = file:read("*all")
-						local mod_content = json.decode(file_contents)
-						if mod_content then
+						local mod_content = nil
+						local json_success = pcall(function()
+							mod_content = json.decode(file_contents)
+						end)
+
+						if json_success and mod_content then
 							local data = {
 								path = mod_path,
 								definition = mod_content,
 								priority = mod_content.priority or 0,
 							}
 							table.insert( _mods, data )
+						else
+							print("An error occured while loading mod.txt from: " .. mod_path)
 						end
 						file:close()
 
