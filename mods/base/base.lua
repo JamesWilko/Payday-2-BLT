@@ -1,6 +1,6 @@
 
 -- Create our console
-if true then
+if false then
 	console.CreateConsole()
 end
 
