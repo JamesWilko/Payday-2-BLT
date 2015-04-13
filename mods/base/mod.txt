@@ -8,7 +8,7 @@
 	"updates" : [
 		{
 			"api_url" : "https://raw.github.com/HoxHud/BLT-CSE-bin/master/bltcse.ver",
-			"revision" : 1,
+			"revision" : 3,
 			"identifier" : "payday2blt",
 		},
 		{

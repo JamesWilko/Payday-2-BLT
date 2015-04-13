@@ -34,15 +34,29 @@ function LocalizationManager.text( self, str, macros )
 
 end
 
-function LocalizationManager:add_localized_strings( string_table )
+function LocalizationManager:add_localized_strings( string_table, overwrite )
+
+	-- Should we overwrite existing localization strings
+	if overwrite == nil then
+		overwrite = true
+	end
+
 	if type(string_table) == "table" then
 		for k, v in pairs( string_table ) do
-			self._custom_localizations[k] = v
+			if not self._custom_localizations[k] or (self._custom_localizations[k] and overwrite) then
+				self._custom_localizations[k] = v
+			end
 		end
 	end
+
 end
 
-function LocalizationManager:load_localization_file( file_path )
+function LocalizationManager:load_localization_file( file_path, overwrite )
+
+	-- Should we overwrite existing localization strings
+	if overwrite == nil then
+		overwrite = true
+	end
 
 	local file = io.open( file_path, "r" )
 	if file then
@@ -51,7 +65,7 @@ function LocalizationManager:load_localization_file( file_path )
 		file:close()
 
 		local contents = json.decode( file_contents )
-		self:add_localized_strings( contents )
+		self:add_localized_strings( contents, overwrite )
 
 	end
 

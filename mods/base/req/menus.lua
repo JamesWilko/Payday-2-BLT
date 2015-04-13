@@ -228,11 +228,13 @@ function Menu:AddKeybinding( bind_data )
 	local params = {
 		name = bind_data.id,
 		text_id = bind_data.title,
+		help_id = bind_data.desc,
 		connection_name = bind_data.connection_name,
 		binding = bind_data.binding,
 		button = bind_data.button,
 		callback = bind_data.callback,
 		localize = bind_data.localized,
+		localize_help = bind_data.localized,
 		is_custom_keybind = true,
 	}
 
