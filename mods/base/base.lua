@@ -188,7 +188,7 @@ if not _loaded_mod_folders then
 							local data = {
 								path = mod_path,
 								definition = mod_content,
-								priority = mod_content.priority or 0,
+								priority = tonumber(mod_content.priority) or 0,
 							}
 							table.insert( _mods, data )
 						else
