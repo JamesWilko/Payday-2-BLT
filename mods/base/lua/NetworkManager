@@ -1,0 +1,7 @@
+CloneClass(NetworkManager)
+
+Hooks:Register("BaseNetworkSessionOnPeerAdded")
+function NetworkManager.on_peer_added(self, peer, peer_id)
+	self.orig.on_peer_added(self, peer, peer_id)
+	Hooks:Call("BaseNetworkSessionOnPeerAdded", peer, peer_id)
+end
