@@ -9,6 +9,7 @@
 
 #include <thread>
 #include <list>
+#include "bass.h"
 
 class lua_State;
 
@@ -36,11 +37,14 @@ CREATE_CALLABLE_SIGNATURE(lua_close, void, "\x8B\x44\x24\x04\x8B\x48\x10\x56\x8B
 CREATE_CALLABLE_SIGNATURE(lua_rawset, void, "\x8B\x4C\x24\x08\x53\x56\x8B\x74\x24\x0C\x57", "xxxxxxxxxxx", 0, lua_State*, int)
 CREATE_CALLABLE_SIGNATURE(lua_settable, void, "\x8B\x4C\x24\x08\x56\x8B\x74\x24\x08\x8B\xD6\xE8\x00\x00\x00\x00\x8B\x4E\x08\x8D\x51\xF8", "xxxxxxxxxxxx????xxxxxx", 0, lua_State*, int)
 
+CREATE_CALLABLE_SIGNATURE(lua_rawseti, void, "\x83\xEC\x08\x8B\x4C\x24\x10\x53\x55\x56\x8B\x74\x24\x18", "xxxxxxxxxxxxxx", 0, lua_State*, int, int)
+
 CREATE_CALLABLE_SIGNATURE(lua_pushnumber, void, "\x8B\x44\x24\x04\x8B\x48\x08\xF3\x0F\x10\x44\x24\x08", "xxxxxxxxxxxxx", 0, lua_State*, double)
 CREATE_CALLABLE_SIGNATURE(lua_pushinteger, void, "\x8B\x44\x24\x04\x8B\x48\x08\xF3\x0F\x2A\x44\x24\x08", "xxxxxxxxxxxxx", 0, lua_State*, ptrdiff_t)
 CREATE_CALLABLE_SIGNATURE(lua_pushboolean, void, "\x8B\x44\x24\x04\x8B\x48\x08\x33", "xxxxxxxx", 0, lua_State*, bool)
 CREATE_CALLABLE_SIGNATURE(lua_pushcclosure, void, "\x8B\x50\x04\x8B\x02\x8B\x40\x0C\x8B\x7C\x24\x14\x50\x57\x56", "xxxxxxxxxxxxxxx", -60, lua_State*, lua_CFunction, int);
 CREATE_CALLABLE_SIGNATURE(lua_pushlstring, void, "\x52\x50\x56\xE8\x00\x00\x00\x00\x83\xC4\x0C\x89\x07\xC7\x47\x04\x04\x00\x00\x00\x83\x46\x08\x08\x5F", "xxxx????xxxxxxxxx???xxxxx", -58, lua_State*, const char*, size_t)
+CREATE_CALLABLE_SIGNATURE(lua_pushstring, void, "\x8B\x54\x24\x08\x85\xD2\x75\x0F", "xxxxxxxx", 0, lua_State*, const char *s);
 
 CREATE_CALLABLE_SIGNATURE(luaI_openlib, void, "\x83\xEC\x08\x53\x8B\x5C\x24\x14\x55\x8B\x6C\x24\x1C\x56", "xxxxxxxxxxxxxx", 0, lua_State*, const char*, const luaL_Reg*, int)
 CREATE_CALLABLE_SIGNATURE(luaL_ref, int, "\x53\x8B\x5C\x24\x0C\x8D\x83\x00\x00\x00\x00", "xxxxxxx????", 0, lua_State*, int);
@@ -49,9 +53,11 @@ CREATE_CALLABLE_SIGNATURE(luaL_unref, void, "\x53\x8B\x5C\x24\x10\x85\xDB\x7C\x7
 CREATE_CALLABLE_CLASS_SIGNATURE(do_game_update, void*, "\x8B\x44\x24\x08\x56\x50\x8B\xF1\x8B\x0E", "xxxxxxxxxx", 0, int*, int*)
 CREATE_CALLABLE_CLASS_SIGNATURE(luaL_newstate, int, "\x8B\x44\x24\x0C\x56\x8B\xF1\x85", "xxxxxxxx", 0, char, char, int)
 
+CREATE_CALLABLE_SIGNATURE(lua_tonumber, double, "\x83\xF9\x03\x74\x30\x83\xF9\x04\x75\x31", "xxxxxxxxxx", -19, lua_State*, int);
+CREATE_CALLABLE_SIGNATURE(lua_tointeger, ptrdiff_t, "\x83\xF9\x03\x74\x30\x83\xF9\x04\x75\x33", "xxxxxxxxxx", -19, lua_State*, int);
+CREATE_CALLABLE_SIGNATURE(lua_toboolean, int, "\x8B\x4C\x24\x08\x8B\x54\x24\x04\xE8\x00\x00\x00\x00\x8B\x48\x04\x85\xC9", "xxxxxxxxx????xxxxx", 0, lua_State*, int);
 
 // lua c-functions
-
 #define LUA_REGISTRYINDEX	(-10000)
 #define LUA_GLOBALSINDEX	(-10002)
 
@@ -294,6 +300,479 @@ int luaF_print(lua_State* L){
 	return 0;
 }
 
+// bass functions
+/*
+static int GetDeviceCount(lua_State *L) {
+	int a, count = 0;
+	BASS_DEVICEINFO Info;
+	for (a = 0; BASS_GetDeviceInfo(a, &Info); a++)
+		if (Info.flags&BASS_DEVICE_ENABLED)
+			count++;
+	lua_pushinteger(L, count);
+	return 1;
+}
+static int Flags(lua_State *L) {
+	int NumFlags = lua_gettop(L);
+	int FlagAccum = 0;
+	printf("%d\n", NumFlags);
+	for (int i = 1; i <= NumFlags; i++) {
+		FlagAccum = FlagAccum | lua_tointeger(L, i);
+		printf("%d %d\n", FlagAccum, lua_tointeger(L, i));
+	}
+	lua_pushinteger(L, FlagAccum);
+	return 1;
+}
+static int GetSyncEventList(lua_State *L) {
+	DWORD WaitResult = WaitForSingleObject(SyncMutex, INFINITE);
+	lua_newtable(L); //return table
+	for (int i = 0; i < NextEmptyEDLIndex; i++)
+	{
+		SyncEventData EventData = EventDataList[i];
+		lua_pushinteger(L, i);
+		lua_newtable(L); //EventData table
+		M_FIELDSET(L, integer, -1, "handle", EventData.handle)
+			M_FIELDSET(L, integer, -1, "channel", EventData.channel)
+			M_FIELDSET(L, integer, -1, "data", EventData.data)
+			lua_settable(L, -3);
+	}
+	NextEmptyEDLIndex = 0;
+	ReleaseMutex(SyncMutex);
+	return 1;
+}
+void CALLBACK SyncDispatcher(HSYNC handle, DWORD channel, DWORD data, void *user)
+{
+	DWORD WaitResult = WaitForSingleObject(SyncMutex, INFINITE);
+	SyncEventData EventData = { handle, channel, data };
+	EventDataList[NextEmptyEDLIndex] = EventData;
+	NextEmptyEDLIndex++;
+	ReleaseMutex(SyncMutex);
+}
+static int Init(lua_State *L) {
+	lua_pushboolean(L, BASS_Init(lua_tointeger(L, 1), lua_tointeger(L, 2), lua_tointeger(L, 3), 0, 0));
+	M_RETURN(L, 1)
+}
+
+static int GetDeviceInfo(lua_State *L) {
+	DWORD Device = lua_tointeger(L, 1);
+	BASS_DEVICEINFO Info;
+	BOOL Success = BASS_GetDeviceInfo(Device, &Info);
+	lua_pushboolean(L, Success);
+	if (Success) {
+		lua_newtable(L);
+		M_FIELDSET(L, string, -2, "name", Info.name)
+			M_FIELDSET(L, string, -2, "driver", Info.driver)
+			M_FIELDSET(L, integer, -2, "flags", Info.flags)
+	}
+	else {
+		lua_pushnil(L);
+	}
+	M_RETURN(L, 2)
+}
+
+static int Free(lua_State *L) {
+	lua_pushboolean(L, BASS_Free());
+	M_RETURN(L, 1)
+}
+
+static int GetDevice(lua_State *L) {
+	lua_pushinteger(L, BASS_GetDevice());
+	M_RETURN(L, 1)
+}
+
+static int SetDevice(lua_State *L) {
+	lua_pushboolean(L, BASS_SetDevice(lua_tonumber(L, 1)));
+	M_RETURN(L, 1)
+}
+
+static int GetInfo(lua_State *L) {
+	BASS_INFO Info;
+	BOOL Success = BASS_GetInfo(&Info);
+	lua_pushboolean(L, Success);
+	if (Success) {
+		lua_newtable(L);
+		M_FIELDSET(L, integer, -1, "flags", Info.flags)
+			M_FIELDSET(L, integer, -1, "hwsize", Info.hwsize)
+			M_FIELDSET(L, integer, -1, "hwfree", Info.hwfree)
+			M_FIELDSET(L, integer, -1, "freesam", Info.freesam)
+			M_FIELDSET(L, integer, -1, "free3d", Info.free3d)
+			M_FIELDSET(L, integer, -1, "minrate", Info.minrate)
+			M_FIELDSET(L, integer, -1, "maxrate", Info.maxrate)
+			M_FIELDSET(L, boolean, -1, "eax", Info.eax)
+			M_FIELDSET(L, integer, -1, "minbuf", Info.minbuf)
+			M_FIELDSET(L, integer, -1, "dsver", Info.dsver)
+			M_FIELDSET(L, integer, -1, "latency", Info.latency)
+			M_FIELDSET(L, integer, -1, "initflags", Info.initflags)
+			M_FIELDSET(L, integer, -1, "speakers", Info.speakers)
+			M_FIELDSET(L, integer, -1, "freq", Info.freq)
+	}
+	else {
+		lua_pushnil(L);
+	}
+	M_RETURN(L, 2)
+}
+
+static int GetVersion(lua_State *L) {
+	lua_pushinteger(L, BASS_GetVersion());
+	M_RETURN(L, 1)
+}
+
+static int GetVolume(lua_State *L) {
+	lua_pushnumber(L, BASS_GetVolume());
+	M_RETURN(L, 1)
+}
+
+static int Pause(lua_State *L) {
+	lua_pushboolean(L, BASS_Pause());
+	M_RETURN(L, 1)
+}
+
+static int SetVolume(lua_State *L) {
+	lua_pushboolean(L, BASS_SetVolume(lua_tonumber(L, 1)));
+	M_RETURN(L, 1)
+}
+
+static int Start(lua_State *L) {
+	lua_pushboolean(L, BASS_Start());
+	M_RETURN(L, 1)
+}
+
+static int Stop(lua_State *L) {
+	lua_pushboolean(L, BASS_Stop());
+	M_RETURN(L, 1)
+}
+
+static int Update(lua_State *L) {
+	lua_pushboolean(L, BASS_Update(lua_tointeger(L, 1)));
+	M_RETURN(L, 1)
+}
+
+static int GetCPU(lua_State *L) {
+	lua_pushnumber(L, BASS_GetCPU());
+	M_RETURN(L, 1)
+}
+
+static int StreamCreateFile(lua_State *L) {
+	HSTREAM Handle = BASS_StreamCreateFile(false, lua_tostring(L, 1), lua_tointeger(L, 2), lua_tointeger(L, 3), lua_tointeger(L, 4));
+	lua_pushinteger(L, Handle);
+	M_RETURN(L, 1)
+}
+
+static int ChannelPlay(lua_State *L) {
+	lua_pushboolean(L, BASS_ChannelPlay(lua_tointeger(L, 1), lua_toboolean(L, 2)));
+	M_RETURN(L, 1)
+}
+
+static int ChannelStop(lua_State *L) {
+	lua_pushboolean(L, BASS_ChannelStop(lua_tointeger(L, 1)));
+	M_RETURN(L, 1)
+}
+
+static int ChannelPause(lua_State *L) {
+	lua_pushboolean(L, BASS_ChannelPause(lua_tointeger(L, 1)));
+	M_RETURN(L, 1)
+}
+
+static int ChannelSetSync(lua_State *L) {
+	lua_pushinteger(L, BASS_ChannelSetSync(lua_tointeger(L, 1), lua_tointeger(L, 2), lua_tointeger(L, 3), &SyncDispatcher, NULL));
+	M_RETURN(L, 1)
+}
+
+static int ChannelGetPosition(lua_State *L) {
+	lua_pushinteger(L, BASS_ChannelGetPosition(lua_tointeger(L, 1), lua_tointeger(L, 2)));
+	M_RETURN(L, 1)
+}
+
+static int ChannelGetLength(lua_State *L) {
+	lua_pushinteger(L, BASS_ChannelGetLength(lua_tointeger(L, 1), lua_tointeger(L, 2)));
+	M_RETURN(L, 1)
+}
+
+static int ChannelBytes2Seconds(lua_State *L) {
+	lua_pushnumber(L, BASS_ChannelBytes2Seconds(lua_tointeger(L, 1), lua_tointeger(L, 2)));
+	M_RETURN(L, 1)
+}
+*/
+HSTREAM bassHandles[1024];
+int currentBassHandle = 0;
+
+int luaF_Bass_Init(lua_State *L)
+{
+	int device = (int)lua_tonumber(L, 1);
+	int freq = (int)lua_tonumber(L, 2);
+	int flags = (int)lua_tonumber(L, 3);
+	lua_pushboolean(L, BASS_Init(device, freq, flags, 0, 0));
+	return 1;
+}
+
+int luaF_Bass_Free(lua_State *L)
+{
+	lua_pushboolean(L, BASS_Free());
+	return 1;
+}
+
+int luaF_Bass_ErrorGetCode(lua_State *L)
+{
+	lua_pushnumber(L, BASS_ErrorGetCode());
+	return 1;
+}
+
+int luaF_Bass_StreamCreateFile(lua_State *L)
+{
+	size_t len;
+	const char* filename = lua_tolstring(L, 1, &len);
+	Logging::Log(filename);
+	int offset = (int)lua_tonumber(L, 2);
+	int length = (int)lua_tonumber(L, 3);
+	int flags = (int)lua_tonumber(L, 4);
+	bassHandles[currentBassHandle] = BASS_StreamCreateFile(false, filename, offset, length, BASS_SAMPLE_FLOAT);
+	
+	int errorcode = BASS_ErrorGetCode();
+	if (errorcode > 0)
+	{
+		printf("[Error] Could not create stream! Error: %i", errorcode);
+	}
+
+	lua_pushinteger(L, currentBassHandle);
+	currentBassHandle++;
+
+	return 1;
+}
+
+int luaF_Bass_GetVolume(lua_State *L)
+{
+	lua_pushnumber(L, BASS_GetVolume());
+	return 1;
+}
+
+int luaF_Bass_SetVolume(lua_State *L)
+{
+	float volume = lua_tonumber(L, 1);
+	lua_pushboolean(L, BASS_SetVolume(volume));
+	return 1;
+}
+
+int luaF_Bass_SetStreamVolume(lua_State *L)
+{
+	float volume = lua_tonumber(L, 1);
+	lua_pushboolean(L, BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, volume));
+	return 1;
+}
+
+int luaF_Bass_SetSampleVolume(lua_State *L)
+{
+	float volume = lua_tonumber(L, 1);
+	lua_pushboolean(L, BASS_SetConfig(BASS_CONFIG_GVOL_SAMPLE, volume));
+	return 1;
+}
+
+int luaF_Bass_ChannelPlay(lua_State *L)
+{
+	int handleIndex = (int) lua_tonumber(L, 1);
+	HSTREAM handle = bassHandles[handleIndex];
+	bool restart = lua_toboolean(L, 2);
+	lua_pushboolean(L, BASS_ChannelPlay(handle, restart));
+	return 1;
+}
+
+int luaF_Bass_ChannelStop(lua_State *L)
+{
+	int handleIndex = (int)lua_tonumber(L, 1);
+	HSTREAM handle = bassHandles[handleIndex];
+	lua_pushboolean(L, BASS_ChannelStop(handle));
+	return 1;
+}
+
+int luaF_Bass_ChannelPause(lua_State *L)
+{
+	int handleIndex = (int)lua_tonumber(L, 1);
+	HSTREAM handle = bassHandles[handleIndex];
+	lua_pushboolean(L, BASS_ChannelPause(handle));
+	return 1;
+}
+
+int luaF_Bass_ChannelSetSync(lua_State *L)
+{
+	// lua_pushinteger(L, BASS_ChannelSetSync(lua_tointeger(L, 1), lua_tointeger(L, 2), lua_tointeger(L, 3), &SyncDispatcher, NULL));
+	return 1;
+}
+
+int luaF_Bass_ChannelGetPosition(lua_State *L)
+{
+	int handleIndex = (int)lua_tonumber(L, 1);
+	HSTREAM handle = bassHandles[handleIndex];
+	int flags = (int)lua_tonumber(L, 2);
+	lua_pushinteger(L, BASS_ChannelGetPosition(handle, flags));
+	return 1;
+}
+
+int luaF_Bass_ChannelGetLength(lua_State *L)
+{
+	int handleIndex = (int)lua_tonumber(L, 1);
+	HSTREAM handle = bassHandles[handleIndex];
+	int flags = (int)lua_tonumber(L, 2);
+	lua_pushinteger(L, BASS_ChannelGetLength(handle, BASS_POS_BYTE));
+	return 1;
+}
+
+int luaF_Bass_ChannelBytes2Seconds(lua_State *L)
+{
+	int handleIndex = (int)lua_tonumber(L, 1);
+	HSTREAM handle = bassHandles[handleIndex];
+	double byteLength = (int)lua_tonumber(L, 2);
+	lua_pushinteger(L, BASS_ChannelBytes2Seconds(handle, byteLength));
+	return 1;
+}
+
+int luaF_Bass_ChannelSeconds2Bytes(lua_State *L)
+{
+	int handleIndex = (int)lua_tonumber(L, 1);
+	HSTREAM handle = bassHandles[handleIndex];
+	double pos = (int)lua_tonumber(L, 2);
+	lua_pushinteger(L, BASS_ChannelSeconds2Bytes(handle, pos));
+	return 1;
+}
+
+int luaF_Bass_ChannelSetPosition(lua_State *L)
+{
+	int handleIndex = (int)lua_tonumber(L, 1);
+	HSTREAM handle = bassHandles[handleIndex];
+	double pos = (int)lua_tonumber(L, 2);
+	lua_pushinteger(L, BASS_ChannelSetPosition(handle, pos, BASS_POS_BYTE));
+	return 1;
+}
+
+int luaF_Bass_ChannelGetData(lua_State *L)
+{
+	int handleIndex = (int)lua_tonumber(L, 1);
+	HSTREAM handle = bassHandles[handleIndex];
+	int arrayLength = (int)lua_tonumber(L, 2);
+	int flags = (int)(BASS_DATA_FFT1024); //(int)lua_tonumber(L, 3);
+
+// 	printf("BASS_DATA_FFT1024 | BASS_DATA_FLOAT : %i\n", BASS_DATA_FFT1024 | BASS_DATA_FLOAT);
+// 	printf("flags : %i\n", flags);
+
+	float * data = new float[arrayLength];
+	int success = BASS_ChannelGetData(handle, data, BASS_DATA_FFT1024 | BASS_DATA_FLOAT);
+
+	lua_createtable(L, arrayLength, 0);
+	for (int i = 0; i < arrayLength; i++)
+	{
+		//lua_pushinteger(L, i + 1);
+		//lua_pushnumber(L, data[i]);
+		//lua_settable(L, -3);
+		int num = (int)(data[i] * 1000000);
+		lua_pushinteger(L, num);
+		lua_rawseti(L, -2, i + 1);
+	}
+
+	free(data);
+	return 1;
+}
+
+int luaF_Bass_Flags(lua_State *L)
+{
+	int NumFlags = lua_gettop(L);
+	int FlagAccum = 0;
+	//printf("%d\n", NumFlags);
+	for (int i = 1; i <= NumFlags; i++) {
+		FlagAccum = FlagAccum | lua_tointeger(L, i);
+		//printf("%d %d\n", FlagAccum, lua_tointeger(L, i));
+	}
+	lua_pushinteger(L, FlagAccum);
+	return 1;
+}
+
+#define LUA_ENUM(LUASTATE, ENUM) lua_pushstring(LUASTATE, #ENUM); lua_pushinteger(LUASTATE, ENUM); lua_settable(L, -3);
+void Bass_CreateBassEnums(lua_State *L)
+{
+	lua_createtable(L, 0, 0);
+	LUA_ENUM(L, BASS_OK);
+	LUA_ENUM(L, BASS_ERROR_MEM);
+	LUA_ENUM(L, BASS_ERROR_FILEOPEN);
+	LUA_ENUM(L, BASS_ERROR_DRIVER);
+	LUA_ENUM(L, BASS_ERROR_BUFLOST);
+	LUA_ENUM(L, BASS_ERROR_HANDLE);
+	LUA_ENUM(L, BASS_ERROR_FORMAT);
+	LUA_ENUM(L, BASS_ERROR_POSITION);
+	LUA_ENUM(L, BASS_ERROR_INIT);
+	LUA_ENUM(L, BASS_ERROR_START);
+	LUA_ENUM(L, BASS_ERROR_ALREADY);
+	LUA_ENUM(L, BASS_ERROR_NOCHAN);
+	LUA_ENUM(L, BASS_ERROR_ILLTYPE);
+	LUA_ENUM(L, BASS_ERROR_ILLPARAM);
+	LUA_ENUM(L, BASS_ERROR_NO3D);
+	LUA_ENUM(L, BASS_ERROR_NOEAX);
+	LUA_ENUM(L, BASS_ERROR_DEVICE);
+	LUA_ENUM(L, BASS_ERROR_NOPLAY);
+	LUA_ENUM(L, BASS_ERROR_FREQ);
+	LUA_ENUM(L, BASS_ERROR_NOTFILE);
+	LUA_ENUM(L, BASS_ERROR_NOHW);
+	LUA_ENUM(L, BASS_ERROR_EMPTY);
+	LUA_ENUM(L, BASS_ERROR_NONET);
+	LUA_ENUM(L, BASS_ERROR_CREATE);
+	LUA_ENUM(L, BASS_ERROR_NOFX);
+	LUA_ENUM(L, BASS_ERROR_NOTAVAIL);
+	LUA_ENUM(L, BASS_ERROR_DECODE);
+	LUA_ENUM(L, BASS_ERROR_DX);
+	LUA_ENUM(L, BASS_ERROR_TIMEOUT);
+	LUA_ENUM(L, BASS_ERROR_FILEFORM);
+	LUA_ENUM(L, BASS_ERROR_SPEAKER);
+	LUA_ENUM(L, BASS_ERROR_VERSION);
+	LUA_ENUM(L, BASS_ERROR_CODEC);
+	LUA_ENUM(L, BASS_ERROR_ENDED);
+	LUA_ENUM(L, BASS_ERROR_UNKNOWN);
+	lua_setfield(L, -2, "Error");
+
+	lua_createtable(L, 0, 0);
+	LUA_ENUM(L, BASS_DEVICE_8BITS);
+	LUA_ENUM(L, BASS_DEVICE_MONO);
+	LUA_ENUM(L, BASS_DEVICE_3D);
+	LUA_ENUM(L, BASS_DEVICE_LATENCY);
+	LUA_ENUM(L, BASS_DEVICE_CPSPEAKERS);
+	LUA_ENUM(L, BASS_DEVICE_SPEAKERS);
+	LUA_ENUM(L, BASS_DEVICE_NOSPEAKER);
+	lua_setfield(L, -2, "Device");
+
+	lua_createtable(L, 0, 0);
+	LUA_ENUM(L, BASS_STREAM_PRESCAN);
+	LUA_ENUM(L, BASS_STREAM_AUTOFREE);
+	LUA_ENUM(L, BASS_STREAM_DECODE);
+	lua_setfield(L, -2, "Stream");
+
+	lua_createtable(L, 0, 0);
+	LUA_ENUM(L, BASS_SAMPLE_FLOAT);
+	LUA_ENUM(L, BASS_SAMPLE_MONO);
+	LUA_ENUM(L, BASS_SAMPLE_SOFTWARE);
+	LUA_ENUM(L, BASS_SAMPLE_3D);
+	LUA_ENUM(L, BASS_SAMPLE_LOOP);
+	LUA_ENUM(L, BASS_SAMPLE_FX);
+	lua_setfield(L, -2, "Sample");
+
+	lua_createtable(L, 0, 0);
+	LUA_ENUM(L, BASS_POS_BYTE);
+	LUA_ENUM(L, BASS_POS_MUSIC_ORDER);
+	LUA_ENUM(L, BASS_POS_DECODE);
+	lua_setfield(L, -2, "POS");
+
+	lua_createtable(L, 0, 0);
+	LUA_ENUM(L, BASS_DATA_FLOAT);
+	LUA_ENUM(L, BASS_DATA_FIXED);
+	LUA_ENUM(L, BASS_DATA_FFT256);
+	LUA_ENUM(L, BASS_DATA_FFT512);
+	LUA_ENUM(L, BASS_DATA_FFT1024);
+	LUA_ENUM(L, BASS_DATA_FFT2048);
+	LUA_ENUM(L, BASS_DATA_FFT4096);
+	LUA_ENUM(L, BASS_DATA_FFT8192);
+	LUA_ENUM(L, BASS_DATA_FFT16384);
+	LUA_ENUM(L, BASS_DATA_FFT_COMPLEX);
+	LUA_ENUM(L, BASS_DATA_FFT_INDIVIDUAL);
+	LUA_ENUM(L, BASS_DATA_FFT_NOWINDOW);
+	LUA_ENUM(L, BASS_DATA_FFT_REMOVEDC);
+	LUA_ENUM(L, BASS_DATA_AVAILABLE);
+	lua_setfield(L, -2, "Data");
+}
+
+// lua thread
 int updates = 0;
 std::thread::id main_thread_id;
 
@@ -338,12 +817,43 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	CREATE_LUA_FUNCTION(luaF_print, "log")
 	CREATE_LUA_FUNCTION(luaF_unzipfile, "unzip")
 
+	// Create console library
 	luaL_Reg consoleLib[] = { { "CreateConsole", luaF_createconsole }, { "DestroyConsole", luaF_destroyconsole }, { NULL, NULL } };
 	luaI_openlib(L, "console", consoleLib, 0);
 
+	// Create file library
 	luaL_Reg fileLib[] = { { "GetDirectories", luaF_getdir }, { "GetFiles", luaF_getfiles }, { "RemoveDirectory", luaF_removeDirectory }, { "DirectoryExists", luaF_directoryExists }, { NULL, NULL } };
 	luaI_openlib(L, "file", fileLib, 0);
 
+	// Create bass library
+	luaL_Reg bassLib[] = {
+		{ "Init", luaF_Bass_Init },
+		{ "Free", luaF_Bass_Free },
+		{ "ErrorGetCode", luaF_Bass_ErrorGetCode },
+		{ "Flags", luaF_Bass_Flags },
+		{ "GetVolume", luaF_Bass_GetVolume },
+		{ "SetVolume", luaF_Bass_SetVolume },
+		{ "SetStreamVolume", luaF_Bass_SetStreamVolume },
+		{ "SetSampleVolume", luaF_Bass_SetSampleVolume },
+		{ "StreamCreateFile", luaF_Bass_StreamCreateFile },
+		{ "ChannelPlay", luaF_Bass_ChannelPlay },
+		{ "ChannelStop", luaF_Bass_ChannelStop },
+		{ "ChannelPause", luaF_Bass_ChannelPause },
+		{ "ChannelSetSync", luaF_Bass_ChannelSetSync },
+		{ "ChannelGetPosition", luaF_Bass_ChannelGetPosition },
+		{ "ChannelGetLength", luaF_Bass_ChannelGetLength },
+		{ "ChannelBytes2Seconds", luaF_Bass_ChannelBytes2Seconds },
+		{ "ChannelSeconds2Bytes", luaF_Bass_ChannelSeconds2Bytes },
+		{ "ChannelSetPosition", luaF_Bass_ChannelSetPosition },
+		{ "ChannelGetData", luaF_Bass_ChannelGetData },
+		{ NULL, NULL }
+	};
+	luaI_openlib(L, "Bass", bassLib, 0);
+
+	// Add enumerators to bass library
+	Bass_CreateBassEnums(L);
+
+	// Load lua hook
 	int result;
 	Logging::Log("Initiating Hook");
 	

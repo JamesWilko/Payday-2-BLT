@@ -39,12 +39,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>..\incl;..\..\curl\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\lib;..\..\curl\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>H:\Payday 2 Stuff\Payday2CustomHook\Source\incl\bass24\c;..\incl;..\..\curl\include;..\..\zlib\include;$(IncludePath)</IncludePath>
+    <LibraryPath>H:\Payday 2 Stuff\Payday2CustomHook\Source\incl\bass24\c;..\lib;..\..\curl\lib;..\..\zlib\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>..\incl;..\..\curl\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\lib;..\..\curl\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\incl;..\..\curl\include;..\..\zlib\include;..\incl\bass24\c;$(IncludePath)</IncludePath>
+    <LibraryPath>..\lib;..\..\curl\lib;..\..\zlib\lib;..\incl\bass24\c;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -58,7 +58,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>iphp.def</ModuleDefinitionFile>
-      <AdditionalDependencies>detours.lib;libcurl_a_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>detours.lib;libcurl_a_debug.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -76,7 +76,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>iphp.def</ModuleDefinitionFile>
-      <AdditionalDependencies>libcurl_a.lib;detours.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcurl_a.lib;detours.lib;zlib.lib;bass.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

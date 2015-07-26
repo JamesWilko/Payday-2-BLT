@@ -101,3 +101,10 @@ incl/openssl/whrlpool.h
 incl/openssl/x509.h
 incl/openssl/x509_vfy.h
 incl/openssl/x509v3.h
+proj/Debug/IPHLPAPI.exp
+proj/Debug/IPHLPAPI.ilk
+proj/Debug/IPHLPAPI.lib
+proj/Debug/IPHLPAPI.pdb
+proj/Release/IPHLPAPI.exp
+proj/Release/IPHLPAPI.lib
+proj/Release/IPHLPAPI.pdb
