@@ -31,9 +31,9 @@
 -----------------------------------------------------------------------------
 -- Imports and dependencies
 -----------------------------------------------------------------------------
-local math = require('math')
-local string = require("string")
-local table = require("table")
+local math = math
+local string = string
+local table = table
 local tostring = tostring
 
 local base = _G
