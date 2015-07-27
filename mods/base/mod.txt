@@ -1,22 +1,22 @@
 {
 	"name" : "Payday 2 BLT",
-	"description" : "The collection of lua files that allow the lua hook to function."
+	"description" : "The collection of lua files that allow the lua hook to function",
 	"author" : "James Wilkinson",
 	"contact" : "jw@jameswilko.com",
 	"version" : "1.0",
 	"priority" : 1001,
 	"updates" : [
 		{
-			"revision" : 2,
-			"identifier" : "payday2blt",
+			"revision" : 3,
+			"identifier" : "payday2blt"
 		},
 		{
 			"revision" : "./mods/saves/blt_revision.txt",
 			"identifier" : "payday2bltdll",
 			"install_dir" : ".",
-			"display_name" : "Payday 2 BLT Hook DLL",
+			"display_name" : "Payday 2 BLT Hook DLL"
 		}
-	]
+	],
 	"pre_hooks" : [
 		{ "hook_id" : "lib/entry", "script_path" : "req/utils.lua" },
 		{ "hook_id" : "lib/entry", "script_path" : "req/localization.lua" },
@@ -86,8 +86,11 @@
 		{	"hook_id" : "lib/managers/systemmenumanager",
 			"script_path" : "lua/SystemMenuManager.lua"
 		},
-		{ 	"hook_id" : "lib/network/networkgame",
-			"script_path" : "lua/NetworkGame.lua"
+		{ 	"hook_id" : "lib/network/base/basenetworksession",
+			"script_path" : "lua/BaseNetworkSession.lua"
+		},
+		{ 	"hook_id" : "lib/network/base/networkmanager",
+			"script_path" : "lua/NetworkManager.lua"
 		}
 	]
 }
