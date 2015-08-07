@@ -410,6 +410,7 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 		local items = content.items
 		local focus_changed_callback = content.focus_changed_callback
 		local back_callback = content.back_callback
+		local menu_priority = content.priority or nil
 		local area_bg = content.area_bg
 
 		Hooks:Add("MenuManagerSetupCustomMenus", "Base_SetupCustomMenus_Json_" .. menu_id, function( menu_manager, nodes )
@@ -424,7 +425,17 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 				area_bg = area_bg,
 			}
 			nodes[menu_id] = MenuHelper:BuildMenu( menu_id, data )
-			MenuHelper:AddMenuItem( nodes[parent_menu], menu_id, menu_name, menu_desc )
+
+			if menu_priority ~= nil then
+				for k, v in pairs( nodes[parent_menu]._items ) do
+					if menu_priority > (v._priority or 0) then
+						menu_priority = k
+						break
+					end
+				end
+			end
+
+			MenuHelper:AddMenuItem( nodes[parent_menu], menu_id, menu_name, menu_desc, menu_priority )
 
 		end)
 
@@ -437,7 +448,7 @@ function MenuHelper:LoadFromJsonFile( file_path, parent_class, data_table )
 				local title = item.title
 				local desc = item.description
 				local callback = item.callback
-				local priority = #items - k
+				local priority = item.priority or #items - k
 				local value = item.default_value
 				local localized = item.localized
 				if data_table and data_table[item.value] ~= nil then
