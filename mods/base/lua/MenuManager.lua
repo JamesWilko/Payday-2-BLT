@@ -204,7 +204,8 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 		local path = v.path
 		local info = v.definition
 		local mod_tag = " [{0}]"
-		local mod_name = info[ C.mod_name_key ] or text("base_mod_info_no_name")
+		local mod_id = info[ C.mod_name_key ] or text("base_mod_info_no_name")
+		local mod_name = mod_id
 		local mod_desc = info[ C.mod_desc_key ] or text("base_mod_info_no_desc")
 		local mod_version = info[ C.mod_version_key ] or nil
 		local mod_author = info[ C.mod_author_key ] or text("base_mod_info_no_author")
@@ -214,8 +215,14 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 		local mod_persist_scripts = info[ C.mod_persists_key ] or text("base_mod_info_no_persist_scripts")
 		local mod_keybinds = info[ C.mod_keybinds_key ] or text("base_mod_info_no_keybinds")
 
-		table.insert(sorted_mods, mod_name)
-		mods[mod_name] = {
+		local name_iterator = 0
+		while mods[mod_id] ~= nil do
+			name_iterator = name_iterator + 1
+			mod_id = string.format("%s_%i", mod_name, name_iterator)
+		end
+
+		table.insert(sorted_mods, mod_id)
+		mods[mod_id] = {
 			content = {},
 			conflicted = {},
 			title = nil
@@ -227,9 +234,9 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 		else
 			title_str = title_str .. ( mod_disabled and mod_tag:gsub( "{0}", text("base_mod_info_disabled") ) or "" )
 		end
-		mods[mod_name].title = title_str
+		mods[mod_id].title = title_str
 
-		local content = mods[mod_name].content
+		local content = mods[mod_id].content
 		table.insert( content, mod_desc )
 		if mod_version then
 			table.insert( content, text("base_mod_info_version") .. ": " .. mod_version )
@@ -268,8 +275,8 @@ function ModMenuCreator.create_lua_mods_menu(self, node)
 		end
 
 		local params = {
+			name = mod_id,
 			text_id = mod_name,
-			name = mod_name,
 			mod_path = path,
 			localize = false,
 			enabled = true,
