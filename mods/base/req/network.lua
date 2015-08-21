@@ -63,7 +63,7 @@ end
 function LNetwork:GetNameFromPeerID(id)
 
 	if managers.network and managers.network:session() and managers.network:session():peers() then
-		
+
 		for k, v in pairs( managers.network:session():peers() ) do
 			if k == id then
 				return v:name()
@@ -73,7 +73,7 @@ function LNetwork:GetNameFromPeerID(id)
 	end
 
 	return "No Name"
-	
+
 end
 
 function LNetwork:GetPeers()
@@ -88,24 +88,24 @@ function LNetwork:GetNumberOfPeers()
 	return i
 end
 
-function LNetwork:SendToPeers(type, data)
+function LNetwork:SendToPeers(type_prm, data)
 	local dataString = LNetwork.AllPeersString
 	dataString = dataString:gsub("{1}", LNetwork.AllPeers)
-	dataString = dataString:gsub("{2}", type)
+	dataString = dataString:gsub("{2}", type_prm)
 	dataString = dataString:gsub("{3}", data)
 	LNetwork:SendStringThroughChat(dataString)
 end
 
-function LNetwork:SendToPeer(peer, type, data)
+function LNetwork:SendToPeer(peer, type_prm, data)
 	local dataString = LNetwork.SinglePeerString
 	dataString = dataString:gsub("{1}", LNetwork.SinglePeer)
 	dataString = dataString:gsub("{2}", peer)
-	dataString = dataString:gsub("{3}", type)
+	dataString = dataString:gsub("{3}", type_prm)
 	dataString = dataString:gsub("{4}", data)
 	LNetwork:SendStringThroughChat(dataString)
 end
 
-function LNetwork:SendToPeersExcept(peer, type, data)
+function LNetwork:SendToPeersExcept(peer, type_prm, data)
 	local dataString = LNetwork.ExceptPeerString
 	local peerStr = peer
 	if type(peer) == "table" then
@@ -120,7 +120,7 @@ function LNetwork:SendToPeersExcept(peer, type, data)
 
 	dataString = dataString:gsub("{1}", LNetwork.ExceptPeer)
 	dataString = dataString:gsub("{2}", peerStr)
-	dataString = dataString:gsub("{3}", type)
+	dataString = dataString:gsub("{3}", type_prm)
 	dataString = dataString:gsub("{4}", data)
 	LNetwork:SendStringThroughChat(dataString)
 end
@@ -177,7 +177,7 @@ function LNetwork:ProcessChatString(sender, message, color, icon)
 	if msgType == LNetwork.ExceptPeer then
 		LNetwork:ProcessExceptPeer(sender, message, color, icon)
 	end
-	
+
 end
 
 function LNetwork:ProcessAllPeers(sender, message, color, icon)
@@ -197,7 +197,7 @@ function LNetwork:ProcessSinglePeer(sender, message, color, icon)
 end
 
 function LNetwork:ProcessExceptPeer(sender, message, color, icon)
-	
+
 	local splitData = string.split( message, LNetwork.Split )
 	local exceptedPeers = string.split( splitData[2], "[,]" )
 
@@ -231,7 +231,7 @@ function LNetwork:StringToColour(str)
 	if #data < 4 then
 		return nil
 	end
-	
+
 	local split_str = "[:]"
 	local r = tonumber(string.split(data[1], split_str)[2])
 	local g = tonumber(string.split(data[2], split_str)[2])
