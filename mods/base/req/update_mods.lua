@@ -63,7 +63,14 @@ end
 
 function LuaModUpdates:FetchUpdatesFromAPI( path, callback )
 
-	dohttpreq( path, function( data, id )
+	-- Escape characters for URL
+	local url = path:gsub(" ", "%%20")
+	url = url:gsub("!", "%%21")
+	url = url:gsub("#", "%%23")
+	url = url:gsub("-", "%%2D")
+
+	-- Get data from API
+	dohttpreq( url, function( data, id )
 		
 		if data:is_nil_or_empty() then
 			log("[Error] Could not connect to PaydayMods.com API!")
@@ -74,7 +81,7 @@ function LuaModUpdates:FetchUpdatesFromAPI( path, callback )
 		if server_data then
 
 			for k, v in pairs( server_data ) do
-				log( ("[Updates] Received update data for '{1}', server revision: {2}"):gsub("{1}", k):gsub("{2}", v.revision) )
+				log(string.format("[Updates] Received update data for '%s', server revision: %i", k, v.revision))
 			end
 
 			local mods_needing_updates = {}

@@ -67,8 +67,11 @@ end)
 
 function LuaModManager:UpdateBindings( state )
 
-	if not self._input then
-		self._input = Input:keyboard()
+	if not self._input_keyboard then
+		self._input_keyboard = Input:keyboard()
+	end
+	if not self._input_mouse then
+		self._input_mouse = Input:mouse()
 	end
 	if managers and managers.hud and managers.hud:chat_focus() then
 		return
@@ -80,7 +83,12 @@ function LuaModManager:UpdateBindings( state )
 			local keybind = LuaModManager:Keybinds()[ keybind_id ]
 			if keybind then
 
-				local key_pressed = self._input:pressed( Idstring(key) )
+				local key_pressed = nil
+				if string.find(key, "mouse ") ~= nil then
+					key_pressed = self._input_mouse:pressed( key:sub(7) )
+				else
+					key_pressed = self._input_keyboard:pressed( Idstring(key) )
+				end
 				if key_pressed and Application:time() - set_keybind_time >= keybind_set_delay then
 					self:AttemptRunKeybind( keybind, state )
 				end
