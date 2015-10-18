@@ -1,4 +1,0 @@
-{
-	"loc_example_json_file" : "This is a localization string being loaded from JSON",
-	"loc_example_json_file2" : "This is another JSON loaded string!"
-}
