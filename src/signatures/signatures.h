@@ -5,7 +5,7 @@
 #include <vector>
 
 #define CREATE_CALLABLE_SIGNATURE(name, retn, signature, mask, offset, ...) \
-	typedef retn(*name ## ptr)(__VA_ARGS__); \
+	typedef retn(__fastcall *name ## ptr)(__VA_ARGS__); \
 	name ## ptr name = NULL; \
 	SignatureSearch name ## search(&name, signature, mask, offset);
 

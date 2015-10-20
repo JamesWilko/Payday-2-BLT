@@ -20,34 +20,34 @@ typedef struct luaL_Reg {
 	lua_CFunction func;
 } luaL_Reg;
 
-CREATE_CALLABLE_SIGNATURE(lua_call, void, "\x8B\x44\x24\x08\x56\x8B\x74\x24\x08\x8B\x56\x08", "xxxxxxxxxxxx", 0, lua_State*, int, int)
-CREATE_CALLABLE_SIGNATURE(lua_pcall, int, "\x8B\x4C\x24\x10\x83\xEC\x08\x56\x8B\x74\x24\x10", "xxxxxxxxxxxx", 0, lua_State*, int, int, int)
-CREATE_CALLABLE_SIGNATURE(lua_gettop, int, "\x8B\x4C\x24\x04\x8B\x41\x08\x2B\x41\x0C", "xxxxxxxxxx", 0, lua_State*)
-CREATE_CALLABLE_SIGNATURE(lua_settop, void, "\x8B\x4C\x24\x08\x8B\x44\x24\x04\x85", "xxxxxxxxx", 0, lua_State*, int)
-CREATE_CALLABLE_SIGNATURE(lua_tolstring, const char*, "\x56\x8B\x74\x24\x08\x57\x8B\x7C\x24\x10\x8B\xCF\x8B\xD6", "xxxxxxxxxxxxxx", 0, lua_State*, int, size_t*)
-CREATE_CALLABLE_SIGNATURE(luaL_loadfile, int, "\x81\xEC\x01\x01\x01\x01\x55\x8B\xAC\x24\x01\x01\x01\x01\x56\x8B\xB4\x24\x01\x01\x01\x01\x57", "xx????xxxx????xxxx????x", 0, lua_State*, const char*)
-CREATE_CALLABLE_SIGNATURE(lua_load, int, "\x8B\x4C\x24\x10\x33\xD2\x83\xEC\x18\x3B\xCA", "xxxxxxxxxxx", 0, lua_State*, lua_Reader, void*, const char*)
-CREATE_CALLABLE_SIGNATURE(lua_setfield, void, "\x8B\x46\x08\x83\xE8\x08\x50\x8D\x4C\x24\x1C", "xxxxxxxxxxx", -53, lua_State*, int, const char*)
-CREATE_CALLABLE_SIGNATURE(lua_createtable, void, "\x83\xC4\x0C\x89\x07\xC7\x47\x04\x05\x00\x00\x00\x83\x46\x08\x08\x5F", "xxxxxxxxx???xxxxx", -66, lua_State*, int, int)
-CREATE_CALLABLE_SIGNATURE(lua_insert, void, "\x8B\x4C\x24\x08\x56\x8B\x74\x24\x08\x8B\xD6\xE8\x50\xFE", "xxxxxxxxxxxxxx", 0, lua_State*, int)
-CREATE_CALLABLE_SIGNATURE(lua_newstate, lua_State*, "\x53\x55\x8B\x6C\x24\x0C\x56\x57\x8B\x7C\x24\x18\x68\x00\x00\x00\x00\x33\xDB", "xxxxxxxxxxxxx????xx", 0, lua_Alloc, void*)
-CREATE_CALLABLE_SIGNATURE(lua_close, void, "\x8B\x44\x24\x04\x8B\x48\x10\x56\x8B\x71\x70", "xxxxxxxxxxx", 0, lua_State*)
+CREATE_CALLABLE_SIGNATURE(lua_call, void, "\x55\x8B\xEC\x83\xE4\xF8\x56\x8B\xF1\xB9\x00\x00\x00\x00\x66\xFF\x46\x34", "xxxxxxxxxx????xxxx", 0, lua_State*, int, int)
+CREATE_CALLABLE_SIGNATURE(lua_pcall, int, "\x55\x8B\xEC\x83\xE4\xF8\x83\xEC\x08\x56\x8B\xF2", "xxxxxxxxxxxx", 0, lua_State*, int, int, int)
+//CREATE_CALLABLE_SIGNATURE(lua_gettop, int, "\x8B\x4C\x24\x04\x8B\x41\x08\x2B\x41\x0C", "xxxxxxxxxx", 0, lua_State*)
+CREATE_CALLABLE_SIGNATURE(lua_settop, void, "\x85\xD2\x78\x2E\x8B\x41\x0C\xC1\xE2\x03\x03\xC2", "xxxxxxxxxxxx", 0, lua_State*, int)
+CREATE_CALLABLE_SIGNATURE(lua_tolstring, const char*, "\x56\x57\x8B\xFA\x8B\xF1\xE8\x00\x00\x00\x00\x8B\xC8\x83\x79\x04\x04", "xxxxxxx????xxxxxx", 0, lua_State*, int, size_t*)
+//CREATE_CALLABLE_SIGNATURE(luaL_loadfile, int, "\x81\xEC\x01\x01\x01\x01\x55\x8B\xAC\x24\x01\x01\x01\x01\x56\x8B\xB4\x24\x01\x01\x01\x01\x57", "xx????xxxx????xxxx????x", 0, lua_State*, const char*)
+//CREATE_CALLABLE_SIGNATURE(lua_load, int, "\x8B\x4C\x24\x10\x33\xD2\x83\xEC\x18\x3B\xCA", "xxxxxxxxxxx", 0, lua_State*, lua_Reader, void*, const char*)
+CREATE_CALLABLE_SIGNATURE(lua_setfield, void, "\x83\xEC\x08\x53\x55\x56\x8B\xEA\x57\x89\x6C\x24\x10", "xxxxxxxxxxxxx", 0, lua_State*, int, const char*)
+//CREATE_CALLABLE_SIGNATURE(lua_createtable, void, "\x83\xC4\x0C\x89\x07\xC7\x47\x04\x05\x00\x00\x00\x83\x46\x08\x08\x5F", "xxxxxxxxx???xxxxx", -66, lua_State*, int, int)
+//CREATE_CALLABLE_SIGNATURE(lua_insert, void, "\x8B\x4C\x24\x08\x56\x8B\x74\x24\x08\x8B\xD6\xE8\x50\xFE", "xxxxxxxxxxxxxx", 0, lua_State*, int)
+//CREATE_CALLABLE_SIGNATURE(lua_newstate, lua_State*, "\x53\x55\x8B\x6C\x24\x0C\x56\x57\x8B\x7C\x24\x18\x68\x00\x00\x00\x00\x33\xDB", "xxxxxxxxxxxxx????xx", 0, lua_Alloc, void*)
+//CREATE_CALLABLE_SIGNATURE(lua_close, void, "\x8B\x44\x24\x04\x8B\x48\x10\x56\x8B\x71\x70", "xxxxxxxxxxx", 0, lua_State*)
 
-CREATE_CALLABLE_SIGNATURE(lua_rawset, void, "\x8B\x4C\x24\x08\x53\x56\x8B\x74\x24\x0C\x57", "xxxxxxxxxxx", 0, lua_State*, int)
-CREATE_CALLABLE_SIGNATURE(lua_settable, void, "\x8B\x4C\x24\x08\x56\x8B\x74\x24\x08\x8B\xD6\xE8\x00\x00\x00\x00\x8B\x4E\x08\x8D\x51\xF8", "xxxxxxxxxxxx????xxxxxx", 0, lua_State*, int)
+//CREATE_CALLABLE_SIGNATURE(lua_rawset, void, "\x8B\x4C\x24\x08\x53\x56\x8B\x74\x24\x0C\x57", "xxxxxxxxxxx", 0, lua_State*, int)
+//CREATE_CALLABLE_SIGNATURE(lua_settable, void, "\x8B\x4C\x24\x08\x56\x8B\x74\x24\x08\x8B\xD6\xE8\x00\x00\x00\x00\x8B\x4E\x08\x8D\x51\xF8", "xxxxxxxxxxxx????xxxxxx", 0, lua_State*, int)
 
-CREATE_CALLABLE_SIGNATURE(lua_pushnumber, void, "\x8B\x44\x24\x04\x8B\x48\x08\xF3\x0F\x10\x44\x24\x08", "xxxxxxxxxxxxx", 0, lua_State*, double)
-CREATE_CALLABLE_SIGNATURE(lua_pushinteger, void, "\x8B\x44\x24\x04\x8B\x48\x08\xF3\x0F\x2A\x44\x24\x08", "xxxxxxxxxxxxx", 0, lua_State*, ptrdiff_t)
-CREATE_CALLABLE_SIGNATURE(lua_pushboolean, void, "\x8B\x44\x24\x04\x8B\x48\x08\x33", "xxxxxxxx", 0, lua_State*, bool)
-CREATE_CALLABLE_SIGNATURE(lua_pushcclosure, void, "\x8B\x50\x04\x8B\x02\x8B\x40\x0C\x8B\x7C\x24\x14\x50\x57\x56", "xxxxxxxxxxxxxxx", -60, lua_State*, lua_CFunction, int);
-CREATE_CALLABLE_SIGNATURE(lua_pushlstring, void, "\x52\x50\x56\xE8\x00\x00\x00\x00\x83\xC4\x0C\x89\x07\xC7\x47\x04\x04\x00\x00\x00\x83\x46\x08\x08\x5F", "xxxx????xxxxxxxxx???xxxxx", -58, lua_State*, const char*, size_t)
+//CREATE_CALLABLE_SIGNATURE(lua_pushnumber, void, "\x8B\x44\x24\x04\x8B\x48\x08\xF3\x0F\x10\x44\x24\x08", "xxxxxxxxxxxxx", 0, lua_State*, double)
+//CREATE_CALLABLE_SIGNATURE(lua_pushinteger, void, "\x8B\x44\x24\x04\x8B\x48\x08\xF3\x0F\x2A\x44\x24\x08", "xxxxxxxxxxxxx", 0, lua_State*, ptrdiff_t)
+//CREATE_CALLABLE_SIGNATURE(lua_pushboolean, void, "\x8B\x44\x24\x04\x8B\x48\x08\x33", "xxxxxxxx", 0, lua_State*, bool)
+CREATE_CALLABLE_SIGNATURE(lua_pushcclosure, void, "\x83\xEC\x08\x53\x55\x56\x8B\xF1\x57\x8B\x4E\x10\x89\x54\x24\x14", "xxxxxxxxxxxxxxxx", 0, lua_State*, lua_CFunction, int);
+//CREATE_CALLABLE_SIGNATURE(lua_pushlstring, void, "\x52\x50\x56\xE8\x00\x00\x00\x00\x83\xC4\x0C\x89\x07\xC7\x47\x04\x04\x00\x00\x00\x83\x46\x08\x08\x5F", "xxxx????xxxxxxxxx???xxxxx", -58, lua_State*, const char*, size_t)
 
-CREATE_CALLABLE_SIGNATURE(luaI_openlib, void, "\x83\xEC\x08\x53\x8B\x5C\x24\x14\x55\x8B\x6C\x24\x1C\x56", "xxxxxxxxxxxxxx", 0, lua_State*, const char*, const luaL_Reg*, int)
-CREATE_CALLABLE_SIGNATURE(luaL_ref, int, "\x53\x8B\x5C\x24\x0C\x8D\x83\x00\x00\x00\x00", "xxxxxxx????", 0, lua_State*, int);
-CREATE_CALLABLE_SIGNATURE(lua_rawgeti, void, "\x8B\x4C\x24\x08\x56\x8B\x74\x24\x08\x8B\xD6\xE8\x00\x00\x00\x00\x8B\x4C\x24\x10", "xxxxxxxxxxxx????xxxx", 0, lua_State*, int, int);
-CREATE_CALLABLE_SIGNATURE(luaL_unref, void, "\x53\x8B\x5C\x24\x10\x85\xDB\x7C\x74", "xxxxxxxxx", 0, lua_State*, int, int);
-CREATE_CALLABLE_CLASS_SIGNATURE(do_game_update, void*, "\x8B\x44\x24\x08\x56\x50\x8B\xF1\x8B\x0E", "xxxxxxxxxx", 0, int*, int*)
-CREATE_CALLABLE_CLASS_SIGNATURE(luaL_newstate, int, "\x8B\x44\x24\x0C\x56\x8B\xF1\x85", "xxxxxxxx", 0, char, char, int)
+//CREATE_CALLABLE_SIGNATURE(luaI_openlib, void, "\x83\xEC\x08\x53\x8B\x5C\x24\x14\x55\x8B\x6C\x24\x1C\x56", "xxxxxxxxxxxxxx", 0, lua_State*, const char*, const luaL_Reg*, int)
+//CREATE_CALLABLE_SIGNATURE(luaL_ref, int, "\x53\x8B\x5C\x24\x0C\x8D\x83\x00\x00\x00\x00", "xxxxxxx????", 0, lua_State*, int);
+//CREATE_CALLABLE_SIGNATURE(lua_rawgeti, void, "\x8B\x4C\x24\x08\x56\x8B\x74\x24\x08\x8B\xD6\xE8\x00\x00\x00\x00\x8B\x4C\x24\x10", "xxxxxxxxxxxx????xxxx", 0, lua_State*, int, int);
+//CREATE_CALLABLE_SIGNATURE(luaL_unref, void, "\x53\x8B\x5C\x24\x10\x85\xDB\x7C\x74", "xxxxxxxxx", 0, lua_State*, int, int);
+CREATE_CALLABLE_CLASS_SIGNATURE(do_game_update, void*, "\x56\xFF\x74\x24\x0C\x8B\xF1\xBA\x00\x00\x00\x00\x8B\x0E", "xxxxxxxx????xx", 0, int*, int*)
+CREATE_CALLABLE_CLASS_SIGNATURE(luaL_newstate, int, "\x51\x8B\x44\x24\x10\x53\x56\x57\x8B\xF9\x85\xC0", "xxxxxxxxxxxx", 0, char, char, int)
 
 
 // lua c-functions
@@ -63,7 +63,18 @@ CREATE_CALLABLE_CLASS_SIGNATURE(luaL_newstate, int, "\x8B\x44\x24\x0C\x56\x8B\xF
 #define LUA_ERRERR	5
 #define LUA_ERRFILE     (LUA_ERRERR+1)
 
-std::list<lua_State*> activeStates;
+struct luastackState {
+	char a[8];
+	unsigned char top;
+	unsigned char base;
+};
+
+int lua_gettop(lua_State* L) {
+	luastackState* la = (luastackState*)L;
+	return la->top - la->base;
+}
+
+/*std::list<lua_State*> activeStates;
 void add_active_state(lua_State* L){
 	activeStates.push_back(L);
 }
@@ -80,17 +91,17 @@ bool check_active_state(lua_State* L){
 		}
 	}
 	return false;
-}
+}*/
 
 void lua_newcall(lua_State* L, int args, int returns){
 	int result = lua_pcall(L, args, returns, 0);
 	if (result != 0) {
 		size_t len;
-		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
+		//Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
 	}
 }
 
-int luaH_getcontents(lua_State* L, bool files){
+/*int luaH_getcontents(lua_State* L, bool files){
 	size_t len;
 	const char* dirc = lua_tolstring(L, 1, &len);
 	std::string dir(dirc, len);
@@ -152,9 +163,9 @@ int luaF_removeDirectory(lua_State* L){
 	bool success = Util::RemoveEmptyDirectory(directory);
 	lua_pushboolean(L, success);
 	return 1;
-}
+}*/
 
-int luaF_pcall(lua_State* L){
+/*int luaF_pcall(lua_State* L){
 	int args = lua_gettop(L);
 
 	int result = lua_pcall(L, args - 1, -1, 0);
@@ -272,8 +283,6 @@ int luaF_dohttpreq(lua_State* L){
 	return 1;
 }
 
-CConsole* gbl_mConsole = NULL;
-
 int luaF_createconsole(lua_State* L){
 	if (gbl_mConsole) return 0;
 	gbl_mConsole = new CConsole();
@@ -285,7 +294,7 @@ int luaF_destroyconsole(lua_State* L){
 	delete gbl_mConsole;
 	gbl_mConsole = NULL;
 	return 0;
-}
+}*/
 
 int luaF_print(lua_State* L){
 	size_t len;
@@ -293,6 +302,8 @@ int luaF_print(lua_State* L){
 	Logging::Log(str, Logging::LOGGING_LUA);
 	return 0;
 }
+
+CConsole* gbl_mConsole = NULL;
 
 int updates = 0;
 std::thread::id main_thread_id;
@@ -302,7 +313,7 @@ void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 	// If someone has a better way of doing this, I'd like to know about it.
 	// I could save the this pointer?
 	// I'll check if it's even different at all later.
-	if (std::this_thread::get_id() != main_thread_id){
+	/*if (std::this_thread::get_id() != main_thread_id){
 		return do_game_update(thislol, a, b);
 	}
 
@@ -310,9 +321,11 @@ void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 	if (updates == 0){
 		HTTPManager::GetSingleton()->init_locks();
 	}
+	*/
 
 	if (updates > 1){
-		EventQueueM::GetSingleton()->ProcessEvents();
+		gbl_mConsole = new CConsole();
+		//printf("aaaaa\n");
 	}
 
 	updates++;
@@ -326,27 +339,19 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	int ret = luaL_newstate(thislol, no, freakin, clue);
 
 	lua_State* L = (lua_State*)*((void**)thislol);
-	if (!L) return ret;
+	printf("Lua State: %p\n", (void*)L);
+	//if (!L) return ret;
+	//int stack_size = lua_gettop(L);
+	//printf("%d\n", stack_size);
 
-	add_active_state(L);
+	//add_active_state(L);
 
-	int stack_size = lua_gettop(L);
-
-	CREATE_LUA_FUNCTION(luaF_pcall, "pcall")
-	CREATE_LUA_FUNCTION(luaF_dofile, "dofile")
-	CREATE_LUA_FUNCTION(luaF_dohttpreq, "dohttpreq")
 	CREATE_LUA_FUNCTION(luaF_print, "log")
-	CREATE_LUA_FUNCTION(luaF_unzipfile, "unzip")
-
-	luaL_Reg consoleLib[] = { { "CreateConsole", luaF_createconsole }, { "DestroyConsole", luaF_destroyconsole }, { NULL, NULL } };
-	luaI_openlib(L, "console", consoleLib, 0);
-
-	luaL_Reg fileLib[] = { { "GetDirectories", luaF_getdir }, { "GetFiles", luaF_getfiles }, { "RemoveDirectory", luaF_removeDirectory }, { "DirectoryExists", luaF_directoryExists }, { NULL, NULL } };
-	luaI_openlib(L, "file", fileLib, 0);
-
-	int result;
+	//lua_pushcclosure(L, luaF_print, 0);
+	//lua_settop(L, stack_size);
+	/*int result;
 	Logging::Log("Initiating Hook");
-	
+
 	result = luaL_loadfile(L, "mods/base/base.lua");
 	if (result == LUA_ERRSYNTAX){
 		size_t len;
@@ -360,17 +365,35 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 		return ret;
 	}
 
-	lua_settop(L, stack_size);
+	*/
+
+	
+
+	/*CREATE_LUA_FUNCTION(luaF_pcall, "pcall")
+	CREATE_LUA_FUNCTION(luaF_dofile, "dofile")
+	CREATE_LUA_FUNCTION(luaF_dohttpreq, "dohttpreq")
+	
+	CREATE_LUA_FUNCTION(luaF_unzipfile, "unzip")
+
+	luaL_Reg consoleLib[] = { { "CreateConsole", luaF_createconsole }, { "DestroyConsole", luaF_destroyconsole }, { NULL, NULL } };
+	luaI_openlib(L, "console", consoleLib, 0);
+
+	luaL_Reg fileLib[] = { { "GetDirectories", luaF_getdir }, { "GetFiles", luaF_getfiles }, { "RemoveDirectory", luaF_removeDirectory }, { "DirectoryExists", luaF_directoryExists }, { NULL, NULL } };
+	luaI_openlib(L, "file", fileLib, 0);
+
+	
+
+	*/
 	return ret;
 }
 
-void luaF_close(lua_State* L){
+/*void luaF_close(lua_State* L){
 	remove_active_state(L);
 	lua_close(L);
 }
 
 
-static HTTPManager mainManager;
+static HTTPManager mainManager;*/
 
 void InitiateStates(){
 
@@ -381,10 +404,10 @@ void InitiateStates(){
 
 	FuncDetour* gameUpdateDetour = new FuncDetour((void**)&do_game_update, do_game_update_new);
 	FuncDetour* newStateDetour = new FuncDetour((void**)&luaL_newstate, luaL_newstate_new);
-	FuncDetour* luaCallDetour = new FuncDetour((void**)&lua_call, lua_newcall);
-	FuncDetour* luaCloseDetour = new FuncDetour((void**)&lua_close, luaF_close);
+	//FuncDetour* luaCallDetour = new FuncDetour((void**)&lua_call, lua_newcall);
+	//FuncDetour* luaCloseDetour = new FuncDetour((void**)&lua_close, luaF_close);
 	
-	new EventQueueM();
+	//new EventQueueM();
 }
 
 void DestroyStates(){
