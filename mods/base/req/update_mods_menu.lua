@@ -60,6 +60,32 @@ function LuaModUpdates:ShowUpdateAvailableMessage( mod_tbl )
 
 end
 
+function LuaModUpdates:ShowModRequiredMessage( mod_tbl )
+    if LuaModManager:AreRequiredNotificationsEnabled( mod_tbl.identifier ) then
+        local loc_table = { ["req_mod_name"] = mod_tbl.required_by, ["mod_name"] = mod_tbl.display_name }
+        local menu_title = managers.localization:text("base_mod_updates_show_required_available", loc_table)
+        local menu_message = managers.localization:text(mod_tbl.optional and "base_mod_updates_show_required_available_optional_message" or "base_mod_updates_show_required_available_message", loc_table)
+        local menu_options = {
+            [1] = {
+                text = managers.localization:text("base_mod_required_update_mod_now", loc_table),
+                callback = function()
+                    LuaModUpdates:OpenUpdateManagerNode()
+                    LuaModUpdates.ForceDownloadAndInstallMod(mod_tbl.identifier)
+                end,
+            },
+            [2] = {
+                text = managers.localization:text("base_mod_updates_open_update_manager"),
+                callback = LuaModUpdates.OpenUpdateManagerNode,
+            },
+            [3] = {
+                text = managers.localization:text("base_mod_required_update_later"),
+                is_cancel_button = true,
+            },
+        }
+        QuickMenu:new( menu_title, menu_message, menu_options, true )
+    end
+end
+
 -- Updates menu
 local mod_updates_menu = "base_lua_mod_updates_menu"
 Hooks:Add("MenuManagerSetupCustomMenus", "Base_ModUpdatesMenu_SetupCustomMenus", function( menu_manager, nodes )
@@ -80,20 +106,37 @@ Hooks:Add("MenuManagerPopulateCustomMenus", "Base_ModUpdatesMenu_PopulateCustomM
 			end
 		end
 	end
+    
+    MenuCallbackHandler.mod_updates_toggle_required = function(self, item)
+		if item and item._parameters then
+			local mod_path = item._parameters.text_id:gsub("toggle_lua_auto_updates_", "")
+			if mod_path then
+				LuaModManager:SetModRequiredState( mod_path, item:value() == "on" and true or false )
+			end
+		end
+	end
 
 	MenuCallbackHandler.mod_updates_check_mod = function(self, item)
 		if item and item._parameters then
 			local mod_path = item._parameters.text_id:gsub("button_check_for_updates_", "")
 			if mod_path then
-
+                
 				LuaModUpdates:CheckForUpdates( function(updater, mods)
 					LuaModUpdates:CheckModForUpdateAndShowOptions( mod_path )
 				end )
-
 			end
 		end
 	end
-
+    
+    MenuCallbackHandler.mod_updates_download_mod = function(self, item)
+		if item and item._parameters then
+			local mod_path = item._parameters.text_id:gsub("button_check_for_updates_", "")
+			if mod_path then
+                LuaModUpdates.ForceDownloadAndInstallMod(mod_path)
+			end
+		end
+	end
+    
 	local priority = #LuaModManager:UpdateChecks() * 3
 	local toggle_updates_loc_str = "toggle_lua_auto_updates_{0}"
 	local check_for_updates_loc_str = "button_check_for_updates_{0}"
@@ -117,25 +160,25 @@ Hooks:Add("MenuManagerPopulateCustomMenus", "Base_ModUpdatesMenu_PopulateCustomM
 	]]
 
 	for k, v in ipairs( LuaModManager:UpdateChecks() ) do
-
-		local mod_definition = LuaModManager:GetMod( v.mod ).definition
-		local mod_name = v.display_name or mod_definition[ LuaModManager.Constants.mod_name_key ]
+        
+		local mod_definition = v.mod and LuaModManager:GetMod( v.mod ).definition or nil
+		local mod_name = v.display_name or mod_definition and mod_definition[ LuaModManager.Constants.mod_name_key ]
 		local mod_name_table = { ["mod_name"] = mod_name }
 		local loc_toggle = toggle_updates_loc_str:gsub("{0}", v.identifier)
 		local loc_button = check_for_updates_loc_str:gsub("{0}", v.identifier)
 		LocalizationManager:add_localized_strings({
-			[loc_toggle] = managers.localization:text("base_mod_automically_check_for_updates", mod_name_table),
-			[loc_toggle .. "_desc"] = managers.localization:text("base_mod_automically_check_for_updates_desc", mod_name_table),
-			[loc_button] = managers.localization:text("base_mod_check_for_updates_now", mod_name_table),
-			[loc_button .. "_desc"] = managers.localization:text("base_mod_check_for_updates_now_desc", mod_name_table),
+			[loc_toggle] = managers.localization:text(v.required and "base_mod_notify_required" or "base_mod_automically_check_for_updates", mod_name_table),
+			[loc_toggle .. "_desc"] = managers.localization:text(v.required and "base_mod_notify_required_desc" or "base_mod_automically_check_for_updates_desc", mod_name_table),
+			[loc_button] = managers.localization:text(v.required and "base_mod_download_required_now" or "base_mod_check_for_updates_now", mod_name_table),
+			[loc_button .. "_desc"] = managers.localization:text(v.required and "base_mod_download_required_now_desc" or "base_mod_check_for_updates_now_desc", mod_name_table),
 		})
 
 		local toggle = MenuHelper:AddToggle({
 			id = "toggle_updates_" .. v.identifier,
 			title = loc_toggle,
 			desc = loc_toggle .. "_desc",
-			callback = "mod_updates_toggle_mod",
-			value = LuaModManager:AreModUpdatesEnable( v.identifier ),
+			callback = v.required and "mod_updates_toggle_required" or "mod_updates_toggle_mod",
+			value = v.required and LuaModManager:AreRequiredNotificationsEnabled( v.identifier ) or LuaModManager:AreModUpdatesEnable( v.identifier ),
 			menu_id = mod_updates_menu,
 			priority = priority,
 		})
@@ -144,7 +187,7 @@ Hooks:Add("MenuManagerPopulateCustomMenus", "Base_ModUpdatesMenu_PopulateCustomM
 			id = "button_check_for_updates_" .. v.identifier,
 			title = loc_button,
 			desc = loc_button .. "_desc",
-			callback = "mod_updates_check_mod",
+			callback = v.required and "mod_updates_download_mod" or "mod_updates_check_mod",
 			menu_id = mod_updates_menu,
 			priority = priority - 1,
 		})
@@ -213,7 +256,6 @@ function LuaModUpdates:ShowModUpToDate( mod_id )
 end
 
 function LuaModUpdates:ShowModRequiresUpdate( mod_id )
-
 	local mod_name_tbl = { ["mod_name"] = self:GetModFriendlyName( mod_id ) }
 	local title = managers.localization:text("base_mod_updates_update_mod_now", mod_name_tbl)
 	local message = managers.localization:text("base_mod_update_update_available", mod_name_tbl)
@@ -234,7 +276,6 @@ function LuaModUpdates:ShowModRequiresUpdate( mod_id )
 		}
 	}
 	QuickMenu:new( title, message, options, true )
-
 end
 
 function LuaModUpdates.ForceDownloadAndInstallMod( data )

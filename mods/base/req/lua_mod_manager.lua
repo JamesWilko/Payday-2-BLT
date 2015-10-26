@@ -15,6 +15,7 @@ C.json_module = "req/json.lua"
 C.mod_manager_file = "mod_manager.txt"
 C.mod_keybinds_file = "mod_keybinds.txt"
 C.mod_updates_file = "mod_updates.txt"
+C.mod_required_file = "mod_required.txt"
 
 C.excluded_mods_directories = {
 	["logs"] = true,
@@ -66,6 +67,11 @@ C.mod_update_install_key = "install_dir"
 C.mod_update_install_folder_key = "install_folder"
 C.mod_update_name_key = "display_name"
 
+C.mod_libs_key = "libraries"
+C.mod_libs_identifier_key = "identifier"
+C.mod_libs_display_name_key = "display_name"
+C.mod_libs_optional_key = "optional"
+
 C.hook_dll_id = "payday2bltdll"
 C.hook_dll_name = "IPHLPAPI.dll"
 C.hook_dll_temp_name = "IPHLPAPI_temp.dll"
@@ -85,6 +91,9 @@ LuaModManager._mod_keybinds_file_path = LuaModManager._save_path .. C.mod_keybin
 LuaModManager._updates = LuaModManager._updates or {}
 LuaModManager._updates_enabled = LuaModManager._updates_enabled or {}
 LuaModManager._mod_updates_file_path = LuaModManager._save_path .. C.mod_updates_file
+
+LuaModManager._required_enabled = LuaModManager._required_enabled or {}
+LuaModManager._mod_required_file_path = LuaModManager._save_path .. C.mod_required_file
 
 local function clone( o )
 	local res = {}
@@ -267,8 +276,24 @@ function LuaModManager:AddUpdateCheck( mod_table, mod_id, update_tbl )
 
 end
 
+function LuaModManager:AddRequireCheck( mod_name, identifier, required_by, optional )
+    local tbl = {
+		identifier = identifier,
+        required = true,
+        required_by = required_by,
+        optional = optional,
+        display_name = mod_name
+	}
+    
+    table.insert( self._updates, tbl )
+end
+
 function LuaModManager:AreModUpdatesEnable( mod_id )
 	return (self._updates_enabled[mod_id] == nil or self._updates_enabled[mod_id] == true)
+end
+
+function LuaModManager:AreRequiredNotificationsEnabled( mod_id )
+	return (self._required_enabled[mod_id] == nil or self._required_enabled[mod_id] == true)
 end
 
 function LuaModManager:SetModUpdatesState( mod_id, state )
@@ -277,10 +302,17 @@ function LuaModManager:SetModUpdatesState( mod_id, state )
 	self:Save()
 end
 
+function LuaModManager:SetModRequiredState( mod_id, state )
+	log( ("[Updates] Setting automatic notification for required '{1}' to: {2}"):gsub("{1}", mod_id):gsub("{2}", tostring(state)) )
+	self._required_enabled[mod_id] = state
+	self:Save()
+end
+
 function LuaModManager:Save()
 	self:SaveTableToJson( self._enabled_mods, self._mod_manager_file_path )
 	self:SaveTableToJson( self._player_keybinds, self._mod_keybinds_file_path )
 	self:SaveTableToJson( self._updates_enabled, self._mod_updates_file_path )
+	self:SaveTableToJson( self._required_enabled, self._mod_required_file_path )
 end
 
 function LuaModManager:SaveTableToJson( tbl, file_path )
@@ -310,6 +342,7 @@ function LuaModManager:Load()
 	self._enabled_mods = self:LoadJsonFileToTable( self._mod_manager_file_path ) or self._enabled_mods
 	self._player_keybinds = self:LoadJsonFileToTable( self._mod_keybinds_file_path ) or self._player_keybinds
 	self._updates_enabled = self:LoadJsonFileToTable( self._mod_updates_file_path ) or self._updates_enabled
+	self._required_enabled = self:LoadJsonFileToTable( self._mod_required_file_path ) or self._required_enabled
 end
 
 function LuaModManager:LoadJsonFileToTable( file_path )

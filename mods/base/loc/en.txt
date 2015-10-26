@@ -35,6 +35,7 @@
 
 	"base_mod_updates_all_up_to_date" : "All mods up to date!",
 	"base_mod_updates_updates_required" : " $count Update$s Required",
+    "base_mod_updates_mod_required" : " $count Mod$s Required",
 	"base_mod_updates_updates_required_row" : "        $mod",
 	"base_mod_updates_click_manager" : "[Click to View Updates Manager]",
 
@@ -43,7 +44,12 @@
 	"base_mod_automically_check_for_updates_desc" : "Automatically check the server for updates for the mod $mod_name every time the game is loaded",
 	"base_mod_check_for_updates_now" : "Update $mod_name Now",
 	"base_mod_check_for_updates_now_desc" : "Check the server for updates for $mod_name immediately",
-
+    
+    "base_mod_notify_required" : "$mod_name Notification",
+	"base_mod_notify_required_desc" : "Automatically notify you that $mod_name is required to be installed by certain mods",
+	"base_mod_download_required_now" : "Download $mod_name Now",
+	"base_mod_download_required_now_desc" : "Download and Install $mod_name immediately",
+    
 	"base_mod_updates_show_update_available" : "$mod_name Update Available",
 	"base_mod_updates_show_update_available_message" : "An update for $mod_name is available!\nIt can be automatically downloaded for by visiting the Update Manager in the lower-left!",
 
@@ -54,6 +60,12 @@
 	"base_mod_updates_update_now" : "Update Now",
 	"base_mod_updates_update_later" : "Update Later",
 
+    "base_mod_updates_show_required_available" : "Download $mod_name Now",
+	"base_mod_updates_show_required_available_message" : "$req_mod_name requires $mod_name to be installed to function!\nDo you want to download $mod_name now?",
+	"base_mod_updates_show_required_available_optional_message" : "$req_mod_name requires $mod_name to be installed for all features to work!\nDo you want to download $mod_name now?",
+	"base_mod_required_update_mod_now" : "Download Now",
+	"base_mod_required_update_later" : "Download Later",
+    
 	"base_mod_updates_show_multiple_update_available" : "Multiple Updates Available",
 	"base_mod_updates_show_multiple_update_available_message" : "Updates are available for the following mods:\n$mods\nYou can update them by visiting the Update Manager in the lower-left!",
 	"base_mod_updates_update_all_now" : "Update All Mods Now",
