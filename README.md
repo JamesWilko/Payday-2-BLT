@@ -1,6 +1,33 @@
-# Payday 2 BLT
+# Payday 2 BLT with Moonscript Support
 An open source Lua hook for Payday 2, designed and created for ease of use for both players and modders.  
 This is the developer repository, and should only be used if you know what you're doing. If you don't, visit the website at [PaydayMods.com](http://paydaymods.com/) to get an up-to-date drag-drop install.  
+
+Now BLT comes with [Moonscript](http://moonscript.org) support, which I find
+a little more pleasant to read than Lua. The moonscript code base is almost a 
+clone of [GMod Moonscript](https://github.com/wyozi/gmod-moonscript). Many thanks 
+to its author wyozi and its original contributor Mijyuoon and corresponding 
+project [starfall](https://github.com/Mijyuoon/starfall).
+
+## Loading Moonscript
+Moonscript are treated almost identical to lua -- while previously you specify
+in the script field with "script.lua", you can put "script.moon". The mod
+manager with load the script based on its extension, for example:
+
+~~~~~~~~~~~~~~~~~~~~~
+	"hooks" : [
+		{ 	"hook_id" : "lib/managers/menumanager",
+			"script_path" : "json_example.moon"
+		}
+	]
+~~~~~~~~~~~~~~~~~~~~~
+
+Since moonscript is compatible with lua, lua functions like "CloneClass" etc can
+be used inside moonscript.
+
+## Todo
+The error handling part of current moonscript loader is horrible. The loader
+seems to be quite permissive for loading ill-behaved moonscript files, which
+should be enhanced in the future.
 
 ## Download
 Visit [PaydayMods.com](http://paydaymods.com/) to get the latest stable download.  
