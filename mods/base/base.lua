@@ -26,11 +26,11 @@ function LoadMoonscript(path)
    local file = io.open(path)
    local moonFn, err = moonscript.loadstring(file:read("*all"))
    if err then
-      log("Unable to load: " .. path .. " Error:\m" .. err)
+      log("Unable to load: " .. path .. " \nError: " .. err)
    else
       local status, moonErr = pcall(moonFn)
       if moonErr then
-         log("Error evaluating " .. path .. tostring(moonErr))
+         log("Error evaluating " .. path .. "\n" .. tostring(moonErr))
       end
    end
    io.close(file)
@@ -138,7 +138,6 @@ if not _require_orig then
 				for k, v in pairs( hooks_table[path] ) do
 					declare( C.required_script_global, path )
 					declare( C.mod_path_global, v.mod_path )
-                                        log("Doing script: " .. v.script)
                                         if string.sub(v.script, -string.len(".moon")) == ".moon" then
                                            LoadMoonscript(v.script)
                                         else
