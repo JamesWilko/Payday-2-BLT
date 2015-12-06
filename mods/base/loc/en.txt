@@ -69,4 +69,9 @@
 	"base_mod_download_download_progress_complete" : "Download Complete, Please restart your game!",
 	"base_mod_download_download_progress_failed" : "Download Failed, Please try again! :(",
 
+	"base_language_select" : "Language",
+	"base_language_select_desc" : "Select the language for the BLT to be displayed in",
+	"base_language_en" : "English",
+	"base_language_de" : "Deutsch",
+
 }
