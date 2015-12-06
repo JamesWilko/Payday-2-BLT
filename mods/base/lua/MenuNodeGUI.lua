@@ -8,9 +8,13 @@ function MenuNodeGui._key_press(self, o, key, input_id, item, no_add)
 		return
 	end
 
-	if self._skip_first_mouse_0 then
-		self._skip_first_mouse_0 = false
-		if input_id == "mouse" and key == Idstring("0") then
+	if self._skip_first_activate_key then
+		self._skip_first_activate_key = false
+		if input_id == "mouse" then
+			if key == Idstring("0") then
+				return
+			end
+		elseif input_id == "keyboard" and key == Idstring("enter") then
 			return
 		end
 	end
