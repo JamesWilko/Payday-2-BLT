@@ -69,4 +69,9 @@
 	"base_mod_download_download_progress_complete" : "Herunterladen abgeschlossen, bitte Payday2 neustarten!",
 	"base_mod_download_download_progress_failed" : "Herunterladen fehlgeschlagen, bitte erneut versuchen! :(",
 
+	"base_language_select" : "Sprache",
+	"base_language_select_desc" : "Waehle die Sprache, in der Texte der BLT angezeigt werden sollen",
+	"base_language_en" : "Englisch",
+	"base_language_de" : "Deutsch",
+
 }
