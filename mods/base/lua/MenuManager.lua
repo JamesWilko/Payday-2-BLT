@@ -574,3 +574,13 @@ function MenuModInfoGui.set_mod_info(self, item)
 	end
 
 end
+
+-- Create this function if it doesn't exist
+function MenuCallbackHandler.can_toggle_chat( self )
+	if managers and managers.menu then
+		local input = managers.menu:active_menu() and managers.menu:active_menu().input
+		return not input or input.can_toggle_chat and input:can_toggle_chat()
+	else
+		return true
+	end
+end
