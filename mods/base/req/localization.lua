@@ -7,7 +7,7 @@ LuaModManager.Constants.default_language = "en"
 LuaModManager.Constants.language_key = "language"
 
 function LuaModManager:GetIndexOfDefaultLanguage()
-	for k, v in pairs() do
+	for k, v in pairs(LuaModManager._languages) do
 		if v == LuaModManager.Constants.default_language then
 			return k
 		end
