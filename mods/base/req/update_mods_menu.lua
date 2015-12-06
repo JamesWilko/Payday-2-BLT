@@ -120,9 +120,10 @@ Hooks:Add("MenuManagerPopulateCustomMenus", "Base_ModUpdatesMenu_PopulateCustomM
 		if item and item._parameters then
 			local mod_path = item._parameters.text_id:gsub("button_check_for_updates_", "")
 			if mod_path then
-                
-				LuaModUpdates:CheckForUpdates( function(updater, mods)
-					LuaModUpdates:CheckModForUpdateAndShowOptions( mod_path )
+				LuaModUpdates:CheckForUpdates( function(updater, mods, required)
+                    if not required then
+                        LuaModUpdates:CheckModForUpdateAndShowOptions( mod_path )
+                    end
 				end )
 			end
 		end

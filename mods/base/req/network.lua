@@ -120,7 +120,7 @@ function LNetwork:SendToPeersExcept(peer, type_prm, data)
 
 	dataString = dataString:gsub("{1}", LNetwork.ExceptPeer)
 	dataString = dataString:gsub("{2}", peerStr)
-	dataString = dataString:gsub("{3}", type)
+	dataString = dataString:gsub("{3}", type_prm)
 	dataString = dataString:gsub("{4}", data)
 	LNetwork:SendStringThroughChat(dataString)
 end
