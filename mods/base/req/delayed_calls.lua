@@ -20,7 +20,9 @@ function DelayedCalls:Update( time, deltaTime )
 			
 			v.currentTime = v.currentTime + deltaTime
 			if v.currentTime > v.timeToWait then
-				v.functionCall()
+				if v.functionCall then
+					v.functionCall()
+				end
 				v = nil
 			else
 				table.insert(t, v)

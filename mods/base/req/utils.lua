@@ -166,7 +166,7 @@ end
 function Utils:IsInCustody()
 	local player = managers.player:local_player()
 	local in_custody = false
-	if managers and managers.trade and not alive( player ) then
+	if managers and managers.trade and not alive( player ) and managers.network:session() and managers.network:session():local_peer() and managers.network:session():local_peer():id() then
 		in_custody = managers.trade:is_peer_in_custody(managers.network:session():local_peer():id())
 	end
 	return in_custody
