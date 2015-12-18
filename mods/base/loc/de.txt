@@ -73,5 +73,7 @@
 	"base_language_select_desc" : "Waehle die Sprache, in der Texte der BLT angezeigt werden sollen",
 	"base_language_en" : "Englisch",
 	"base_language_de" : "Deutsch",
+	"base_language_fr" : "French",
+	"base_language_ru" : "Russian",
 
 }

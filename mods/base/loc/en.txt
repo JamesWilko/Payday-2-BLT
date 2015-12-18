@@ -73,5 +73,7 @@
 	"base_language_select_desc" : "Select the language for the BLT to be displayed in",
 	"base_language_en" : "English",
 	"base_language_de" : "German",
+	"base_language_fr" : "French",
+	"base_language_ru" : "Russian",
 
 }

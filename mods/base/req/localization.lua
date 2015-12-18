@@ -1,7 +1,9 @@
 
 LuaModManager._languages = {
 	"en",
-	"de"
+	"de",
+	"fr",
+	"ru",
 }
 LuaModManager.Constants.default_language = "en"
 LuaModManager.Constants.language_key = "language"
@@ -53,6 +55,8 @@ Hooks:Add("MenuManager_Base_BuildModOptionsMenu", "MenuManager_Base_SetupModOpti
 		items = {
 			[1] = "base_language_en",
 			[2] = "base_language_de",
+			[3] = "base_language_fr",
+			[4] = "base_language_ru",
 		},
 		value = 1,
 		priority = 1001,
