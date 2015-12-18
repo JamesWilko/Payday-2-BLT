@@ -58,7 +58,7 @@ Hooks:Add("MenuManager_Base_BuildModOptionsMenu", "MenuManager_Base_SetupModOpti
 			[3] = "base_language_fr",
 			[4] = "base_language_ru",
 		},
-		value = 1,
+		value = LuaModManager:GetLanguageIndex(),
 		priority = 1001,
 	})
 
