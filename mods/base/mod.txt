@@ -7,7 +7,7 @@
 	"priority" : 1001,
 	"updates" : [
 		{
-			"revision" : 11,
+			"revision" : 8,
 			"identifier" : "payday2blt"
 		},
 		{
