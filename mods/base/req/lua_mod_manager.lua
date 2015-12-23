@@ -134,6 +134,37 @@ function LuaModManager:SetModEnabledState( mod_name, state )
 	self:Save()
 end
 
+function LuaModManager:HasModFromIdentifier(identifier)
+        for k, v in pairs(_mods) do
+            local updates = v.definition[C.mod_update_key]
+            if updates then
+                for i, update in pairs(updates) do
+                    if update[C.mod_update_identifier_key] == identifier then
+                        return true
+                    end
+                end
+            end
+        end
+        return false
+    end
+
+function LuaModManager:HasRequiredMod(mod)
+        local libs = mod.definition[C.mod_libs_key]
+        local has_any_required = false
+        if libs then
+            for k, lib in pairs(libs) do
+                if not self:HasModFromIdentifier(lib[C.mod_libs_identifier_key]) then
+                    if not lib[C.mod_libs_optional_key] == "true" then
+                        has_any_required = true
+                    end
+                    LuaModManager:AddRequireCheck( lib[C.mod_libs_display_name_key], lib[C.mod_libs_identifier_key], mod.definition[C.mod_name_key], (lib[C.mod_libs_optional_key] == "true") )
+                end
+            end
+        end
+        
+        return not has_any_required
+    end
+
 function LuaModManager:ToggleModState( mod_name )
 	if not C.always_active_mods[mod_name] then
 		if self._enabled_mods[mod_name] == nil then
@@ -292,19 +323,9 @@ function LuaModManager:AreModUpdatesEnable( mod_id )
 	return (self._updates_enabled[mod_id] == nil or self._updates_enabled[mod_id] == true)
 end
 
-function LuaModManager:AreRequiredNotificationsEnabled( mod_id )
-	return (self._required_enabled[mod_id] == nil or self._required_enabled[mod_id] == true)
-end
-
 function LuaModManager:SetModUpdatesState( mod_id, state )
 	log( ("[Updates] Setting automatic updates for mod '{1}' to: {2}"):gsub("{1}", mod_id):gsub("{2}", tostring(state)) )
 	self._updates_enabled[mod_id] = state
-	self:Save()
-end
-
-function LuaModManager:SetModRequiredState( mod_id, state )
-	log( ("[Updates] Setting automatic notification for required '{1}' to: {2}"):gsub("{1}", mod_id):gsub("{2}", tostring(state)) )
-	self._required_enabled[mod_id] = state
 	self:Save()
 end
 
@@ -312,7 +333,6 @@ function LuaModManager:Save()
 	self:SaveTableToJson( self._enabled_mods, self._mod_manager_file_path )
 	self:SaveTableToJson( self._player_keybinds, self._mod_keybinds_file_path )
 	self:SaveTableToJson( self._updates_enabled, self._mod_updates_file_path )
-	self:SaveTableToJson( self._required_enabled, self._mod_required_file_path )
 end
 
 function LuaModManager:SaveTableToJson( tbl, file_path )
@@ -342,7 +362,6 @@ function LuaModManager:Load()
 	self._enabled_mods = self:LoadJsonFileToTable( self._mod_manager_file_path ) or self._enabled_mods
 	self._player_keybinds = self:LoadJsonFileToTable( self._mod_keybinds_file_path ) or self._player_keybinds
 	self._updates_enabled = self:LoadJsonFileToTable( self._mod_updates_file_path ) or self._updates_enabled
-	self._required_enabled = self:LoadJsonFileToTable( self._mod_required_file_path ) or self._required_enabled
 end
 
 function LuaModManager:LoadJsonFileToTable( file_path )

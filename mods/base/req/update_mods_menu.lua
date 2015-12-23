@@ -61,7 +61,7 @@ function LuaModUpdates:ShowUpdateAvailableMessage( mod_tbl )
 end
 
 function LuaModUpdates:ShowModRequiredMessage( mod_tbl )
-    if LuaModManager:AreRequiredNotificationsEnabled( mod_tbl.identifier ) then
+    if LuaModManager:AreModUpdatesEnable( mod_tbl.identifier ) then
         local loc_table = { ["req_mod_name"] = mod_tbl.required_by, ["mod_name"] = mod_tbl.display_name }
         local menu_title = managers.localization:text("base_mod_updates_show_required_available", loc_table)
         local menu_message = managers.localization:text(mod_tbl.optional and "base_mod_updates_show_required_available_optional_message" or "base_mod_updates_show_required_available_message", loc_table)
@@ -103,15 +103,6 @@ Hooks:Add("MenuManagerPopulateCustomMenus", "Base_ModUpdatesMenu_PopulateCustomM
 			local mod_path = item._parameters.text_id:gsub("toggle_lua_auto_updates_", "")
 			if mod_path then
 				LuaModManager:SetModUpdatesState( mod_path, item:value() == "on" and true or false )
-			end
-		end
-	end
-    
-    MenuCallbackHandler.mod_updates_toggle_required = function(self, item)
-		if item and item._parameters then
-			local mod_path = item._parameters.text_id:gsub("toggle_lua_auto_updates_", "")
-			if mod_path then
-				LuaModManager:SetModRequiredState( mod_path, item:value() == "on" and true or false )
 			end
 		end
 	end
@@ -178,8 +169,8 @@ Hooks:Add("MenuManagerPopulateCustomMenus", "Base_ModUpdatesMenu_PopulateCustomM
 			id = "toggle_updates_" .. v.identifier,
 			title = loc_toggle,
 			desc = loc_toggle .. "_desc",
-			callback = v.required and "mod_updates_toggle_required" or "mod_updates_toggle_mod",
-			value = v.required and LuaModManager:AreRequiredNotificationsEnabled( v.identifier ) or LuaModManager:AreModUpdatesEnable( v.identifier ),
+			callback = "mod_updates_toggle_mod",
+			value = LuaModManager:AreModUpdatesEnable( v.identifier ),
 			menu_id = mod_updates_menu,
 			priority = priority,
 		})

@@ -128,10 +128,10 @@ end
 function LuaModUpdates:ShowUpdatesAvailableCallback( mods, required )
 
 	if #mods == 1 then
-        if not required then
-            LuaModUpdates:ShowUpdateAvailableMessage( mods[1] )
-        else
+        if required then
             LuaModUpdates:ShowModRequiredMessage( mods[1] )
+        else
+            LuaModUpdates:ShowUpdateAvailableMessage( mods[1] )
         end
 	elseif #mods > 1 then
 		LuaModUpdates:ShowMultiUpdateAvailableMessage( mods )

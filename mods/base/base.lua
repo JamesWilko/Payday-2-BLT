@@ -278,37 +278,6 @@ if _loaded_mod_folders and _mods then
 
 	end
     
-    local has_mod_from_identifier = function( identifier )
-        for k, v in pairs(_mods) do
-            local updates = v.definition[C.mod_update_key]
-            if updates then
-                for i, update in pairs(updates) do
-                    if update[C.mod_update_identifier_key] == identifier then
-                        return true
-                    end
-                end
-            end
-        end
-        return false
-    end
-    
-    local has_required_mod = function( mod )
-        local libs = mod.definition[C.mod_libs_key]
-        local has_any_required = false
-        if libs then
-            for k, lib in pairs(libs) do
-                if not has_mod_from_identifier(lib[C.mod_libs_identifier_key]) then
-                    if not lib[C.mod_libs_optional_key] == "true" then
-                        has_any_required = true
-                    end
-                    LuaModManager:AddRequireCheck( lib[C.mod_libs_display_name_key], lib[C.mod_libs_identifier_key], mod.definition[C.mod_name_key], (lib[C.mod_libs_optional_key] == "true") )
-                end
-            end
-        end
-        
-        return not has_any_required
-    end
-    
 	-- Prioritize
 	table.sort( _mods, function(a, b)
 		return a.priority > b.priority
@@ -317,7 +286,7 @@ if _loaded_mod_folders and _mods then
 	-- Add mod hooks to tables
 	for k, v in ipairs( _mods ) do
 
-		if LuaModManager:IsModEnabled( v.path ) and has_required_mod( v ) then
+		if LuaModManager:IsModEnabled( v.path ) and LuaModManager:HasRequiredMod(v) then
 
 			-- Load pre- and post- hooks
 			add_hooks_table( v, C.mod_hooks_key, _posthooks )
