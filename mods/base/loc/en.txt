@@ -61,10 +61,12 @@
 	"base_mod_updates_update_later" : "Update Later",
 
     "base_mod_updates_show_required_available" : "Download $mod_name Now",
-	"base_mod_updates_show_required_available_message" : "$req_mod_name requires $mod_name to be installed to function!\nDo you want to download $mod_name now?",
-	"base_mod_updates_show_required_available_optional_message" : "$req_mod_name requires $mod_name to be installed for all features to work!\nDo you want to download $mod_name now?",
+	"base_mod_updates_show_required_available_message" : "$req_mod_name require(s) $mod_name to be installed to function!\nDo you want to download $mod_name now?",
+	"base_mod_updates_show_required_available_optional_message" : "$req_mod_name require(s) $mod_name to be installed for all features to work!\nDo you want to download $mod_name now?",
 	"base_mod_required_update_mod_now" : "Download Now",
 	"base_mod_required_update_later" : "Download Later",
+    "base_mod_updates_show_multiple_require_available" : "Multiple Mods Required",
+	"base_mod_updates_show_multiple_require_available_message" : "The following mods are required for certain mods to function fully:\n$mods\nYou can update them by visiting the Update Manager in the lower-left!",
     
 	"base_mod_updates_show_multiple_update_available" : "Multiple Updates Available",
 	"base_mod_updates_show_multiple_update_available_message" : "Updates are available for the following mods:\n$mods\nYou can update them by visiting the Update Manager in the lower-left!",

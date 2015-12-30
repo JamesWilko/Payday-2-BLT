@@ -60,7 +60,11 @@ if io then
 	end
 
 	io.remove_directory_and_files = function( path, do_log )
-
+        if not path then
+            log("[Error] paramater #1 to io.remove_directory_and_files, string expected, recieved " .. tostring(path))
+            return false
+        end
+        
 		if not file.DirectoryExists( path ) then
 			log("[Error] Directory does not exist: " .. path)
 			return false

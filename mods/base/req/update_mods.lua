@@ -5,6 +5,7 @@ LuaModUpdates._updates_api_mod = "mod[{1}]={2}"
 LuaModUpdates._updates_download_url = "http://download.paydaymods.com/download/latest/{1}"
 LuaModUpdates._updates_notes_url = "http://download.paydaymods.com/download/patchnotes/{1}"
 LuaModUpdates._notification_id = "lua_mod_updates_notif"
+LuaModUpdates.__required_notification_id = "lua_mod_require_notif"
 
 LuaModUpdates._currently_downloading = {}
 LuaModUpdates._current_download_dialog = nil
@@ -22,7 +23,26 @@ Hooks:Add("MenuManagerOnOpenMenu", "Base_ModUpdates_MenuManagerOnOpenMenu", func
 
 		-- Remove temporary hook dll
 		LuaModUpdates:RemoveTemporaryDLL()
-
+        
+        local required = LuaModManager:Required()
+    
+        local required_count = table.size(required)
+        
+        local initial_mod
+        
+        for _, mod in pairs(required) do
+            initial_mod = mod
+            break
+        end
+        
+        if required_count == 1 then
+            LuaModUpdates:ShowModRequiredMessage(initial_mod)
+        elseif required_count > 1 then
+            LuaModUpdates:ShowMultiRequiredAvailableMessage( required )
+        end
+        
+        LuaModUpdates:ShowRequiredModsNotification( required )
+        
 	end
 	
 end)
@@ -96,10 +116,8 @@ function LuaModUpdates:FetchUpdatesFromAPI( path, callback )
 
 					v.server_revision = server_version
 					v.update_required = local_version < server_version
-					if local_version < server_version and not v.required then
+					if local_version < server_version then
 						table.insert( mods_needing_updates, v )
-					elseif v.required then
-                        table.insert( mods_required, v )
                     end
 
 				else
@@ -109,11 +127,9 @@ function LuaModUpdates:FetchUpdatesFromAPI( path, callback )
 			end
             
 			LuaModUpdates:ShowUpdatesAvailableNotification( mods_needing_updates )
-			LuaModUpdates:ShowRequiredModsNotification( mods_required )
 
 			if callback then
 				callback( self, mods_needing_updates )
-				callback( self, mods_required, true )
 			end
             
 
@@ -126,17 +142,11 @@ function LuaModUpdates:FetchUpdatesFromAPI( path, callback )
 end
 
 function LuaModUpdates:ShowUpdatesAvailableCallback( mods, required )
-
 	if #mods == 1 then
-        if required then
-            LuaModUpdates:ShowModRequiredMessage( mods[1] )
-        else
-            LuaModUpdates:ShowUpdateAvailableMessage( mods[1] )
-        end
+        LuaModUpdates:ShowUpdateAvailableMessage( mods[1] )
 	elseif #mods > 1 then
 		LuaModUpdates:ShowMultiUpdateAvailableMessage( mods )
 	end
-
 end
 
 function LuaModUpdates.DoUpdateAllModsNow()
@@ -191,11 +201,11 @@ function LuaModUpdates:ShowRequiredModsNotification( mods_required )
 	}
 	local title = count < 1 and managers.localization:text("base_mod_updates_all_up_to_date") or managers.localization:text("base_mod_updates_mod_required", loc_table)
 	local prio = count < 1 and 101 or 1001
-
-	if NotificationsManager:NotificationExists( LuaModUpdates._notification_id ) then
-		NotificationsManager:UpdateNotification( LuaModUpdates._notification_id, title, message, prio, LuaModUpdates.NotificationClickCallback )
+    
+	if NotificationsManager:NotificationExists( LuaModUpdates.__required_notification_id ) then
+		NotificationsManager:UpdateNotification( LuaModUpdates.__required_notification_id, title, message, prio, LuaModUpdates.NotificationClickCallback )
 	else
-		NotificationsManager:AddNotification( LuaModUpdates._notification_id, title, message, prio, LuaModUpdates.NotificationClickCallback )
+		NotificationsManager:AddNotification( LuaModUpdates.__required_notification_id, title, message, prio, LuaModUpdates.NotificationClickCallback )
 	end
 
 end
@@ -348,8 +358,14 @@ function LuaModUpdates:GetModFriendlyName( mod_id )
 
 	for k, v in ipairs( LuaModManager:UpdateChecks() ) do
 		if v.identifier == mod_id then
-			local mod_definition = not v.required and LuaModManager:GetMod( v.mod ).definition
+			local mod_definition = LuaModManager:GetMod( v.mod ).definition
 			return v.display_name or mod_definition[ LuaModManager.Constants.mod_name_key ]
+		end
+	end
+    
+    for k, v in pairs( LuaModManager:Required() ) do
+		if v.identifier == mod_id then
+			return v.display_name
 		end
 	end
 	
@@ -364,5 +380,11 @@ function LuaModUpdates:GetModTable( mod_id )
 			return v
 		end
 	end
-
+    
+    for k, v in pairs( LuaModManager:Required() ) do
+		if v.identifier == mod_id then
+			return v
+		end
+	end
+    
 end
