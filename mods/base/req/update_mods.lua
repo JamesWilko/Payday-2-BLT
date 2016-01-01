@@ -183,7 +183,10 @@ function LuaModUpdates:ShowUpdatesAvailableNotification( mods_to_update )
 end
 
 function LuaModUpdates:ShowRequiredModsNotification( mods_required )
-
+    if table.size(mods_required) == 0 then
+        return
+    end
+    
 	local count = 0
 	local message = ""
 	for k, v in pairs( mods_required ) do
