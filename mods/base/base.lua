@@ -60,7 +60,11 @@ if io then
 	end
 
 	io.remove_directory_and_files = function( path, do_log )
-
+        if not path then
+            log("[Error] paramater #1 to io.remove_directory_and_files, string expected, recieved " .. tostring(path))
+            return false
+        end
+        
 		if not file.DirectoryExists( path ) then
 			log("[Error] Directory does not exist: " .. path)
 			return false
@@ -277,7 +281,7 @@ if _loaded_mod_folders and _mods then
 		end
 
 	end
-
+    
 	-- Prioritize
 	table.sort( _mods, function(a, b)
 		return a.priority > b.priority
@@ -286,7 +290,7 @@ if _loaded_mod_folders and _mods then
 	-- Add mod hooks to tables
 	for k, v in ipairs( _mods ) do
 
-		if LuaModManager:IsModEnabled( v.path ) then
+		if LuaModManager:IsModEnabled( v.path ) and LuaModManager:HasRequiredMod(v) then
 
 			-- Load pre- and post- hooks
 			add_hooks_table( v, C.mod_hooks_key, _posthooks )

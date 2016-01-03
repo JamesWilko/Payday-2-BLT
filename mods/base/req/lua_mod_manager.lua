@@ -15,6 +15,7 @@ C.json_module = "req/json.lua"
 C.mod_manager_file = "mod_manager.txt"
 C.mod_keybinds_file = "mod_keybinds.txt"
 C.mod_updates_file = "mod_updates.txt"
+C.mod_required_file = "mod_required.txt"
 
 C.excluded_mods_directories = {
 	["logs"] = true,
@@ -66,6 +67,11 @@ C.mod_update_install_key = "install_dir"
 C.mod_update_install_folder_key = "install_folder"
 C.mod_update_name_key = "display_name"
 
+C.mod_libs_key = "libraries"
+C.mod_libs_identifier_key = "identifier"
+C.mod_libs_display_name_key = "display_name"
+C.mod_libs_optional_key = "optional"
+
 C.hook_dll_id = "payday2bltdll"
 C.hook_dll_name = "IPHLPAPI.dll"
 C.hook_dll_temp_name = "IPHLPAPI_temp.dll"
@@ -83,8 +89,12 @@ LuaModManager._player_keybinds = LuaModManager._player_keybinds or {}
 LuaModManager._mod_keybinds_file_path = LuaModManager._save_path .. C.mod_keybinds_file
 
 LuaModManager._updates = LuaModManager._updates or {}
+LuaModManager._required = LuaModManager._required or {}
 LuaModManager._updates_enabled = LuaModManager._updates_enabled or {}
 LuaModManager._mod_updates_file_path = LuaModManager._save_path .. C.mod_updates_file
+
+LuaModManager._required_enabled = LuaModManager._required_enabled or {}
+LuaModManager._mod_required_file_path = LuaModManager._save_path .. C.mod_required_file
 
 local function clone( o )
 	local res = {}
@@ -123,6 +133,37 @@ end
 function LuaModManager:SetModEnabledState( mod_name, state )
 	self._enabled_mods[mod_name] = state
 	self:Save()
+end
+
+function LuaModManager:HasModFromIdentifier(identifier)
+    for k, v in pairs(_mods) do
+        local updates = v.definition[C.mod_update_key]
+        if updates then
+            for i, update in pairs(updates) do
+                if update[C.mod_update_identifier_key] == identifier then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
+function LuaModManager:HasRequiredMod(mod)
+    local libs = mod.definition[C.mod_libs_key]
+    local has_any_required = false
+    if libs then
+        for k, lib in pairs(libs) do
+            if not self:HasModFromIdentifier(lib[C.mod_libs_identifier_key]) then
+                if not lib[C.mod_libs_optional_key] == "true" then
+                    has_any_required = true
+                end
+                self:AddRequireCheck( lib[C.mod_libs_display_name_key], lib[C.mod_libs_identifier_key], mod.definition[C.mod_name_key], (lib[C.mod_libs_optional_key] == "true") )
+            end
+        end
+    end
+    
+    return not has_any_required
 end
 
 function LuaModManager:ToggleModState( mod_name )
@@ -210,6 +251,10 @@ function LuaModManager:UpdateChecks()
 	return self._updates
 end
 
+function LuaModManager:Required()
+	return self._required
+end
+
 function LuaModManager:AddUpdateCheck( mod_table, mod_id, update_tbl )
 
 	local tbl = {
@@ -265,6 +310,16 @@ function LuaModManager:AddUpdateCheck( mod_table, mod_id, update_tbl )
 
 	table.insert( self._updates, tbl )
 
+end
+
+function LuaModManager:AddRequireCheck( mod_name, identifier, required_by, optional )
+    self._required[identifier] = self._required[identifier] or {}
+    self._required[identifier].required_by = self._required[identifier].required_by or {}
+    self._required[identifier].optional = self._required[identifier].optional == nil and optional or not optional and optional or self._required[identifier].optional
+    self._required[identifier].display_name = mod_name
+    self._required[identifier].identifier = identifier
+    
+    table.insert(self._required[identifier].required_by, required_by)
 end
 
 function LuaModManager:AreModUpdatesEnable( mod_id )
