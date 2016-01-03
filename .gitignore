@@ -101,3 +101,4 @@ incl/openssl/whrlpool.h
 incl/openssl/x509.h
 incl/openssl/x509_vfy.h
 incl/openssl/x509v3.h
+*~
