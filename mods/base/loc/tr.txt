@@ -2,24 +2,24 @@
 	"base_options_menu_lua_mods" : "Lua Mods",
 	"base_options_menu_lua_mods_desc" : "Yukledigin Lua modlarinin durumu kontrol et, etkinlestir ve devre disi birak.",
 	"base_options_menu_keybinds" : "Mod Keybinds",
-	"base_options_menu_keybinds_desc" : "Lua modlari icin keybindlrei ozellestir",
+	"base_options_menu_keybinds_desc" : "Lua modlari icin keybindleri ozellestir",
 	"base_options_menu_lua_mod_options" : "Mod Ayarlari",
 	"base_options_menu_lua_mod_options_desc" : "Lua modlarini ozellestir",
 
 	"base_mod_info_version" : "Versiyon",
 	"base_mod_info_author" : "Yaratici",
 	"base_mod_info_contact" : "Irtibat",
-	"base_mod_info_path" : "Yol",
+	"base_mod_info_path" : "Konum",
 	"base_mod_info_keybinds" : "Keybinds",
 	"base_mod_info_prehooks" : "Pre-Hooks",
-	"base_mod_info_hooks" : "Hooks",
+	"base_mod_info_hooks" : "Hooklar",
 	"base_mod_info_persist" : "Persistent Scripts",
 	"base_mod_info_disabled" : "Devre Disi Birakilmis",
 	"base_mod_info_to_be_disabled" : "Yeniden baslatmada devre disi birakilacak",
 	"base_mod_info_to_be_enabled" : "Yeniden baslatmada etkinlestirilecek",
 	"base_mod_info_disabled_impossible" : "Devre disi birakilamaz",
 
-	"base_mod_info_no_name" : "Mod Ismý Yok",
+	"base_mod_info_no_name" : "Mod Ismi Yok",
 	"base_mod_info_no_desc" : "Mod Aciklamasi Yok",
 	"base_mod_info_no_author" : "Yaratici belirtilmemis",
 	"base_mod_info_no_contact" : "Irtibat detaylari yok",
@@ -40,7 +40,7 @@
 
 	"base_mod_updates_update_all" : "Tum Modlari Guncelle",
 	"base_mod_automically_check_for_updates" : "$mod_name Guncellemeleri",
-	"base_mod_automically_check_for_updates_desc" : "Otomatik olarak sunucu guncellemelerini $mod_name icin  her oyun yuklendiginde kontrol et",
+	"base_mod_automically_check_for_updates_desc" : "Otomatik olarak sunucu guncellemelerini $mod_name icin her oyun yuklendiginde kontrol et",
 	"base_mod_check_for_updates_now" : "$mod_name'i Simdi Guncelle",
 	"base_mod_check_for_updates_now_desc" : "$mod_name icin sunucu guncellemelerini hemen kontrol et",
 
@@ -55,7 +55,7 @@
 	"base_mod_updates_update_later" : "Sonra Guncelle",
 
 	"base_mod_updates_show_multiple_update_available" : "Birden Cok Guncelleme Mevcut",
-	"base_mod_updates_show_multiple_update_available_message" : "Guncellemer su modlar icin mevcut:\n$mods\nOnlari sol alttaki Guncelleme Yoneticisi'ni ziyaret ederek guncelleyebilirsin!Y",
+	"base_mod_updates_show_multiple_update_available_message" : "Guncellemer su modlar icin mevcut:\n$mods\nOnlari sol alttaki Guncelleme Yoneticisi'ni ziyaret ederek guncelleyebilirsin!",
 	"base_mod_updates_update_all_now" : "Tum Modlari Simdi Guncelle",
 
 	"base_mod_update_no_update_available_title" : "$mod_name Guncel!",
@@ -73,7 +73,7 @@
 	"base_language_select_desc" : "BLT'nin goruntulenmesi icin bir dil sec.",
 	"base_language_en" : "Ingilizce",
 	"base_language_de" : "Almanca",
-	"base_language_fr" : "French",
-	"base_language_ru" : "Russian",
+	"base_language_fr" : "Fransizca",
+	"base_language_ru" : "Rusca",
 	"base_language_tr" : "Turkce"
 }
