@@ -4,7 +4,8 @@ LuaModManager._languages = {
 	"de",
 	"fr",
 	"ru",
-	"tr"
+	"tr",
+	"id"
 }
 LuaModManager.Constants.default_language = "en"
 LuaModManager.Constants.language_key = "language"
@@ -35,6 +36,8 @@ function LuaModManager:SetActiveLanguage( index )
 end
 
 Hooks:Add("LocalizationManagerPostInit", "Base_LocalizationManagerPostInit", function(loc)
+	-- Load english strings to use as backup
+	loc:load_localization_file( string.format("%sloc/%s.txt", LuaModManager._base_path, "en") )
 	loc:load_localization_file( LuaModManager:GetLanguageFile() )
 end)
 
@@ -47,19 +50,18 @@ Hooks:Add("MenuManager_Base_BuildModOptionsMenu", "MenuManager_Base_SetupModOpti
 		LuaModManager:Save()
 	end
 
+	local items = {}
+	for k, v in ipairs( LuaModManager._languages ) do
+		items[k] = "base_language_" .. v
+	end
+
 	MenuHelper:AddMultipleChoice({
 		id = "base_language_select",
 		title = "base_language_select",
 		desc = "base_language_select_desc",
 		callback = "blt_base_select_language",
 		menu_id = menu_id,
-		items = {
-			[1] = "base_language_en",
-			[2] = "base_language_de",
-			[3] = "base_language_fr",
-			[4] = "base_language_ru",
-			[5] = "base_language_tr",
-		},
+		items = items,
 		value = LuaModManager:GetLanguageIndex(),
 		priority = 1001,
 	})

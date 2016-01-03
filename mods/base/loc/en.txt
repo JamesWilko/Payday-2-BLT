@@ -90,5 +90,6 @@
 	"base_language_fr" : "French",
 	"base_language_ru" : "Russian",
 	"base_language_tr" : "Turkish",
+	"base_language_id" : "Indonesian",
 
 }
