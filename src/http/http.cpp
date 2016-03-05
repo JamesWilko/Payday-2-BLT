@@ -4,14 +4,20 @@
 #include "threading/queue.h"
 #include "util/util.h"
 
+#include <algorithm>
 #include <thread>
+
+namespace pd2hook
+{
+PD2HOOK_REGISTER_EVENTQUEUE(HTTPItem)
 
 HTTPManager* HTTPManager::httpSingleton = NULL;
 
 void lock_callback(int mode, int type, const char* file, int line){
 	if (mode & CRYPTO_LOCK){
 		HTTPManager::GetSingleton()->SSL_Lock(type);
-	} else {
+	}
+	else {
 		HTTPManager::GetSingleton()->SSL_Unlock(type);
 	}
 }
@@ -77,11 +83,11 @@ struct HTTPProgressNotification{
 	long byteTotal;
 };
 
-void run_http_progress_event(void* data){
-	HTTPProgressNotification* ourNotify = (HTTPProgressNotification*)data;
+PD2HOOK_REGISTER_EVENTQUEUE(HTTPProgressNotification)
+
+void run_http_progress_event(std::unique_ptr<HTTPProgressNotification> ourNotify){
 	HTTPItem* ourItem = ourNotify->ourItem;
 	ourItem->progress(ourItem->data, ourNotify->byteProgress, ourNotify->byteTotal);
-	delete ourNotify;
 }
 
 int http_progress_call(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow){
@@ -93,22 +99,21 @@ int http_progress_call(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl
 	ourItem->byteprogress = dlnow;
 	ourItem->bytetotal = dltotal;
 
-	HTTPProgressNotification* notify = new HTTPProgressNotification();
+	std::unique_ptr<HTTPProgressNotification> notify(new HTTPProgressNotification());
 	notify->ourItem = ourItem;
 	notify->byteProgress = dlnow;
 	notify->byteTotal = dltotal;
 
-	EventQueueM::GetSingleton()->AddToQueue(run_http_progress_event, notify);
+	EventQueue<HTTPProgressNotification>::GetSingleton().AddToQueue(run_http_progress_event, std::move(notify));
 	return 0;
 }
 
-void run_http_event(void* data){
-	HTTPItem* ourItem = (HTTPItem*)data;
+void run_http_event(std::unique_ptr<HTTPItem> ourItem){
 	ourItem->call(ourItem->data, ourItem->httpContents);
-	delete ourItem;
 }
 
-void launch_thread_http(HTTPItem* item){
+void launch_thread_http(HTTPItem *raw_item){
+	std::unique_ptr<HTTPItem> item(raw_item);
 	CURL *curl;
 	curl = curl_easy_init();
 	curl_easy_setopt(curl, CURLOPT_URL, item->url.c_str());
@@ -123,21 +128,24 @@ void launch_thread_http(HTTPItem* item){
 		curl_easy_setopt(curl, CURLOPT_XFERINFODATA, item);
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
 	}
-	
+
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_http_data);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, item);
 
 	curl_easy_perform(curl);
 	curl_easy_cleanup(curl);
 
-
-	EventQueueM::GetSingleton()->AddToQueue(run_http_event, item);
+	EventQueue<HTTPItem>::GetSingleton().AddToQueue(run_http_event, std::move(item));
 }
 
-void HTTPManager::LaunchHTTPRequest(HTTPItem* callback){
+void HTTPManager::LaunchHTTPRequest(std::unique_ptr<HTTPItem> callback){
 	PD2HOOK_LOG_LOG("Launching Async HTTP Thread");
 	// This shit's gonna end eventually, how many threads are people going to launch?
 	// Probably a lot.
 	// I'll manage them I guess, but I've no idea when to tell them to join which I believe is part of the constructor.
-	threadList.push_back(new std::thread(launch_thread_http, callback));
+
+	// VC++ 2013 bug, can't pass a unique_ptr through a thread
+	// should be: threadList.push_back(new std::thread(launch_thread_http, std::move(callback));
+	threadList.push_back(new std::thread(launch_thread_http, callback.release()));
+}
 }

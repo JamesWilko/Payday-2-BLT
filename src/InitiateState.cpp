@@ -1,5 +1,6 @@
 #include "InitState.h"
 
+#define WIN32_LEAN_AND_MEAN 1
 #include <Windows.h>
 #include <detours.h>
 
@@ -349,7 +350,7 @@ int luaF_dohttpreq(lua_State* L){
 	HTTPReqIdent++;
 	ourData->requestIdentifier = HTTPReqIdent;
 
-	HTTPItem* reqItem = new HTTPItem();
+	std::unique_ptr<HTTPItem> reqItem(new HTTPItem());
 	reqItem->call = return_lua_http;
 	reqItem->data = ourData;
 	reqItem->url = url;
@@ -358,7 +359,7 @@ int luaF_dohttpreq(lua_State* L){
 		reqItem->progress = progress_lua_http;
 	}
 
-	HTTPManager::GetSingleton()->LaunchHTTPRequest(reqItem);
+	HTTPManager::GetSingleton()->LaunchHTTPRequest(std::move(reqItem));
 	lua_pushinteger(L, HTTPReqIdent);
 	return 1;
 }
@@ -406,7 +407,7 @@ void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 
 
 	if (updates > 1){
-		EventQueueM::GetSingleton()->ProcessEvents();
+		EventQueueMaster::GetSingleton().ProcessEvents();
 	}
 
 	updates++;
@@ -510,8 +511,6 @@ void InitiateStates(){
 	FuncDetour* newStateDetour = new FuncDetour((void**)&luaL_newstate, luaL_newstate_new);
 	//FuncDetour* luaCallDetour = new FuncDetour((void**)&lua_call, lua_newcall);
 	FuncDetour* luaCloseDetour = new FuncDetour((void**)&lua_close, luaF_close);
-
-	new EventQueueM();
 }
 
 void DestroyStates(){

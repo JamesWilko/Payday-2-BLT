@@ -1,51 +1,21 @@
 #include "threading/queue.h"
 #include "util/util.h"
 
-EventItem::EventItem(EventFunction toRun, void* data) : mFunc(toRun), mData(data){
-
+namespace pd2hook
+{
+EventQueueMaster& EventQueueMaster::GetSingleton()
+{
+	static EventQueueMaster instance;
+	return instance;
 }
 
-void EventItem::RunFunction(){
-	mFunc(mData);
+void EventQueueMaster::ProcessEvents()
+{
+	std::for_each(queues.begin(), queues.end(), [](IEventQueue *q) { q->ProcessEvents(); });
 }
 
-EventQueueM* EventQueueM::eventSingleton = NULL;
-
-EventQueueM::EventQueueM(){
-	if (eventSingleton) delete eventSingleton;
-	eventSingleton = this;
+void EventQueueMaster::registerQueue(IEventQueue *q)
+{
+	queues.push_back(q);
 }
-
-EventQueueM* EventQueueM::GetSingleton(){
-	return eventSingleton;
 }
-
-void EventQueueM::ProcessEvents(){
-	std::deque<EventItem*> eventClone;
-	criticalLock.lock();
-	if (eventQueue.size() <= 0){
-		criticalLock.unlock();
-		return;
-	}
-	eventClone = eventQueue;
-	eventQueue.clear();
-	criticalLock.unlock();
-
-	std::deque<EventItem*>::iterator it;
-	for (it = eventClone.begin(); it != eventClone.end(); it++){
-		(*it)->RunFunction();
-		delete (*it);
-	}
-}
-
-void EventQueueM::AddToQueue(EventItem* newItem){
-	criticalLock.lock();
-	eventQueue.push_back(newItem);
-	criticalLock.unlock();
-}
-
-void EventQueueM::AddToQueue(EventFunction func, void* data){
-	EventItem* nItem = new EventItem(func, data);
-	AddToQueue(nItem);
-}
-

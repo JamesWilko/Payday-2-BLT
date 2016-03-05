@@ -5,7 +5,10 @@
 #include <mutex>
 #include <thread>
 #include <list>
+#include <memory>
 
+namespace pd2hook
+{
 typedef void(*HTTPCallback)(void* data, std::string& urlContents);
 typedef void(*HTTPProgress)(void* data, long progress, long total);
 
@@ -33,13 +36,13 @@ public:
 	void SSL_Lock(int lockno);
 	void SSL_Unlock(int lockno);
 
-	void LaunchHTTPRequest(HTTPItem* callback);
+	void LaunchHTTPRequest(std::unique_ptr<HTTPItem> callback);
 private:
 	static HTTPManager* httpSingleton;
 	std::mutex* openssl_locks;
 	int numLocks;
 	std::list<std::thread*> threadList;
 };
-
+}
 
 #endif // __HTTP_HEADER__
