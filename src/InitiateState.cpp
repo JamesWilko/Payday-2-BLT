@@ -225,9 +225,7 @@ int luaF_unzipfile(lua_State* L){
 	const char* extractPath = lua_tolstring(L, 2, &len);
 	_asm add esp, 4
 
-	ZIPArchive* archive = new ZIPArchive(archivePath, extractPath);
-	archive->ReadArchive();
-	delete archive;
+	pd2hook::ExtractZIPArchive(archivePath, extractPath);
 	return 0;
 }
 

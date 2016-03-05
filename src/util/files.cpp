@@ -15,7 +15,7 @@ using namespace std;
 namespace pd2hook
 {
 namespace Util{
-	vector<string> GetDirectoryContents(std::string path, bool dirs){
+	vector<string> GetDirectoryContents(const std::string& path, bool dirs){
 		vector<string> files;
 		WIN32_FIND_DATA ffd;
 		TCHAR szDir[MAX_PATH];
@@ -52,7 +52,7 @@ namespace Util{
 		return files;
 	}
 
-	string GetFileContents(string filename){
+	string GetFileContents(const string& filename){
 		ifstream t(filename);
 		string str;
 
@@ -64,43 +64,42 @@ namespace Util{
 		return str;
 	}
 
-	bool DirectoryExists(std::string dir){
+	bool DirectoryExists(const std::string& dir){
 		DWORD ftyp = GetFileAttributes(dir.c_str());
 		if (ftyp == INVALID_FILE_ATTRIBUTES) return false;
 		if (ftyp & FILE_ATTRIBUTE_DIRECTORY) return true;
 		return false;
 	}
 
-	void EnsurePathWritable(std::string path){
+	void EnsurePathWritable(const std::string& path){
 		int finalSlash = path.find_last_of('/');
 		std::string finalPath = path.substr(0, finalSlash);
 		if (DirectoryExists(finalPath)) return;
-		CreateDirectoryPath(finalPath.c_str());
+		CreateDirectoryPath(finalPath);
 	}
 
-	bool RemoveEmptyDirectory(std::string dir){
+	bool RemoveEmptyDirectory(const std::string& dir){
 		return RemoveDirectory(dir.c_str());
 	}
 
-	bool CreateDirectoryPath(std::string path){
+	bool CreateDirectoryPath(const std::string& path){
 		std::string newPath = "";
-		std::vector<std::string> paths = Util::SplitString(path.c_str(), '/');
-		for (auto i : paths) {
+		std::vector<std::string> paths = Util::SplitString(path, '/');
+		for (const auto& i : paths) {
 			newPath = newPath + i + "/";
 			CreateDirectory(newPath.c_str(), NULL);
 		}
 		return true;
 	}
 
-	std::vector<std::string> &SplitString(const std::string &s, char delim, std::vector<std::string> &elems) {
-		std::stringstream ss(s);
+	void SplitString(const std::string &s, char delim, std::vector<std::string> &elems) {
+		std::istringstream ss(s);
 		std::string item;
 		while (std::getline(ss, item, delim)) {
 			if (!item.empty()){
 				elems.push_back(item);
 			}
 		}
-		return elems;
 	}
 
 	std::vector<std::string> SplitString(const std::string &s, char delim) {

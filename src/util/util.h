@@ -3,23 +3,20 @@
 
 #include <vector>
 #include <string>
-#include <iostream>
-#include <fstream>
 #include <sstream>
-#include <list>
 
 namespace pd2hook
 {
 
 namespace Util {
-	std::vector<std::string> GetDirectoryContents(std::string path, bool isDirs = false);
-	std::string GetFileContents(std::string filename);
-	void EnsurePathWritable(std::string path);
-	bool RemoveEmptyDirectory(std::string dir);
-	bool DirectoryExists(std::string dir);
-	bool CreateDirectoryPath(std::string dir);
+	std::vector<std::string> GetDirectoryContents(const std::string& path, bool isDirs = false);
+	std::string GetFileContents(const std::string& filename);
+	void EnsurePathWritable(const std::string& path);
+	bool RemoveEmptyDirectory(const std::string& dir);
+	bool DirectoryExists(const std::string& dir);
+	bool CreateDirectoryPath(const std::string& dir);
 	// String split from http://stackoverflow.com/a/236803
-	std::vector<std::string> &SplitString(const std::string &s, char delim, std::vector<std::string> &elems);
+	void SplitString(const std::string &s, char delim, std::vector<std::string> &elems);
 	std::vector<std::string> SplitString(const std::string &s, char delim);
 }
 
@@ -81,44 +78,7 @@ private:
 };
 }
 
-class ByteStream {
-public:
-	ByteStream(std::string path);
-	~ByteStream();
-
-	template<typename T>
-	T readType();
-	std::string readString(int length);
-private:
-
-	std::ifstream mainStream;
-};
-
-struct ZIPFileData {
-	std::string filepath;
-	std::string compressedData;
-	std::string decompressedData;
-	int compressedSize;
-	int uncompressedSize;
-};
-
-
-
-class ZIPArchive {
-public:
-	ZIPArchive(std::string path, std::string extractPath);
-	~ZIPArchive();
-	void ReadArchive();
-private:
-
-	bool ReadFile();
-	bool WriteFile(ZIPFileData* data);
-	void DecompressFile(ZIPFileData* fileToDecompress);
-
-	ByteStream mainStream;
-	std::list<ZIPFileData*> readFiles;
-	std::string extractTo;
-};
+bool ExtractZIPArchive(const std::string& path, const std::string& extractPath);
 }
 
 #define PD2HOOK_TRACE_FUNC pd2hook::Logging::FunctionLogger funcLogger(__FUNCTION__);
