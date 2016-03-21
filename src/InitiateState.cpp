@@ -133,7 +133,7 @@ void lua_pushboolean(lua_State* L, int b)
 void lua_pushinteger(lua_State* L, int n)
 {
 	TValue* i_o = L->top;
-	i_o->value.n = n;
+	i_o->value.n = static_cast<float>(n);
 	i_o->tt = 3; // LUA_TNUMBER
 	L->top++;
 }
@@ -148,6 +148,7 @@ void remove_active_state(lua_State* L){
 }
 
 bool check_active_state(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	std::list<lua_State*>::iterator it;
 	for (it = activeStates.begin(); it != activeStates.end(); it++){
 		if (*it == L) {
@@ -158,6 +159,7 @@ bool check_active_state(lua_State* L){
 }
 
 void __fastcall lua_newcall(lua_State* L, int args, int returns){
+	PD2HOOK_TRACE_FUNC;
 	int result = lua_pcall(L, args, returns, 0);
 	_asm add esp, 8
 	if (result != 0) {
@@ -171,6 +173,7 @@ void __fastcall lua_newcall(lua_State* L, int args, int returns){
 }
 
 int luaH_getcontents(lua_State* L, bool files){
+	PD2HOOK_TRACE_FUNC;
 	size_t len;
 	const char* dirc = lua_tolstring(L, 1, &len);
 	_asm add esp, 4
@@ -180,7 +183,8 @@ int luaH_getcontents(lua_State* L, bool files){
 	try {
 		directories = Util::GetDirectoryContents(dir, files);
 	}
-	catch (int e){
+	catch (const Util::IOException& e){
+		PD2HOOK_LOG_EXCEPTION(e);
 		lua_pushboolean(L, false);
 		return 1;
 	}
@@ -203,6 +207,7 @@ int luaH_getcontents(lua_State* L, bool files){
 }
 
 int luaF_getdir(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	return luaH_getcontents(L, true);
 }
 
@@ -211,6 +216,7 @@ int luaF_getfiles(lua_State* L){
 }
 
 int luaF_directoryExists(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	size_t len;
 	const char* dirc = lua_tolstring(L, 1, &len);
 	_asm add esp, 4
@@ -220,6 +226,7 @@ int luaF_directoryExists(lua_State* L){
 }
 
 int luaF_unzipfile(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	size_t len;
 	const char* archivePath = lua_tolstring(L, 1, &len);
 	_asm add esp, 4
@@ -231,6 +238,7 @@ int luaF_unzipfile(lua_State* L){
 }
 
 int luaF_removeDirectory(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	size_t len;
 	const char* directory = lua_tolstring(L, 1, &len);
 	bool success = Util::RemoveEmptyDirectory(directory);
@@ -239,6 +247,7 @@ int luaF_removeDirectory(lua_State* L){
 }
 
 int luaF_pcall(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	int args = lua_gettop(L);
 
 	int result = lua_pcall(L, args - 1, -1, 0);
@@ -258,6 +267,7 @@ int luaF_pcall(lua_State* L){
 }
 
 int luaF_dofile(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 
 	int n = lua_gettop(L);
 
@@ -288,6 +298,7 @@ struct lua_http_data {
 };
 
 void return_lua_http(void* data, std::string& urlcontents){
+	PD2HOOK_TRACE_FUNC;
 	lua_http_data* ourData = (lua_http_data*)data;
 	if (!check_active_state(ourData->L)) {
 		delete ourData;
@@ -308,6 +319,7 @@ void return_lua_http(void* data, std::string& urlcontents){
 }
 
 void progress_lua_http(void* data, long progress, long total){
+	PD2HOOK_TRACE_FUNC;
 	lua_http_data* ourData = (lua_http_data*)data;
 
 	if (!check_active_state(ourData->L)){
@@ -326,6 +338,7 @@ void progress_lua_http(void* data, long progress, long total){
 static int HTTPReqIdent = 0;
 
 int luaF_dohttpreq(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	PD2HOOK_LOG_LOG("Incoming HTTP Request/Request");
 
 	int args = lua_gettop(L);
@@ -367,12 +380,14 @@ int luaF_dohttpreq(lua_State* L){
 CConsole* gbl_mConsole = NULL;
 
 int luaF_createconsole(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	if (gbl_mConsole) return 0;
 	gbl_mConsole = new CConsole();
 	return 0;
 }
 
 int luaF_destroyconsole(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	if (!gbl_mConsole) return 0;
 	delete gbl_mConsole;
 	gbl_mConsole = NULL;
@@ -380,6 +395,7 @@ int luaF_destroyconsole(lua_State* L){
 }
 
 int luaF_print(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	size_t len;
 	const char* str = lua_tolstring(L, 1, &len);
 	__asm add esp, 4
@@ -392,7 +408,6 @@ int updates = 0;
 std::thread::id main_thread_id;
 
 void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
-
 	// If someone has a better way of doing this, I'd like to know about it.
 	// I could save the this pointer?
 	// I'll check if it's even different at all later.
@@ -400,7 +415,7 @@ void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 		return do_game_update(thislol, a, b);
 	}
 
-	lua_State* L = (lua_State*)*((void**)thislol);
+	lua_State* L = reinterpret_cast<lua_State *>(thislol);
 	if (updates == 0){
 		HTTPManager::GetSingleton()->init_locks();
 	}
@@ -418,6 +433,7 @@ void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 // I 'unno, I stole this method from the guy who wrote the 'underground-light-lua-hook'
 // Mine worked fine, but this seems more elegant.
 int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, int clue){
+	PD2HOOK_TRACE_FUNC;
 	int ret = luaL_newstate(thislol, no, freakin, clue);
 
 	lua_State* L = (lua_State*)*((void**)thislol);
@@ -493,14 +509,13 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 }
 
 void __fastcall luaF_close(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	remove_active_state(L);
 	lua_close(L);
 }
 
-
-static HTTPManager mainManager;
-
 void InitiateStates(){
+	PD2HOOK_TRACE_FUNC;
 
 	main_thread_id = std::this_thread::get_id();
 
@@ -514,6 +529,7 @@ void InitiateStates(){
 }
 
 void DestroyStates(){
+	PD2HOOK_TRACE_FUNC;
 	// Okay... let's not do that.
 	// I don't want to keep this in memory, but it CRASHES THE SHIT OUT if you delete this after all is said and done.
 	// if (gbl_mConsole) delete gbl_mConsole;

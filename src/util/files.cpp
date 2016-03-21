@@ -15,6 +15,17 @@ using namespace std;
 namespace pd2hook
 {
 namespace Util{
+IOException::IOException(const char *file, int line) : Exception(file, line)
+{}
+
+IOException::IOException(std::string msg, const char *file, int line) : Exception(std::move(msg), file, line)
+{}
+
+const char *IOException::exceptionName() const
+{
+	return "An IOException";
+}
+
 	vector<string> GetDirectoryContents(const std::string& path, bool dirs){
 		vector<string> files;
 		WIN32_FIND_DATA ffd;
@@ -27,17 +38,17 @@ namespace Util{
 		DWORD dwError = 0;
 		StringCchLength(fPath, MAX_PATH, &length_of_arg);
 		if (length_of_arg>MAX_PATH - 3){
-			throw - 1;
+			PD2HOOK_THROW_IO_MSG("Path too long");
 		}
 		StringCchCopy(szDir, MAX_PATH, fPath);
 		StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
 
 		hFind = FindFirstFile(szDir, &ffd);
 		if (hFind == INVALID_HANDLE_VALUE){
-			throw - 1;
+			PD2HOOK_THROW_IO_MSG("FindFirstFile() failed");
 		}
 		do{
-			bool isDir = ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+			bool isDir = (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
 			
 			if ((dirs && isDir) || (!dirs && !isDir)){
 				files.push_back(ffd.cFileName);
@@ -46,7 +57,7 @@ namespace Util{
 
 		dwError = GetLastError();
 		if (dwError != ERROR_NO_MORE_FILES){
-			throw - 1;
+			PD2HOOK_THROW_IO_MSG("FindNextFile() failed");
 		}
 		FindClose(hFind);
 		return files;
@@ -57,7 +68,7 @@ namespace Util{
 		string str;
 
 		t.seekg(0, std::ios::end);
-		str.reserve(t.tellg());
+		str.reserve(static_cast<string::size_type>(t.tellg()));
 		t.seekg(0, std::ios::beg);
 		str.assign((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 		
@@ -79,7 +90,7 @@ namespace Util{
 	}
 
 	bool RemoveEmptyDirectory(const std::string& dir){
-		return RemoveDirectory(dir.c_str());
+		return RemoveDirectory(dir.c_str()) != 0;
 	}
 
 	bool CreateDirectoryPath(const std::string& path){

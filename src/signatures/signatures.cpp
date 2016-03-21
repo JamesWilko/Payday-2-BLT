@@ -5,6 +5,7 @@
 #include <detours.h>
 
 #include "signatures.h"
+#include "util/util.h"
 
 #include <algorithm>
 #include <vector>
@@ -15,6 +16,7 @@ namespace
 {
 MODULEINFO GetModuleInfo(const std::string& szModule)
 {
+	PD2HOOK_TRACE_FUNC;
 	MODULEINFO modinfo = { nullptr, 0, nullptr };
 	HMODULE hModule = GetModuleHandle(szModule.c_str());
 	if (hModule == 0)
@@ -31,6 +33,7 @@ const MODULEINFO& GetPd2ModuleInfo()
 
 const char *FindPattern(const char *pattern, const char *mask)
 {
+	PD2HOOK_TRACE_FUNC;
 	const auto& modInfo = GetPd2ModuleInfo();
 	const char * const base = reinterpret_cast<const char *>(modInfo.lpBaseOfDll);
 	const DWORD size = modInfo.SizeOfImage;
@@ -66,7 +69,8 @@ SignatureSearch::SignatureSearch(const void** adress, const char* signature, con
 }
 
 void SignatureSearch::Search(){
-	printf("Scanning for signatures.\n");
+	PD2HOOK_TRACE_FUNC;
+	PD2HOOK_LOG_LOG("Scanning for signatures.");
 
 	std::for_each(allSignatures.begin(), allSignatures.end(), [](SignatureF& s) { *s.address = FindPattern(s.signature, s.mask) + s.offset; });
 
@@ -76,20 +80,21 @@ void SignatureSearch::Search(){
 	while (it != end)
 	{
 		++unassigned_count;
-		std::cout << "Didn't find signature with pattern: " << it->signature << ", and mask: " << it->mask << std::endl;
+		PD2HOOK_LOG_WARN("Didn't find signature with pattern: " << it->signature << ", and mask: " << it->mask);
 		it = std::find_if(it, end, FindUnassignedSignaturesPredicate);
 	}
 	
 	if (unassigned_count)
 	{
-		std::cout << "Total: " << unassigned_count << " signatures not found." << std::endl;
+		PD2HOOK_LOG_WARN("Total: " << unassigned_count << " signatures not found.");
 	}
 
-	printf("Signatures Found.\n");
+	PD2HOOK_LOG_LOG("Signatures Found.");
 }
 
 
 FuncDetour::FuncDetour(void** oldF, void* newF) : oldFunction(oldF), newFunction(newF){
+	PD2HOOK_TRACE_FUNC;
 	//DetourRestoreAfterWith();
 
 	DetourTransactionBegin();
@@ -99,6 +104,7 @@ FuncDetour::FuncDetour(void** oldF, void* newF) : oldFunction(oldF), newFunction
 }
 
 FuncDetour::~FuncDetour(){
+	PD2HOOK_TRACE_FUNC;
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
 	DetourDetach(oldFunction, newFunction);

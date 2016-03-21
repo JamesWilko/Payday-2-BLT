@@ -13,20 +13,21 @@ typedef void(*HTTPCallback)(void* data, std::string& urlContents);
 typedef void(*HTTPProgress)(void* data, long progress, long total);
 
 struct HTTPItem {
-	HTTPItem();
 	HTTPCallback call;
 	HTTPProgress progress;
 	std::string url;
 	std::string httpContents;
-	void* data;
+	void* data = nullptr;
 
-	long byteprogress;
-	long bytetotal;
+	long byteprogress = 0;
+	long bytetotal = 0;
 };
 
 class HTTPManager {
-public:
+private:
 	HTTPManager();
+
+public:
 	~HTTPManager();
 
 	void init_locks();
@@ -38,10 +39,9 @@ public:
 
 	void LaunchHTTPRequest(std::unique_ptr<HTTPItem> callback);
 private:
-	static HTTPManager* httpSingleton;
-	std::mutex* openssl_locks;
+	std::unique_ptr<std::mutex[]> openssl_locks;
 	int numLocks;
-	std::list<std::thread*> threadList;
+	std::list<std::unique_ptr<std::thread>> threadList;
 };
 }
 
