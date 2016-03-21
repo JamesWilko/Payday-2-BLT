@@ -109,10 +109,11 @@ public:
 class FunctionLogger
 {
 public:
-	FunctionLogger(const char *funcName);
+	FunctionLogger(const char *funcName, const char *file);
 	~FunctionLogger();
 
 private:
+	const char * const mFile;
 	const char * const mFuncName;
 };
 }
@@ -121,7 +122,7 @@ bool ExtractZIPArchive(const std::string& path, const std::string& extractPath);
 }
 
 #ifdef PD2HOOK_ENABLE_FUNCTION_TRACE
-#define PD2HOOK_TRACE_FUNC pd2hook::Logging::FunctionLogger funcLogger(__FUNCTION__)
+#define PD2HOOK_TRACE_FUNC pd2hook::Logging::FunctionLogger funcLogger(__FUNCTION__, __FILE__)
 #define PD2HOOK_TRACE_FUNC_MSG(msg) pd2hook::Logging::FunctionLogger funcLogger(msg)
 #else
 #define PD2HOOK_TRACE_FUNC
@@ -143,19 +144,21 @@ bool ExtractZIPArchive(const std::string& path, const std::string& extractPath);
 #define PD2HOOK_LOG_ERROR(msg) PD2HOOK_LOG_LEVEL(msg, pd2hook::Logging::LogType::LOGGING_ERROR, __FILE__, __LINE__)
 #define PD2HOOK_LOG_EXCEPTION(e) PD2HOOK_LOG_WARN(e)
 
+#define PD2HOOK_DEBUG_CHECKPOINT PD2HOOK_LOG_LOG("Checkpoint")
+
 namespace pd2hook
 {
 namespace Logging
 {
-inline FunctionLogger::FunctionLogger(const char *funcName) :
-	mFuncName(funcName)
+inline FunctionLogger::FunctionLogger(const char *funcName, const char *file) :
+	mFile(file), mFuncName(funcName)
 {
-	PD2HOOK_LOG_FUNC(">>>" << mFuncName);
+	PD2HOOK_LOG_LEVEL(">>> " << mFuncName, LogType::LOGGING_FUNC, mFile, 0);
 }
 
 inline FunctionLogger::~FunctionLogger()
 {
-	PD2HOOK_LOG_FUNC("<<<" << mFuncName);
+	PD2HOOK_LOG_LEVEL("<<< " << mFuncName, LogType::LOGGING_FUNC, mFile, 0);
 }
 }
 }

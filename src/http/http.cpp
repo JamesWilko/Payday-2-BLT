@@ -24,8 +24,10 @@ struct HTTPProgressNotification{
 };
 }
 
-PD2HOOK_REGISTER_EVENTQUEUE(HTTPItem)
-PD2HOOK_REGISTER_EVENTQUEUE(HTTPProgressNotification)
+using HTTPProgressNotificationPtr = std::unique_ptr<HTTPProgressNotification>;
+using HTTPItemPtr = std::unique_ptr<HTTPItem>;
+PD2HOOK_REGISTER_EVENTQUEUE(HTTPProgressNotificationPtr, HTTPProgressNotification)
+PD2HOOK_REGISTER_EVENTQUEUE(HTTPItemPtr, HTTPItem)
 
 void lock_callback(int mode, int type, const char* file, int line){
 	if (mode & CRYPTO_LOCK){
@@ -78,6 +80,7 @@ size_t write_http_data(char* ptr, size_t size, size_t nmemb, void* data){
 }
 
 void run_http_progress_event(std::unique_ptr<HTTPProgressNotification> ourNotify){
+	PD2HOOK_TRACE_FUNC;
 	HTTPItem* ourItem = ourNotify->ourItem;
 	ourItem->progress(ourItem->data, ourNotify->byteProgress, ourNotify->byteTotal);
 }
@@ -92,12 +95,12 @@ int http_progress_call(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl
 	ourItem->byteprogress = static_cast<long>(dlnow);
 	ourItem->bytetotal = static_cast<long>(dltotal);
 
-	std::unique_ptr<HTTPProgressNotification> notify(new HTTPProgressNotification());
+	HTTPProgressNotificationPtr notify(new HTTPProgressNotification());
 	notify->ourItem = ourItem;
 	notify->byteProgress = static_cast<long>(dlnow);
 	notify->byteTotal = static_cast<long>(dltotal);
 
-	EventQueue<HTTPProgressNotification>::GetSingleton().AddToQueue(run_http_progress_event, std::move(notify));
+	GetHTTPProgressNotificationQueue().AddToQueue(run_http_progress_event, std::move(notify));
 	return 0;
 }
 
@@ -125,12 +128,12 @@ void launch_thread_http(HTTPItem *raw_item){
 	}
 
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_http_data);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, item);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, item.get());
 
 	curl_easy_perform(curl);
 	curl_easy_cleanup(curl);
 
-	EventQueue<HTTPItem>::GetSingleton().AddToQueue(run_http_event, std::move(item));
+	GetHTTPItemQueue().AddToQueue(run_http_event, std::move(item));
 }
 
 void HTTPManager::LaunchHTTPRequest(std::unique_ptr<HTTPItem> callback){

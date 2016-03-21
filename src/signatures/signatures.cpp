@@ -57,7 +57,7 @@ const char *FindPattern(const char *pattern, const char *mask)
 
 bool FindUnassignedSignaturesPredicate(const SignatureF& s)
 {
-	return s.address == nullptr;
+	return *s.address == nullptr;
 }
 
 std::vector<SignatureF> allSignatures;
@@ -97,10 +97,20 @@ FuncDetour::FuncDetour(void** oldF, void* newF) : oldFunction(oldF), newFunction
 	PD2HOOK_TRACE_FUNC;
 	//DetourRestoreAfterWith();
 
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(oldF, newF);
-	LONG result = DetourTransactionCommit();
+#define PD2_DETOUR_CHK_PARAM(param) if(!param) { PD2HOOK_LOG_WARN(#param " is null"); }
+	PD2_DETOUR_CHK_PARAM(oldF)
+	PD2_DETOUR_CHK_PARAM(*oldF)
+	PD2_DETOUR_CHK_PARAM(newF)
+
+	LONG result;
+#define PD2_DETOUR_CHK_FUNC(func) if((result = func) != ERROR_SUCCESS) { PD2HOOK_LOG_WARN(#func " returns " << result); }
+	PD2_DETOUR_CHK_FUNC(DetourTransactionBegin())
+	PD2_DETOUR_CHK_FUNC(DetourUpdateThread(GetCurrentThread()))
+	PD2_DETOUR_CHK_FUNC(DetourAttach(oldF, newF))
+	PD2_DETOUR_CHK_FUNC(DetourTransactionCommit())
+
+#undef PD2_DETOUR_CHK_PARAM
+#undef PD2_DETOUR_CHK_FUNC
 }
 
 FuncDetour::~FuncDetour(){

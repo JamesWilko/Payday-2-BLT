@@ -41,12 +41,12 @@ template<typename DataT>
 class EventQueue : public IEventQueue
 {
 public:
-	typedef void(*EventFunction)(std::unique_ptr<DataT>);
+	typedef void(*EventFunction)(DataT);
 
 	class EventItem
 	{
 	public:
-		EventItem(EventFunction runFunction, std::unique_ptr<DataT> data);
+		EventItem(EventFunction runFunction, DataT data);
 		EventItem(EventItem&&); // VC++ 2013 doesn't let you default this. On VC++ 2015 don't even bother declaring.
 		void operator()();
 
@@ -54,7 +54,7 @@ public:
 		EventItem(const EventItem&) = delete;
 
 		EventFunction mFunc;
-		std::unique_ptr<DataT> mData;
+		DataT mData;
 	};
 
 	static EventQueue& GetSingleton();
@@ -65,7 +65,7 @@ protected:
 public:
 	virtual void ProcessEvents() override;
 	void AddToQueue(EventItem item);
-	void AddToQueue(EventFunction runFunction, std::unique_ptr<DataT> data);
+	void AddToQueue(EventFunction runFunction, DataT data);
 
 private:
 	std::deque<EventItem> eventQueue;
@@ -78,8 +78,13 @@ struct EventQueueRuntimeRegisterer
 	EventQueueRuntimeRegisterer() { EventQueue<DataT>::GetSingleton(); }
 };
 
+#define PD2HOOK_CONCAT_IMPL(x, y) x ## y
+#define PD2HOOK_CONCAT(x, y) PD2HOOK_CONCAT_IMPL(x, y)
+
 // Not strictly necessary, but is a nice chance to make sure the static instance is initialised before there's a chance for multithreaded calls
-#define PD2HOOK_REGISTER_EVENTQUEUE(DataT) namespace { EventQueueRuntimeRegisterer<DataT> staticRegisterer##DataT; }
+#define PD2HOOK_REGISTER_EVENTQUEUE(DataT, Name) \
+	namespace { EventQueueRuntimeRegisterer<DataT> PD2HOOK_CONCAT(staticRegisterer, __COUNTER__); EventQueue<DataT>& Get##Name##Queue() { return EventQueue<DataT>::GetSingleton(); } }
+#define PD2HOOK_REGISTER_EVENTQUEUE_EASY(DataT) PD2HOOK_REGISTER_EVENTQUEUE(DataT, DataT)
 
 #pragma region Implementation
 
@@ -90,7 +95,7 @@ EventQueue<DataT>::EventQueue()
 }
 
 template<typename DataT>
-EventQueue<DataT>::EventItem::EventItem(EventFunction runFunction, std::unique_ptr<DataT> data) :
+EventQueue<DataT>::EventItem::EventItem(EventFunction runFunction, DataT data) :
 	mFunc(runFunction), mData(std::move(data))
 {}
 
@@ -137,7 +142,7 @@ void EventQueue<DataT>::AddToQueue(EventItem item)
 }
 
 template<typename DataT>
-void EventQueue<DataT>::AddToQueue(EventFunction runFunction, std::unique_ptr<DataT> data)
+void EventQueue<DataT>::AddToQueue(EventFunction runFunction, DataT data)
 {
 	std::lock_guard<std::mutex> locker(lock);
 	eventQueue.emplace_back(runFunction, std::move(data));
