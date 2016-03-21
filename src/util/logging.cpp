@@ -143,9 +143,7 @@ void LoggerImpl::log(const Message_t& msg)
 	}
 
 	mOut << msg << mEndl;
-	//std::cout << msg << mEndl;
-	printf(msg.c_str());
-	printf("\n");
+	std::cout << msg << mEndl;
 }
 }
 

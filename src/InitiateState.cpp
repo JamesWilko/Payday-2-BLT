@@ -377,20 +377,23 @@ int luaF_dohttpreq(lua_State* L){
 	return 1;
 }
 
-CConsole* gbl_mConsole = NULL;
+namespace
+{
+std::unique_ptr<CConsole> gbl_mConsole;
+}
 
 int luaF_createconsole(lua_State* L){
 	PD2HOOK_TRACE_FUNC;
-	if (gbl_mConsole) return 0;
-	gbl_mConsole = new CConsole();
+	if (!gbl_mConsole)
+	{
+		gbl_mConsole.reset(new CConsole());
+	}
 	return 0;
 }
 
 int luaF_destroyconsole(lua_State* L){
 	PD2HOOK_TRACE_FUNC;
-	if (!gbl_mConsole) return 0;
-	delete gbl_mConsole;
-	gbl_mConsole = NULL;
+	gbl_mConsole.reset();
 	return 0;
 }
 
@@ -532,6 +535,6 @@ void DestroyStates(){
 	PD2HOOK_TRACE_FUNC;
 	// Okay... let's not do that.
 	// I don't want to keep this in memory, but it CRASHES THE SHIT OUT if you delete this after all is said and done.
-	// if (gbl_mConsole) delete gbl_mConsole;
+	gbl_mConsole.reset();
 }
 }
