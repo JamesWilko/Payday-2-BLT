@@ -12,6 +12,8 @@
 
 using namespace std;
 
+namespace pd2hook
+{
 namespace Util{
 	vector<string> GetDirectoryContents(std::string path, bool dirs){
 		vector<string> files;
@@ -107,4 +109,5 @@ namespace Util{
 		return elems;
 	}
 
+}
 }

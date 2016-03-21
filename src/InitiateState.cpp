@@ -1,4 +1,6 @@
 #include "InitState.h"
+
+#include <Windows.h>
 #include <detours.h>
 
 #include "signatures/signatures.h"
@@ -10,6 +12,8 @@
 #include <thread>
 #include <list>
 
+namespace pd2hook
+{
 struct lua_State;
 
 typedef const char * (*lua_Reader) (lua_State *L, void *ud, size_t *sz);
@@ -157,7 +161,9 @@ void __fastcall lua_newcall(lua_State* L, int args, int returns){
 	_asm add esp, 8
 	if (result != 0) {
 		size_t len;
-		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
+		// Beware! If the logging level of the Logger is higher than ERROR (shouldn't be possible) then this lua call would be elided and the asm below would corrupt the stack!
+		// The safer option would be to save the string from the lua call to a variable then throw it into the logger.
+		PD2HOOK_LOG_ERROR(lua_tolstring(L, -1, &len));
 		_asm add esp, 4
 	}
 	printf("lua call\n");
@@ -240,7 +246,7 @@ int luaF_pcall(lua_State* L){
 	_asm add esp, 8
 	if (result == LUA_ERRRUN){
 		size_t len;
-		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
+		PD2HOOK_LOG_ERROR(lua_tolstring(L, -1, &len));
 		_asm add esp, 4
 		return 0;
 	}
@@ -262,16 +268,14 @@ int luaF_dofile(lua_State* L){
 	int error = luaL_loadfile(L, filename);
 	if (error == LUA_ERRSYNTAX){
 		size_t len;
-		Logging::Log(filename, Logging::LOGGING_ERROR);
-		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
+		PD2HOOK_LOG_ERROR(filename << " - " << lua_tolstring(L, -1, &len));
 		__asm add esp, 4
 	}
 	error = lua_pcall(L, 0, 0, 0);
 	__asm add esp, 8
 	if (error == LUA_ERRRUN){
 		size_t len;
-		Logging::Log(filename, Logging::LOGGING_ERROR);
-		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
+		PD2HOOK_LOG_ERROR(filename << " - " << lua_tolstring(L, -1, &len));
 		__asm add esp, 4
 	}
 	return 0;
@@ -323,7 +327,7 @@ void progress_lua_http(void* data, long progress, long total){
 static int HTTPReqIdent = 0;
 
 int luaF_dohttpreq(lua_State* L){
-	Logging::Log("Incoming HTTP Request/Request");
+	PD2HOOK_LOG_LOG("Incoming HTTP Request/Request");
 
 	int args = lua_gettop(L);
 	int progressReference = 0;
@@ -337,8 +341,7 @@ int luaF_dohttpreq(lua_State* L){
 	_asm add esp, 4
 	std::string url = std::string(url_c, len);
 
-	Logging::Log(url);
-	Logging::Log(std::to_string(functionReference));
+	PD2HOOK_LOG_LOG(std::string(url_c, len) << " - " << functionReference);
 
 	lua_http_data* ourData = new lua_http_data();
 	ourData->funcRef = functionReference;
@@ -381,7 +384,7 @@ int luaF_print(lua_State* L){
 	size_t len;
 	const char* str = lua_tolstring(L, 1, &len);
 	__asm add esp, 4
-	Logging::Log(str, Logging::LOGGING_LUA);
+	PD2HOOK_LOG_LUA(str);
 	//Logging::Log("aaaaaa", Logging::LOGGING_LUA);
 	return 0;
 }
@@ -402,7 +405,7 @@ void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 	if (updates == 0){
 		HTTPManager::GetSingleton()->init_locks();
 	}
-	
+
 
 	if (updates > 1){
 		EventQueueM::GetSingleton()->ProcessEvents();
@@ -462,12 +465,12 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 
 	//lua_settop(L, stack_size);
 	int result;
-	Logging::Log("Initiating Hook");
+	PD2HOOK_LOG_LOG("Initiating Hook");
 
 	result = luaL_loadfile(L, "mods/base/base.lua");
 	if (result == LUA_ERRSYNTAX){
 		size_t len;
-		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
+		PD2HOOK_LOG_ERROR(lua_tolstring(L, -1, &len));
 		_asm add esp, 4
 		return ret;
 	}
@@ -475,7 +478,7 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	_asm add esp, 8
 	if (result == LUA_ERRRUN){
 		size_t len;
-		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
+		PD2HOOK_LOG_ERROR(lua_tolstring(L, -1, &len));
 		_asm add esp, 4
 		return ret;
 	}
@@ -483,7 +486,7 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	//CREATE_LUA_FUNCTION(luaF_pcall, "pcall")
 	//CREATE_LUA_FUNCTION(luaF_dofile, "dofile")
 	/*CREATE_LUA_FUNCTION(luaF_dohttpreq, "dohttpreq")
-	
+
 	CREATE_LUA_FUNCTION(luaF_unzipfile, "unzip")
 
 	*/
@@ -509,7 +512,7 @@ void InitiateStates(){
 	FuncDetour* newStateDetour = new FuncDetour((void**)&luaL_newstate, luaL_newstate_new);
 	//FuncDetour* luaCallDetour = new FuncDetour((void**)&lua_call, lua_newcall);
 	FuncDetour* luaCloseDetour = new FuncDetour((void**)&lua_close, luaF_close);
-	
+
 	new EventQueueM();
 }
 
@@ -517,4 +520,5 @@ void DestroyStates(){
 	// Okay... let's not do that.
 	// I don't want to keep this in memory, but it CRASHES THE SHIT OUT if you delete this after all is said and done.
 	// if (gbl_mConsole) delete gbl_mConsole;
+}
 }

@@ -291,12 +291,12 @@ BOOL WINAPI DllMain(HINSTANCE hInst,DWORD reason,LPVOID)
 		p[265] = GetProcAddress(hL,"if_nametoindex");
 		p[266] = GetProcAddress(hL,"register_icmp");
 
-		InitiateStates();
+		pd2hook::InitiateStates();
 
 		}
 	if (reason == DLL_PROCESS_DETACH)
 		{
-		DestroyStates();
+		pd2hook::DestroyStates();
 		FreeLibrary(hL);
 		}
 

@@ -1,7 +1,8 @@
 #include <zlib.h>
 #include "util.h"
 
-
+namespace pd2hook
+{
 ByteStream::ByteStream(std::string path){
 	mainStream = std::ifstream(path.c_str(), std::ifstream::binary);
 }
@@ -91,7 +92,7 @@ bool ZIPArchive::ReadFile(){
 
 bool ZIPArchive::WriteFile(ZIPFileData* data){
 	std::string finalWritePath = extractTo + "/" + data->filepath;
-	Logging::Log("Extracting to " + finalWritePath);
+	PD2HOOK_LOG_LOG("Extracting to " << finalWritePath);
 	Util::EnsurePathWritable(finalWritePath);
 	std::ofstream outFile;
 	outFile.open(finalWritePath.c_str(), std::ios::out | std::ios::binary);
@@ -131,4 +132,5 @@ void ZIPArchive::DecompressFile(ZIPFileData* data){
 	data->decompressedData = std::string((char*)out, data->uncompressedSize);
 
 	delete[] out;
+}
 }

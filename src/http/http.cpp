@@ -19,7 +19,7 @@ void lock_callback(int mode, int type, const char* file, int line){
 HTTPManager::HTTPManager(){
 	// Curl Init
 	curl_global_init(CURL_GLOBAL_ALL);
-	Logging::Log("CURL INITD");
+	PD2HOOK_LOG_LOG("CURL_INITD");
 
 	// Singleton
 	if (httpSingleton) delete httpSingleton;
@@ -28,7 +28,7 @@ HTTPManager::HTTPManager(){
 
 HTTPManager::~HTTPManager(){
 	CRYPTO_set_locking_callback(NULL);
-	Logging::Log("CURL CLOSED");
+	PD2HOOK_LOG_LOG("CURL CLOSED");
 	curl_global_cleanup();
 
 	delete[] openssl_locks;
@@ -135,7 +135,7 @@ void launch_thread_http(HTTPItem* item){
 }
 
 void HTTPManager::LaunchHTTPRequest(HTTPItem* callback){
-	Logging::Log("Launching Async HTTP Thread");
+	PD2HOOK_LOG_LOG("Launching Async HTTP Thread");
 	// This shit's gonna end eventually, how many threads are people going to launch?
 	// Probably a lot.
 	// I'll manage them I guess, but I've no idea when to tell them to join which I believe is part of the constructor.

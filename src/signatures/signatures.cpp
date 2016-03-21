@@ -6,9 +6,16 @@
 
 #include "signatures.h"
 
-MODULEINFO GetModuleInfo(std::string szModule)
+#include <algorithm>
+#include <vector>
+
+namespace pd2hook
 {
-	MODULEINFO modinfo = { 0 };
+namespace
+{
+MODULEINFO GetModuleInfo(const std::string& szModule)
+{
+	MODULEINFO modinfo = { nullptr, 0, nullptr };
 	HMODULE hModule = GetModuleHandle(szModule.c_str());
 	if (hModule == 0)
 		return modinfo;
@@ -16,43 +23,68 @@ MODULEINFO GetModuleInfo(std::string szModule)
 	return modinfo;
 }
 
-
-unsigned long FindPattern(char* module, const char* pattern, const char* mask)
+const MODULEINFO& GetPd2ModuleInfo()
 {
-	MODULEINFO mInfo = GetModuleInfo(module);
-	DWORD base = (DWORD)mInfo.lpBaseOfDll;
-	DWORD size = (DWORD)mInfo.SizeOfImage;
-	DWORD patternLength = (DWORD)strlen(mask);
-	for (DWORD i = 0; i < size - patternLength; i++){
+	static const MODULEINFO modinfo = GetModuleInfo("payday2_win32_release.exe");
+	return modinfo;
+}
+
+const char *FindPattern(const char *pattern, const char *mask)
+{
+	const auto& modInfo = GetPd2ModuleInfo();
+	const char * const base = reinterpret_cast<const char *>(modInfo.lpBaseOfDll);
+	const DWORD size = modInfo.SizeOfImage;
+	decltype(size) patternLength = strlen(mask);
+	for (std::remove_const<decltype(size)>::type i = 0; i < size - patternLength; ++i)
+	{
 		bool found = true;
-		for (DWORD j = 0; j < patternLength; j++){
-			found &= mask[j] == '?' || pattern[j] == *(char*)(base + i + j);
+		for (decltype(i) j = 0; j < patternLength && found; ++j)
+		{
+			found &= mask[j] == '?' || pattern[j] == base[i + j];
 		}
-		if (found) {
+
+		if (found)
+		{
 			return base + i;
 		}
 	}
-	return NULL;
+
+	return nullptr;
 }
 
-std::vector<SignatureF>* allSignatures = NULL;
+bool FindUnassignedSignaturesPredicate(const SignatureF& s)
+{
+	return s.address == nullptr;
+}
 
-SignatureSearch::SignatureSearch(void* adress, const char* signature, const char* mask, int offset){
-	// lazy-init, container gets 'emptied' when initialized on compile.
-	if (!allSignatures){
-		allSignatures = new std::vector<SignatureF>();
-	}
+std::vector<SignatureF> allSignatures;
+}
 
+SignatureSearch::SignatureSearch(const void** adress, const char* signature, const char* mask, int offset){
 	SignatureF ins = { signature, mask, offset, adress };
-	allSignatures->push_back(ins);
+	allSignatures.push_back(ins);
 }
 
 void SignatureSearch::Search(){
 	printf("Scanning for signatures.\n");
-	std::vector<SignatureF>::iterator it;
-	for (it = allSignatures->begin(); it < allSignatures->end(); it++){
-		*((void**)it->address) = (void*)(FindPattern("payday2_win32_release.exe", it->signature, it->mask) + it->offset);
+
+	std::for_each(allSignatures.begin(), allSignatures.end(), [](SignatureF& s) { *s.address = FindPattern(s.signature, s.mask) + s.offset; });
+
+	const auto end = allSignatures.cend();
+	auto it = std::find_if(allSignatures.cbegin(), end, FindUnassignedSignaturesPredicate);
+	int unassigned_count = 0;
+	while (it != end)
+	{
+		++unassigned_count;
+		std::cout << "Didn't find signature with pattern: " << it->signature << ", and mask: " << it->mask << std::endl;
+		it = std::find_if(it, end, FindUnassignedSignaturesPredicate);
 	}
+	
+	if (unassigned_count)
+	{
+		std::cout << "Total: " << unassigned_count << " signatures not found." << std::endl;
+	}
+
 	printf("Signatures Found.\n");
 }
 
@@ -71,4 +103,6 @@ FuncDetour::~FuncDetour(){
 	DetourUpdateThread(GetCurrentThread());
 	DetourDetach(oldFunction, newFunction);
 	LONG result = DetourTransactionCommit();
+}
+
 }
