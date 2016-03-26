@@ -1,4 +1,7 @@
 #include "InitState.h"
+
+#define WIN32_LEAN_AND_MEAN 1
+#include <Windows.h>
 #include <detours.h>
 
 #include "signatures/signatures.h"
@@ -10,6 +13,8 @@
 #include <thread>
 #include <list>
 
+namespace pd2hook
+{
 struct lua_State;
 
 typedef const char * (*lua_Reader) (lua_State *L, void *ud, size_t *sz);
@@ -48,7 +53,6 @@ CREATE_CALLABLE_SIGNATURE(luaL_ref, int, "\x83\xEC\x0C\x56\x8B\xF1\x57\x8B\x46\x
 CREATE_CALLABLE_SIGNATURE(luaL_unref, void, "\x56\x57\x8B\x7C\x24\x0C\x8B\xF1\x85\xFF\x78\x5B", "xxxxxxxxxxxx", 0, lua_State*, int, int);
 CREATE_CALLABLE_CLASS_SIGNATURE(do_game_update, void*, "\x56\xFF\x74\x24\x0C\x8B\xF1\xBA\x00\x00\x00\x00\x8B\x0E", "xxxxxxxx????xx", 0, int*, int*)
 CREATE_CALLABLE_CLASS_SIGNATURE(luaL_newstate, int, "\x51\x8B\x44\x24\x10\x53\x56\x57\x8B\xF9\x85\xC0", "xxxxxxxxxxxx", 0, char, char, int)
-
 
 // lua c-functions
 
@@ -109,7 +113,6 @@ void lua_settable(lua_State* L, int idx) {
 	StkId t;
 	t = index2adr(L, idx);
 	luaV_settable(L, t, L->top - 2, L->top - 1);
-	_asm add esp, 8
 	L->top -= 2;
 }
 
@@ -128,7 +131,7 @@ void lua_pushboolean(lua_State* L, int b)
 void lua_pushinteger(lua_State* L, int n)
 {
 	TValue* i_o = L->top;
-	i_o->value.n = n;
+	i_o->value.n = static_cast<float>(n);
 	i_o->tt = 3; // LUA_TNUMBER
 	L->top++;
 }
@@ -143,6 +146,7 @@ void remove_active_state(lua_State* L){
 }
 
 bool check_active_state(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	std::list<lua_State*>::iterator it;
 	for (it = activeStates.begin(); it != activeStates.end(); it++){
 		if (*it == L) {
@@ -153,33 +157,32 @@ bool check_active_state(lua_State* L){
 }
 
 void __fastcall lua_newcall(lua_State* L, int args, int returns){
+	PD2HOOK_TRACE_FUNC;
 	int result = lua_pcall(L, args, returns, 0);
-	_asm add esp, 8
 	if (result != 0) {
 		size_t len;
-		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
-		_asm add esp, 4
+		PD2HOOK_LOG_ERROR(lua_tolstring(L, -1, &len));
 	}
-	printf("lua call\n");
+	PD2HOOK_LOG_LOG("lua call");
 }
 
 int luaH_getcontents(lua_State* L, bool files){
+	PD2HOOK_TRACE_FUNC;
 	size_t len;
 	const char* dirc = lua_tolstring(L, 1, &len);
-	_asm add esp, 4
 	std::string dir(dirc, len);
 	std::vector<std::string> directories;
 
 	try {
 		directories = Util::GetDirectoryContents(dir, files);
 	}
-	catch (int e){
+	catch (const Util::IOException& e){
+		PD2HOOK_LOG_EXCEPTION(e);
 		lua_pushboolean(L, false);
 		return 1;
 	}
 
 	lua_createtable(L, 0, 0);
-	_asm add esp, 4
 
 	std::vector<std::string>::iterator it;
 	int index = 1;
@@ -187,7 +190,6 @@ int luaH_getcontents(lua_State* L, bool files){
 		if (*it == "." || *it == "..") continue;
 		lua_pushinteger(L, index);
 		lua_pushlstring(L, it->c_str(), it->length());
-		_asm add esp, 4
 		lua_settable(L, -3);
 		index++;
 	}
@@ -196,6 +198,7 @@ int luaH_getcontents(lua_State* L, bool files){
 }
 
 int luaF_getdir(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	return luaH_getcontents(L, true);
 }
 
@@ -204,28 +207,26 @@ int luaF_getfiles(lua_State* L){
 }
 
 int luaF_directoryExists(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	size_t len;
 	const char* dirc = lua_tolstring(L, 1, &len);
-	_asm add esp, 4
 	bool doesExist = Util::DirectoryExists(dirc);
 	lua_pushboolean(L, doesExist);
 	return 1;
 }
 
 int luaF_unzipfile(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	size_t len;
 	const char* archivePath = lua_tolstring(L, 1, &len);
-	_asm add esp, 4
 	const char* extractPath = lua_tolstring(L, 2, &len);
-	_asm add esp, 4
 
-	ZIPArchive* archive = new ZIPArchive(archivePath, extractPath);
-	archive->ReadArchive();
-	delete archive;
+	pd2hook::ExtractZIPArchive(archivePath, extractPath);
 	return 0;
 }
 
 int luaF_removeDirectory(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	size_t len;
 	const char* directory = lua_tolstring(L, 1, &len);
 	bool success = Util::RemoveEmptyDirectory(directory);
@@ -234,14 +235,13 @@ int luaF_removeDirectory(lua_State* L){
 }
 
 int luaF_pcall(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	int args = lua_gettop(L);
 
 	int result = lua_pcall(L, args - 1, -1, 0);
-	_asm add esp, 8
 	if (result == LUA_ERRRUN){
 		size_t len;
-		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
-		_asm add esp, 4
+		PD2HOOK_LOG_ERROR(lua_tolstring(L, -1, &len));
 		return 0;
 	}
 	lua_pushboolean(L, result == 0);
@@ -253,26 +253,21 @@ int luaF_pcall(lua_State* L){
 }
 
 int luaF_dofile(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 
 	int n = lua_gettop(L);
 
 	size_t length = 0;
 	const char* filename = lua_tolstring(L, 1, &length);
-	__asm add esp, 4
 	int error = luaL_loadfile(L, filename);
 	if (error == LUA_ERRSYNTAX){
 		size_t len;
-		Logging::Log(filename, Logging::LOGGING_ERROR);
-		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
-		__asm add esp, 4
+		PD2HOOK_LOG_ERROR(filename << " - " << lua_tolstring(L, -1, &len));
 	}
 	error = lua_pcall(L, 0, 0, 0);
-	__asm add esp, 8
 	if (error == LUA_ERRRUN){
 		size_t len;
-		Logging::Log(filename, Logging::LOGGING_ERROR);
-		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
-		__asm add esp, 4
+		PD2HOOK_LOG_ERROR(filename << " - " << lua_tolstring(L, -1, &len));
 	}
 	return 0;
 }
@@ -285,6 +280,7 @@ struct lua_http_data {
 };
 
 void return_lua_http(void* data, std::string& urlcontents){
+	PD2HOOK_TRACE_FUNC;
 	lua_http_data* ourData = (lua_http_data*)data;
 	if (!check_active_state(ourData->L)) {
 		delete ourData;
@@ -293,18 +289,15 @@ void return_lua_http(void* data, std::string& urlcontents){
 
 	lua_rawgeti(ourData->L, LUA_REGISTRYINDEX, ourData->funcRef);
 	lua_pushlstring(ourData->L, urlcontents.c_str(), urlcontents.length());
-	_asm add esp, 4
 	lua_pushinteger(ourData->L, ourData->requestIdentifier);
 	lua_pcall(ourData->L, 2, 0, 0);
-	_asm add esp, 8
 	luaL_unref(ourData->L, LUA_REGISTRYINDEX, ourData->funcRef);
-	_asm add esp, 4
 	luaL_unref(ourData->L, LUA_REGISTRYINDEX, ourData->progressRef);
-	_asm add esp, 4
 	delete ourData;
 }
 
 void progress_lua_http(void* data, long progress, long total){
+	PD2HOOK_TRACE_FUNC;
 	lua_http_data* ourData = (lua_http_data*)data;
 
 	if (!check_active_state(ourData->L)){
@@ -317,13 +310,13 @@ void progress_lua_http(void* data, long progress, long total){
 	lua_pushinteger(ourData->L, progress);
 	lua_pushinteger(ourData->L, total);
 	lua_pcall(ourData->L, 3, 0, 0);
-	_asm add esp, 8
 }
 
 static int HTTPReqIdent = 0;
 
 int luaF_dohttpreq(lua_State* L){
-	Logging::Log("Incoming HTTP Request/Request");
+	PD2HOOK_TRACE_FUNC;
+	PD2HOOK_LOG_LOG("Incoming HTTP Request/Request");
 
 	int args = lua_gettop(L);
 	int progressReference = 0;
@@ -334,11 +327,9 @@ int luaF_dohttpreq(lua_State* L){
 	int functionReference = luaL_ref(L, LUA_REGISTRYINDEX);
 	size_t len;
 	const char* url_c = lua_tolstring(L, 1, &len);
-	_asm add esp, 4
 	std::string url = std::string(url_c, len);
 
-	Logging::Log(url);
-	Logging::Log(std::to_string(functionReference));
+	PD2HOOK_LOG_LOG(std::string(url_c, len) << " - " << functionReference);
 
 	lua_http_data* ourData = new lua_http_data();
 	ourData->funcRef = functionReference;
@@ -348,7 +339,7 @@ int luaF_dohttpreq(lua_State* L){
 	HTTPReqIdent++;
 	ourData->requestIdentifier = HTTPReqIdent;
 
-	HTTPItem* reqItem = new HTTPItem();
+	std::unique_ptr<HTTPItem> reqItem(new HTTPItem());
 	reqItem->call = return_lua_http;
 	reqItem->data = ourData;
 	reqItem->url = url;
@@ -357,31 +348,36 @@ int luaF_dohttpreq(lua_State* L){
 		reqItem->progress = progress_lua_http;
 	}
 
-	HTTPManager::GetSingleton()->LaunchHTTPRequest(reqItem);
+	HTTPManager::GetSingleton()->LaunchHTTPRequest(std::move(reqItem));
 	lua_pushinteger(L, HTTPReqIdent);
 	return 1;
 }
 
-CConsole* gbl_mConsole = NULL;
+namespace
+{
+std::unique_ptr<CConsole> gbl_mConsole;
+}
 
 int luaF_createconsole(lua_State* L){
-	if (gbl_mConsole) return 0;
-	gbl_mConsole = new CConsole();
+	PD2HOOK_TRACE_FUNC;
+	if (!gbl_mConsole)
+	{
+		gbl_mConsole.reset(new CConsole());
+	}
 	return 0;
 }
 
 int luaF_destroyconsole(lua_State* L){
-	if (!gbl_mConsole) return 0;
-	delete gbl_mConsole;
-	gbl_mConsole = NULL;
+	PD2HOOK_TRACE_FUNC;
+	gbl_mConsole.reset();
 	return 0;
 }
 
 int luaF_print(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	size_t len;
 	const char* str = lua_tolstring(L, 1, &len);
-	__asm add esp, 4
-	Logging::Log(str, Logging::LOGGING_LUA);
+	PD2HOOK_LOG_LUA(str);
 	//Logging::Log("aaaaaa", Logging::LOGGING_LUA);
 	return 0;
 }
@@ -390,7 +386,6 @@ int updates = 0;
 std::thread::id main_thread_id;
 
 void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
-
 	// If someone has a better way of doing this, I'd like to know about it.
 	// I could save the this pointer?
 	// I'll check if it's even different at all later.
@@ -398,14 +393,14 @@ void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 		return do_game_update(thislol, a, b);
 	}
 
-	lua_State* L = (lua_State*)*((void**)thislol);
+	lua_State* L = reinterpret_cast<lua_State *>(thislol);
 	if (updates == 0){
 		HTTPManager::GetSingleton()->init_locks();
 	}
-	
+
 
 	if (updates > 1){
-		EventQueueM::GetSingleton()->ProcessEvents();
+		EventQueueMaster::GetSingleton().ProcessEvents();
 	}
 
 	updates++;
@@ -416,74 +411,50 @@ void* __fastcall do_game_update_new(void* thislol, int edx, int* a, int* b){
 // I 'unno, I stole this method from the guy who wrote the 'underground-light-lua-hook'
 // Mine worked fine, but this seems more elegant.
 int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, int clue){
+	PD2HOOK_TRACE_FUNC;
 	int ret = luaL_newstate(thislol, no, freakin, clue);
 
 	lua_State* L = (lua_State*)*((void**)thislol);
-	printf("Lua State: %p\n", (void*)L);
+	PD2HOOK_LOG_LUA("Lua State: " << L);
 	if (!L) return ret;
 	//int stack_size = lua_gettop(L);
 	//printf("%d\n", stack_size);
 
 	add_active_state(L);
 
-	//CREATE_LUA_FUNCTION(luaF_print, "log")
-	lua_pushcclosure(L, luaF_print, 0);
-	_asm add esp, 4
-	lua_setfield(L, LUA_GLOBALSINDEX, "log");
-	_asm add esp, 4
-
-	lua_pushcclosure(L, luaF_pcall, 0);
-	_asm add esp, 4
-	lua_setfield(L, LUA_GLOBALSINDEX, "pcall");
-	_asm add esp, 4
-
-	lua_pushcclosure(L, luaF_dofile, 0);
-	_asm add esp, 4
-	lua_setfield(L, LUA_GLOBALSINDEX, "dofile");
-	_asm add esp, 4
-
-	lua_pushcclosure(L, luaF_unzipfile, 0);
-	_asm add esp, 4
-	lua_setfield(L, LUA_GLOBALSINDEX, "unzip");
-	_asm add esp, 4
-
-	lua_pushcclosure(L, luaF_dohttpreq, 0);
-	_asm add esp, 4
-	lua_setfield(L, LUA_GLOBALSINDEX, "dohttpreq");
-	_asm add esp, 4
+	CREATE_LUA_FUNCTION(luaF_print, "log");
+	CREATE_LUA_FUNCTION(luaF_pcall, "pcall");
+	CREATE_LUA_FUNCTION(luaF_dofile, "dofile");
+	CREATE_LUA_FUNCTION(luaF_unzipfile, "unzip");
+	CREATE_LUA_FUNCTION(luaF_dohttpreq, "dohttpreq");
 
 	luaL_Reg consoleLib[] = { { "CreateConsole", luaF_createconsole }, { "DestroyConsole", luaF_destroyconsole }, { NULL, NULL } };
 	luaI_openlib(L, "console", consoleLib, 0);
-	_asm add esp, 8
 
 	luaL_Reg fileLib[] = { { "GetDirectories", luaF_getdir }, { "GetFiles", luaF_getfiles }, { "RemoveDirectory", luaF_removeDirectory }, { "DirectoryExists", luaF_directoryExists }, { NULL, NULL } };
 	luaI_openlib(L, "file", fileLib, 0);
-	_asm add esp, 8
 
 	//lua_settop(L, stack_size);
 	int result;
-	Logging::Log("Initiating Hook");
+	PD2HOOK_LOG_LOG("Initiating Hook");
 
 	result = luaL_loadfile(L, "mods/base/base.lua");
 	if (result == LUA_ERRSYNTAX){
 		size_t len;
-		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
-		_asm add esp, 4
+		PD2HOOK_LOG_ERROR(lua_tolstring(L, -1, &len));
 		return ret;
 	}
 	result = lua_pcall(L, 0, 1, 0);
-	_asm add esp, 8
 	if (result == LUA_ERRRUN){
 		size_t len;
-		Logging::Log(lua_tolstring(L, -1, &len), Logging::LOGGING_ERROR);
-		_asm add esp, 4
+		PD2HOOK_LOG_ERROR(lua_tolstring(L, -1, &len));
 		return ret;
 	}
 
 	//CREATE_LUA_FUNCTION(luaF_pcall, "pcall")
 	//CREATE_LUA_FUNCTION(luaF_dofile, "dofile")
 	/*CREATE_LUA_FUNCTION(luaF_dohttpreq, "dohttpreq")
-	
+
 	CREATE_LUA_FUNCTION(luaF_unzipfile, "unzip")
 
 	*/
@@ -491,14 +462,13 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 }
 
 void __fastcall luaF_close(lua_State* L){
+	PD2HOOK_TRACE_FUNC;
 	remove_active_state(L);
 	lua_close(L);
 }
 
-
-static HTTPManager mainManager;
-
 void InitiateStates(){
+	PD2HOOK_TRACE_FUNC;
 
 	main_thread_id = std::this_thread::get_id();
 
@@ -509,12 +479,12 @@ void InitiateStates(){
 	FuncDetour* newStateDetour = new FuncDetour((void**)&luaL_newstate, luaL_newstate_new);
 	//FuncDetour* luaCallDetour = new FuncDetour((void**)&lua_call, lua_newcall);
 	FuncDetour* luaCloseDetour = new FuncDetour((void**)&lua_close, luaF_close);
-	
-	new EventQueueM();
 }
 
 void DestroyStates(){
+	PD2HOOK_TRACE_FUNC;
 	// Okay... let's not do that.
 	// I don't want to keep this in memory, but it CRASHES THE SHIT OUT if you delete this after all is said and done.
-	// if (gbl_mConsole) delete gbl_mConsole;
+	gbl_mConsole.reset();
+}
 }
