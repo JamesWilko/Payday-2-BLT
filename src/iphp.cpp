@@ -1,23 +1,53 @@
+#define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
 #include "InitState.h"
 
+#include <memory>
+
 #pragma pack(1)
 
-
-HINSTANCE hLThis = 0;
-HINSTANCE hL = 0;
 FARPROC p[267] = {0};
+
+namespace pd2hook
+{
+namespace
+{
+struct DllState
+{
+	HINSTANCE hLThis = nullptr;
+	HMODULE hL = nullptr;
+};
+
+struct DllStateDestroyer
+{
+	void operator()(DllState *state)
+	{
+		DestroyStates();
+
+		if (state && state->hL)
+		{
+			FreeLibrary(state->hL);
+		}
+	}
+};
+
+std::unique_ptr<DllState, DllStateDestroyer> State;
+}
+}
 
 BOOL WINAPI DllMain(HINSTANCE hInst,DWORD reason,LPVOID)
 	{
 
 	if (reason == DLL_PROCESS_ATTACH)
 		{
-		hLThis = hInst;
-
 		char bufd[200];
 		GetSystemDirectory(bufd, 200);
 		strcat_s(bufd, "\\IPHLPAPI.dll");
+
+		pd2hook::State.reset(new pd2hook::DllState());
+		pd2hook::State->hLThis = hInst;
+		pd2hook::State->hL = LoadLibrary(bufd);
+		HMODULE hL = pd2hook::State->hL;
 
 		hL = LoadLibrary(bufd);
 		if (!hL) return false;
@@ -291,13 +321,12 @@ BOOL WINAPI DllMain(HINSTANCE hInst,DWORD reason,LPVOID)
 		p[265] = GetProcAddress(hL,"if_nametoindex");
 		p[266] = GetProcAddress(hL,"register_icmp");
 
-		InitiateStates();
+		pd2hook::InitiateStates();
 
 		}
 	if (reason == DLL_PROCESS_DETACH)
 		{
-		DestroyStates();
-		FreeLibrary(hL);
+			pd2hook::State.reset();
 		}
 
 	return 1;
