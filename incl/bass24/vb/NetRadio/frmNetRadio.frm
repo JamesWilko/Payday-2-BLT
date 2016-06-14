@@ -236,14 +236,6 @@ Option Explicit
 Private Declare Function GetModuleFileName Lib "kernel32" Alias "GetModuleFileNameA" (ByVal hModule As Long, ByVal lpFileName As String, ByVal nSize As Long) As Long
 Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal length As Long)
 
-Private Sub chkDirectConnect_Click()
-    If (chkDirectConnect.value) Then
-        Call BASS_SetConfigPtr(BASS_CONFIG_NET_PROXY, vbNullString)  ' disable proxy
-    Else
-        Call BASS_SetConfigPtr(BASS_CONFIG_NET_PROXY, VarPtr(proxy(0))) ' enable proxy
-    End If
-End Sub
-
 Private Sub Form_Load()
     ' change and set the current path, to prevent from VB not finding BASS.DLL
     ChDrive App.Path
@@ -263,14 +255,13 @@ Private Sub Form_Load()
 
     Call BASS_SetConfig(BASS_CONFIG_NET_PLAYLIST, 1) ' enable playlist processing
     Call BASS_SetConfig(BASS_CONFIG_NET_PREBUF, 0) ' minimize automatic pre-buffering, so we can do it (and display it) instead
-    Call BASS_SetConfigPtr(BASS_CONFIG_NET_PROXY, VarPtr(proxy(0)))  ' setup proxy server location
 
     ' preset stream URLs
-    url = Array("http://www.radioparadise.com/musiclinks/rp_128-9.m3u", "http://www.radioparadise.com/musiclinks/rp_32.m3u", _
-                "http://www.sky.fm/mp3/classical.pls", "http://www.sky.fm/mp3/classical_low.pls", _
-                "http://www.sky.fm/mp3/the80s.pls", "http://www.sky.fm/mp3/the80s_low.pls", _
-                "http://somafm.com/tags.pls", "http://somafm.com/tags32.pls", _
-                "http://somafm.com/secretagent.pls", "http://somafm.com/secretagent24.pls")
+    url = Array("http://www.radioparadise.com/m3u/mp3-128.m3u", "http://www.radioparadise.com/m3u/mp3-32.m3u", _
+                "http://icecast.timlradio.co.uk/vr160.ogg", "http://icecast.timlradio.co.uk/vr32.ogg", _
+                "http://icecast.timlradio.co.uk/a8160.ogg", "http://icecast.timlradio.co.uk/a832.ogg", _
+                "http://somafm.com/secretagent.pls", "http://somafm.com/secretagent24.pls", _
+                "http://somafm.com/suburbsofgoa.pls", "http://somafm.com/suburbsofgoa24.pls")
 
     Set WriteFile = New clsFileIo
     cthread = 0
@@ -303,7 +294,11 @@ Private Sub btnPresents_Click(index As Integer)
     If (cthread) Then   ' already connecting
         Call Beep
     Else
-        Call CopyMemory(proxy(0), ByVal txtProxy.Text, Len(txtProxy.Text))   ' get proxy server
+        If (chkDirectConnect.value) Then
+            Call BASS_SetConfigPtr(BASS_CONFIG_NET_PROXY, vbNullString)  ' disable proxy
+        Else
+            Call BASS_SetConfigPtr(BASS_CONFIG_NET_PROXY, txtProxy.Text) ' set proxy server
+        End If
 
         ' open URL in a new thread (so that main thread is free)
         Dim threadid As Long

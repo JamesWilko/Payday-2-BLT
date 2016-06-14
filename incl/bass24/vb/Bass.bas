@@ -1,6 +1,6 @@
 Attribute VB_Name = "modBass"
 ' BASS 2.4 Visual Basic module
-' Copyright (c) 1999-2014 Un4seen Developments Ltd.
+' Copyright (c) 1999-2016 Un4seen Developments Ltd.
 '
 ' See the BASS.CHM file for more detailed documentation
 
@@ -91,19 +91,21 @@ Global Const BASS_CONFIG_ASYNCFILE_BUFFER = 45
 Global Const BASS_CONFIG_OGG_PRESCAN = 47
 Global Const BASS_CONFIG_MF_VIDEO = 48
 Global Const BASS_CONFIG_VERIFY_NET = 52
+Global Const BASS_CONFIG_DEV_PERIOD = 53
+Global Const BASS_CONFIG_FLOAT = 54
 
 ' BASS_SetConfigPtr options
 Global Const BASS_CONFIG_NET_AGENT = 16
 Global Const BASS_CONFIG_NET_PROXY = 17
 
 ' BASS_ASIO_Init flags
-Global Const BASS_DEVICE_8BITS = 1     '8 bit resolution, else 16 bit
-Global Const BASS_DEVICE_MONO = 2      'mono, else stereo
+Global Const BASS_DEVICE_8BITS = 1     '8 bit
+Global Const BASS_DEVICE_MONO = 2      'mono
 Global Const BASS_DEVICE_3D = 4        'enable 3D functionality
 Global Const BASS_DEVICE_LATENCY = &H100 'calculate device latency (BASS_INFO struct)
 Global Const BASS_DEVICE_CPSPEAKERS = &H400 'detect speakers via Windows control panel
 Global Const BASS_DEVICE_SPEAKERS = &H800 'force enabling of speaker assignment
-Global Const BASS_DEVICE_NOSPEAKER = &1000 'ignore speaker arrangement
+Global Const BASS_DEVICE_NOSPEAKER = &H1000 'ignore speaker arrangement
 
 ' DirectSound interfaces (for use with BASS_GetDSoundObject)
 Global Const BASS_OBJECT_DS = 1                     ' DirectSound
@@ -209,7 +211,7 @@ Type BASS_SAMPLE
 End Type
 
 Global Const BASS_SAMPLE_8BITS = 1          ' 8 bit
-Global Const BASS_SAMPLE_FLOAT = 256        ' 32-bit floating-point
+Global Const BASS_SAMPLE_FLOAT = 256        ' 32 bit floating-point
 Global Const BASS_SAMPLE_MONO = 2           ' mono
 Global Const BASS_SAMPLE_LOOP = 4           ' looped
 Global Const BASS_SAMPLE_3D = 8             ' 3D functionality
@@ -242,6 +244,7 @@ Global Const BASS_MUSIC_RAMP = &H200        ' normal ramping
 Global Const BASS_MUSIC_RAMPS = &H400       ' sensitive ramping
 Global Const BASS_MUSIC_SURROUND = &H800    ' surround sound
 Global Const BASS_MUSIC_SURROUND2 = &H1000  ' surround sound (mode 2)
+Global Const BASS_MUSIC_FT2PAN = &H2000     ' apply FastTracker 2 panning to XM files
 Global Const BASS_MUSIC_FT2MOD = &H2000     ' play .MOD as FastTracker 2 does
 Global Const BASS_MUSIC_PT1MOD = &H4000     ' play .MOD as ProTracker 1 does
 Global Const BASS_MUSIC_NONINTER = &H10000  ' non-interpolated sample mixing
@@ -415,8 +418,8 @@ Global Const BASS_SYNC_MUSICPOS = 10
 Global Const BASS_SYNC_MUSICINST = 1
 Global Const BASS_SYNC_MUSICFX = 3
 Global Const BASS_SYNC_OGG_CHANGE = 12
-Global Const BASS_SYNC_MIXTIME = &H40000000 ' FLAG: sync at mixtime, else at playtime
-Global Const BASS_SYNC_ONETIME = &H80000000 ' FLAG: sync only once, else continuously
+Global Const BASS_SYNC_MIXTIME = &H40000000 ' flag: sync at mixtime, else at playtime
+Global Const BASS_SYNC_ONETIME = &H80000000 ' flag: sync only once, else continuously
 
 ' BASS_ChannelIsActive return values
 Global Const BASS_ACTIVE_STOPPED = 0
@@ -435,6 +438,8 @@ Global Const BASS_ATTRIB_CPU = 7
 Global Const BASS_ATTRIB_SRC = 8
 Global Const BASS_ATTRIB_NET_RESUME = 9
 Global Const BASS_ATTRIB_SCANINFO = 10
+Global Const BASS_ATTRIB_NORAMP = 11
+Global Const BASS_ATTRIB_BITRATE = 12
 Global Const BASS_ATTRIB_MUSIC_AMPLIFY = &H100
 Global Const BASS_ATTRIB_MUSIC_PANSEP = &H101
 Global Const BASS_ATTRIB_MUSIC_PSCALER = &H102
@@ -456,6 +461,7 @@ Global Const BASS_DATA_FFT2048 = &H80000003  ' 2048 FFT
 Global Const BASS_DATA_FFT4096 = &H80000004  ' 4096 FFT
 Global Const BASS_DATA_FFT8192 = &H80000005  ' 8192 FFT
 Global Const BASS_DATA_FFT16384 = &H80000006 ' 16384 FFT
+Global Const BASS_DATA_FFT32768 = &H80000007 ' 32768 FFT
 Global Const BASS_DATA_FFT_INDIVIDUAL = &H10 ' FFT flag: FFT for each channel, else all combined
 Global Const BASS_DATA_FFT_NOWINDOW = &H20   ' FFT flag: no Hanning window
 Global Const BASS_DATA_FFT_REMOVEDC = &H40   ' FFT flag: pre-remove DC bias
@@ -470,6 +476,7 @@ Global Const BASS_TAG_ICY = 4                ' ICY headers : series of null-term
 Global Const BASS_TAG_META = 5               ' ICY metadata : ANSI string
 Global Const BASS_TAG_APE = 6                ' APEv2 tags : series of null-terminated UTF-8 strings
 Global Const BASS_TAG_MP4 = 7                ' MP4/iTunes metadata : series of null-terminated UTF-8 strings
+Global Const BASS_TAG_WMA = 8                ' WMA tags : series of null-terminated UTF-8 strings
 Global Const BASS_TAG_VENDOR = 9             ' OGG encoder : UTF-8 string
 Global Const BASS_TAG_LYRICS3 = 10           ' Lyric3v2 tag : ASCII string
 Global Const BASS_TAG_CA_CODEC = 11          ' CoreAudio codec info : TAG_CA_CODEC structure
@@ -483,6 +490,7 @@ Global Const BASS_TAG_APE_BINARY = &H1000    ' + index #, binary APEv2 tag : TAG
 Global Const BASS_TAG_MUSIC_NAME = &H10000   ' MOD music name : ANSI string
 Global Const BASS_TAG_MUSIC_ORDERS = &H10002 ' MOD order list : BYTE array of pattern numbers
 Global Const BASS_TAG_MUSIC_MESSAGE = &H10001 ' MOD message : ANSI string
+Global Const BASS_TAG_MUSIC_AUTH = &H10003   ' MOD author : UTF-8 string
 Global Const BASS_TAG_MUSIC_INST = &H10100   ' + instrument #, MOD instrument name : ANSI string
 Global Const BASS_TAG_MUSIC_SAMPLE = &H10300 ' + sample #, MOD sample name : ANSI string
 
@@ -760,6 +768,7 @@ Declare Function BASS_ChannelRemoveFX Lib "bass.dll" (ByVal handle As Long, ByVa
 Declare Function BASS_FXSetParameters Lib "bass.dll" (ByVal handle As Long, ByRef par As Any) As Long
 Declare Function BASS_FXGetParameters Lib "bass.dll" (ByVal handle As Long, ByRef par As Any) As Long
 Declare Function BASS_FXReset Lib "bass.dll" (ByVal handle As Long) As Long
+Declare Function BASS_FXSetPriority Lib "bass.dll" (ByVal handle As Long, ByVal priority As Long) As Long
 
 Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByRef Destination As Any, ByRef Source As Any, ByVal length As Long)
 Private Declare Function lstrlen Lib "kernel32" Alias "lstrlenA" (ByVal lpString As Long) As Long

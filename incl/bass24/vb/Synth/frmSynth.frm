@@ -124,8 +124,8 @@ Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
             Call BASS_SetConfig(BASS_CONFIG_BUFFER, buflen - 1) ' smaller buffer
         Else
             Call BASS_SetConfig(BASS_CONFIG_BUFFER, buflen + 1) ' larger buffer
-        buflen = BASS_GetConfig(BASS_CONFIG_BUFFER)
         End If
+        buflen = BASS_GetConfig(BASS_CONFIG_BUFFER)
         lblWinTxt.Caption = "using a " & buflen & "ms buffer"
         str = BASS_StreamCreate(info.freq, 2, 0, AddressOf WriteStream, 0)
         ' set effects on the new stream

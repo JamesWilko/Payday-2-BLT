@@ -1,6 +1,6 @@
 {
   BASS 2.4 Delphi unit
-  Copyright (c) 1999-2014 Un4seen Developments Ltd.
+  Copyright (c) 1999-2016 Un4seen Developments Ltd.
 
   See the BASS.CHM file for more detailed documentation
 
@@ -105,21 +105,25 @@ const
   BASS_CONFIG_DEV_NONSTOP   = 50;
   BASS_CONFIG_IOS_NOCATEGORY = 51;
   BASS_CONFIG_VERIFY_NET    = 52;
+  BASS_CONFIG_DEV_PERIOD    = 53;
+  BASS_CONFIG_FLOAT         = 54;
 
   // BASS_SetConfigPtr options
   BASS_CONFIG_NET_AGENT     = 16;
   BASS_CONFIG_NET_PROXY     = 17;
 
   // BASS_Init flags
-  BASS_DEVICE_8BITS       = 1;    // 8 bit resolution, else 16 bit
-  BASS_DEVICE_MONO        = 2;    // mono, else stereo
+  BASS_DEVICE_8BITS       = 1;    // 8 bit
+  BASS_DEVICE_MONO        = 2;    // mono
   BASS_DEVICE_3D          = 4;    // enable 3D functionality
+  BASS_DEVICE_16BITS      = 8;    // limit output to 16 bit
   BASS_DEVICE_LATENCY     = $100;  // calculate device latency (BASS_INFO struct)
   BASS_DEVICE_CPSPEAKERS  = $400; // detect speakers via Windows control panel
   BASS_DEVICE_SPEAKERS    = $800; // force enabling of speaker assignment
   BASS_DEVICE_NOSPEAKER   = $1000; // ignore speaker arrangement
   BASS_DEVICE_DMIX        = $2000; // use ALSA "dmix" plugin
   BASS_DEVICE_FREQ        = $4000; // set device sample rate
+  BASS_DEVICE_STEREO      = $8000; // limit output to stereo
 
   // DirectSound interfaces (for use with BASS_GetDSoundObject)
   BASS_OBJECT_DS          = 1;   // IDirectSound
@@ -174,7 +178,7 @@ const
   WAVE_FORMAT_4S16       = $00000800;      // 44.1   kHz, Stereo, 16-bit
 
   BASS_SAMPLE_8BITS       = 1;   // 8 bit
-  BASS_SAMPLE_FLOAT       = 256; // 32-bit floating-point
+  BASS_SAMPLE_FLOAT       = 256; // 32 bit floating-point
   BASS_SAMPLE_MONO        = 2;   // mono
   BASS_SAMPLE_LOOP        = 4;   // looped
   BASS_SAMPLE_3D          = 8;   // 3D functionality
@@ -207,6 +211,7 @@ const
   BASS_MUSIC_RAMPS        = $400;  // sensitive ramping
   BASS_MUSIC_SURROUND     = $800;  // surround sound
   BASS_MUSIC_SURROUND2    = $1000; // surround sound (mode 2)
+  BASS_MUSIC_FT2PAN       = $2000; // apply FastTracker 2 panning to XM files
   BASS_MUSIC_FT2MOD       = $2000; // play .MOD as FastTracker 2 does
   BASS_MUSIC_PT1MOD       = $4000; // play .MOD as ProTracker 1 does
   BASS_MUSIC_NONINTER     = $10000; // non-interpolated sample mixing
@@ -339,8 +344,8 @@ const
   BASS_SYNC_MUSICINST     = 1;
   BASS_SYNC_MUSICFX       = 3;
   BASS_SYNC_OGG_CHANGE    = 12;
-  BASS_SYNC_MIXTIME       = $40000000; // FLAG: sync at mixtime, else at playtime
-  BASS_SYNC_ONETIME       = $80000000; // FLAG: sync only once, else continuously
+  BASS_SYNC_MIXTIME       = $40000000; // flag: sync at mixtime, else at playtime
+  BASS_SYNC_ONETIME       = $80000000; // flag: sync only once, else continuously
 
   // BASS_ChannelIsActive return values
   BASS_ACTIVE_STOPPED = 0;
@@ -359,6 +364,8 @@ const
   BASS_ATTRIB_SRC                   = 8;
   BASS_ATTRIB_NET_RESUME            = 9;
   BASS_ATTRIB_SCANINFO              = 10;
+  BASS_ATTRIB_NORAMP                = 11;
+  BASS_ATTRIB_BITRATE               = 12;
   BASS_ATTRIB_MUSIC_AMPLIFY         = $100;
   BASS_ATTRIB_MUSIC_PANSEP          = $101;
   BASS_ATTRIB_MUSIC_PSCALER         = $102;
@@ -380,6 +387,7 @@ const
   BASS_DATA_FFT4096   = $80000004; // 4096 FFT
   BASS_DATA_FFT8192   = $80000005; // 8192 FFT
   BASS_DATA_FFT16384  = $80000006; // 16384 FFT
+  BASS_DATA_FFT32768  = $80000007; // 32768 FFT
   BASS_DATA_FFT_INDIVIDUAL = $10; // FFT flag: FFT for each channel, else all combined
   BASS_DATA_FFT_NOWINDOW = $20;   // FFT flag: no Hanning window
   BASS_DATA_FFT_REMOVEDC = $40;   // FFT flag: pre-remove DC bias
@@ -399,6 +407,7 @@ const
   BASS_TAG_META       = 5; // ICY metadata : ANSI string
   BASS_TAG_APE        = 6; // APEv2 tags : series of null-terminated UTF-8 strings
   BASS_TAG_MP4        = 7; // MP4/iTunes metadata : series of null-terminated UTF-8 strings
+  BASS_TAG_WMA        = 8; // WMA tags : series of null-terminated UTF-8 strings
   BASS_TAG_VENDOR     = 9; // OGG encoder : UTF-8 string
   BASS_TAG_LYRICS3    = 10; // Lyric3v2 tag : ASCII string
   BASS_TAG_CA_CODEC   = 11;	// CoreAudio codec info : TAG_CA_CODEC structure
@@ -412,6 +421,7 @@ const
   BASS_TAG_MUSIC_NAME = $10000;	// MOD music name : ANSI string
   BASS_TAG_MUSIC_MESSAGE = $10001; // MOD message : ANSI string
   BASS_TAG_MUSIC_ORDERS = $10002; // MOD order list : BYTE array of pattern numbers
+  BASS_TAG_MUSIC_AUTH = $10003; // MOD author : UTF-8 string
   BASS_TAG_MUSIC_INST = $10100;	// + instrument #, MOD instrument name : ANSI string
   BASS_TAG_MUSIC_SAMPLE = $10300; // + sample #, MOD sample name : ANSI string
 
@@ -884,6 +894,7 @@ function BASS_ChannelRemoveFX(handle: DWORD; fx: HFX): BOOL; {$IFDEF MSWINDOWS}s
 function BASS_FXSetParameters(handle: HFX; par: Pointer): BOOL; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassdll;
 function BASS_FXGetParameters(handle: HFX; par: Pointer): BOOL; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassdll;
 function BASS_FXReset(handle: HFX): BOOL; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassdll;
+function BASS_FXSetPriority(handle: HFX; priority: LongInt): BOOL; {$IFDEF MSWINDOWS}stdcall{$ELSE}cdecl{$ENDIF}; external bassdll;
 
 
 function BASS_SPEAKER_N(n: DWORD): DWORD;

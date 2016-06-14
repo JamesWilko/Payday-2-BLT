@@ -129,7 +129,7 @@ bool ExtractZIPArchive(const std::string& path, const std::string& extractPath);
 #define PD2HOOK_TRACE_FUNC_MSG(msg)
 #endif
 
-#define PD2HOOK_LOG_LEVEL(msg, level, file, line) do { \
+#define PD2HOOK_LOG_LEVEL_FULL(msg, level, file, line) do { \
 	auto& logger = pd2hook::Logging::Logger::Instance(); \
 	if(level >= logger.getLoggingLevel()) { \
 		pd2hook::Logging::LogWriter writer(file, line, level); \
@@ -137,11 +137,19 @@ bool ExtractZIPArchive(const std::string& path, const std::string& extractPath);
 		writer.write(logger); \
 	}} while (false);
 
-#define PD2HOOK_LOG_FUNC(msg) PD2HOOK_LOG_LEVEL(msg, pd2hook::Logging::LogType::LOGGING_FUNC, __FILE__, 0)
-#define PD2HOOK_LOG_LOG(msg) PD2HOOK_LOG_LEVEL(msg, pd2hook::Logging::LogType::LOGGING_LOG, __FILE__, __LINE__)
-#define PD2HOOK_LOG_LUA(msg) PD2HOOK_LOG_LEVEL(msg, pd2hook::Logging::LogType::LOGGING_LUA, __FILE__, __LINE__)
-#define PD2HOOK_LOG_WARN(msg) PD2HOOK_LOG_LEVEL(msg, pd2hook::Logging::LogType::LOGGING_WARN, __FILE__, __LINE__)
-#define PD2HOOK_LOG_ERROR(msg) PD2HOOK_LOG_LEVEL(msg, pd2hook::Logging::LogType::LOGGING_ERROR, __FILE__, __LINE__)
+#define PD2HOOK_LOG_LEVEL(msg, level) do { \
+	auto& logger = pd2hook::Logging::Logger::Instance(); \
+	if(level >= logger.getLoggingLevel()) { \
+		pd2hook::Logging::LogWriter writer(level); \
+		writer << msg; \
+		writer.write(logger); \
+		}} while (false);
+
+#define PD2HOOK_LOG_FUNC(msg) PD2HOOK_LOG_LEVEL_FULL(msg, pd2hook::Logging::LogType::LOGGING_FUNC, __FILE__, 0)
+#define PD2HOOK_LOG_LOG(msg) PD2HOOK_LOG_LEVEL(msg, pd2hook::Logging::LogType::LOGGING_LOG)
+#define PD2HOOK_LOG_LUA(msg) PD2HOOK_LOG_LEVEL(msg, pd2hook::Logging::LogType::LOGGING_LUA)
+#define PD2HOOK_LOG_WARN(msg) PD2HOOK_LOG_LEVEL_FULL(msg, pd2hook::Logging::LogType::LOGGING_WARN, __FILE__, __LINE__)
+#define PD2HOOK_LOG_ERROR(msg) PD2HOOK_LOG_LEVEL_FULL(msg, pd2hook::Logging::LogType::LOGGING_ERROR, __FILE__, __LINE__)
 #define PD2HOOK_LOG_EXCEPTION(e) PD2HOOK_LOG_WARN(e)
 
 #define PD2HOOK_DEBUG_CHECKPOINT PD2HOOK_LOG_LOG("Checkpoint")
@@ -153,12 +161,12 @@ namespace Logging
 inline FunctionLogger::FunctionLogger(const char *funcName, const char *file) :
 	mFile(file), mFuncName(funcName)
 {
-	PD2HOOK_LOG_LEVEL(">>> " << mFuncName, LogType::LOGGING_FUNC, mFile, 0);
+	PD2HOOK_LOG_LEVEL_FULL(">>> " << mFuncName, LogType::LOGGING_FUNC, mFile, 0);
 }
 
 inline FunctionLogger::~FunctionLogger()
 {
-	PD2HOOK_LOG_LEVEL("<<< " << mFuncName, LogType::LOGGING_FUNC, mFile, 0);
+	PD2HOOK_LOG_LEVEL_FULL("<<< " << mFuncName, LogType::LOGGING_FUNC, mFile, 0);
 }
 }
 }

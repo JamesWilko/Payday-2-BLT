@@ -37,7 +37,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Button1Click(Sender: TObject);
-    procedure cbDirectConnectionClick(Sender: TObject);
   private
     { Private declarations }
 
@@ -50,7 +49,6 @@ type
 
 var
   Form1: TForm1;
-  Proxy: array [0..99] of AnsiChar; //proxy server
 
   cthread: DWORD = 0;
   chan: HSTREAM = 0;
@@ -59,9 +57,9 @@ implementation
 
 const
   urls: array[0..9] of AnsiString = ( // preset stream URLs
-	'http://www.radioparadise.com/musiclinks/rp_128-9.m3u','http://www.radioparadise.com/musiclinks/rp_32.m3u',
-	'http://ogg2.as34763.net/vr160.ogg', 'http://ogg2.as34763.net/vr32.ogg',
-	'http://ogg2.as34763.net/a8160.ogg', 'http://ogg2.as34763.net/a832.ogg',
+	'http://www.radioparadise.com/m3u/mp3-128.m3u', 'http://www.radioparadise.com/m3u/mp3-32.m3u',
+	'http://icecast.timlradio.co.uk/vr160.ogg', 'http://icecast.timlradio.co.uk/vr32.ogg',
+	'http://icecast.timlradio.co.uk/a8160.ogg', 'http://icecast.timlradio.co.uk/a832.ogg',
 	'http://somafm.com/secretagent.pls', 'http://somafm.com/secretagent24.pls',
 	'http://somafm.com/suburbsofgoa.pls', 'http://somafm.com/suburbsofgoa24.pls'
     );
@@ -204,7 +202,6 @@ begin
   end;
   BASS_SetConfig(BASS_CONFIG_NET_PLAYLIST, 1); // enable playlist processing
   BASS_SetConfig(BASS_CONFIG_NET_PREBUF, 0); // minimize automatic pre-buffering, so we can do it (and display it) instead
-  BASS_SetConfigPtr(BASS_CONFIG_NET_PROXY, @proxy[0]); // setup proxy server location
 
 end;
 
@@ -217,19 +214,17 @@ procedure TForm1.Button1Click(Sender: TObject);
 var
   ThreadId: Cardinal;
 begin
-  StrPCopy(proxy,ed_ProxyServer.Text); // copy the Servertext to the Proxy array
   if (cthread <> 0) then
     MessageBeep(0)
   else
+  begin
+    if cbDirectConnection.Checked then
+      BASS_SetConfigPtr(BASS_CONFIG_NET_PROXY, nil); // disable proxy
+    else
+      BASS_SetConfigPtr(BASS_CONFIG_NET_PROXY, ed_ProxyServer.Text) // set proxy server
+    // open URL in a new thread (so that main thread is free)
     cthread := BeginThread(nil, 0, @OpenURL, PAnsiChar(urls[TButton(Sender).Tag]), 0, ThreadId);
-end;
-
-procedure TForm1.cbDirectConnectionClick(Sender: TObject);
-begin
-  if not TCheckbox(Sender).Checked then
-    BASS_SetConfigPtr(BASS_CONFIG_NET_PROXY, @proxy[0]) // enable proxy
-  else
-    BASS_SetConfigPtr(BASS_CONFIG_NET_PROXY, nil); // disable proxy
+  end;
 end;
 
 end.

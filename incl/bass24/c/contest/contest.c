@@ -1,6 +1,6 @@
 /*
 	BASS simple console player
-	Copyright (c) 1999-2012 Un4seen Developments Ltd.
+	Copyright (c) 1999-2015 Un4seen Developments Ltd.
 */
 
 #include <stdlib.h>
@@ -9,7 +9,7 @@
 
 #ifdef _WIN32 // Windows
 #include <conio.h>
-#else // OSX
+#else // OSX/Linux
 #include <sys/time.h>
 #include <termios.h>
 #include <string.h>
@@ -43,12 +43,22 @@ void Error(const char *text)
 	exit(0);
 }
 
+void ListDevices()
+{
+	BASS_DEVICEINFO di;
+	int a;
+	for (a=1;BASS_GetDeviceInfo(a,&di);a++) {
+		if (di.flags&BASS_DEVICE_ENABLED) // enabled output device
+			printf("dev %d: %s\n",a,di.name);
+	}
+}
+
 void main(int argc, char **argv)
 {
 	DWORD chan,act,time,level;
 	BOOL ismod;
 	QWORD pos;
-	int a;
+	int a,device=-1;
 
 	printf("Simple console mode BASS example : MOD/MPx/OGG/WAV player\n"
 			"---------------------------------------------------------\n");
@@ -59,39 +69,48 @@ void main(int argc, char **argv)
 		return;
 	}
 
-	if (argc!=2) {
-		printf("\tusage: contest <file>\n");
+	for (a=1;a<argc;a++) {
+		if (!strcmp(argv[a],"-l")) {
+			ListDevices();
+			return;
+		} else if (!strcmp(argv[a],"-d") && a+1<argc) device=atoi(argv[++a]);
+		else break;
+	}
+	if (a!=argc-1) {
+		printf("\tusage: contest [-l] [-d #] <file>\n"
+			"\t-l = list devices\n"
+			"\t-d = device number\n");
 		return;
 	}
 
-	// setup output - default device
-	if (!BASS_Init(-1,44100,0,0,NULL))
+	// initialize output device
+	if (!BASS_Init(device,44100,0,0,NULL))
 		Error("Can't initialize device");
 
 	// try streaming the file/url
-	if ((chan=BASS_StreamCreateFile(FALSE,argv[1],0,0,BASS_SAMPLE_LOOP))
-		|| (chan=BASS_StreamCreateURL(argv[1],0,BASS_SAMPLE_LOOP,0,0))) {
+	if ((chan=BASS_StreamCreateFile(FALSE,argv[argc-1],0,0,BASS_SAMPLE_LOOP))
+		|| (chan=BASS_StreamCreateURL(argv[argc-1],0,BASS_SAMPLE_LOOP,0,0))) {
 		pos=BASS_ChannelGetLength(chan,BASS_POS_BYTE);
 		if (BASS_StreamGetFilePosition(chan,BASS_FILEPOS_DOWNLOAD)!=-1) {
 			// streaming from the internet
 			if (pos!=-1)
 #ifdef _WIN32
-				printf("streaming internet file [%I64u bytes]",pos);
+				printf("streaming internet file [%I64d bytes]",pos);
 #else
-				printf("streaming internet file [%llu bytes]",pos);
+				printf("streaming internet file [%lld bytes]",pos);
 #endif
 			else
 				printf("streaming internet file");
 		} else
 #ifdef _WIN32
-			printf("streaming file [%I64u bytes]",pos);
+			printf("streaming file [%I64d bytes]",pos);
 #else
-			printf("streaming file [%llu bytes]",pos);
+			printf("streaming file [%lld bytes]",pos);
 #endif
 		ismod=FALSE;
 	} else {
 		// try loading the MOD (with looping, sensitive ramping, and calculate the duration)
-		if (!(chan=BASS_MusicLoad(FALSE,argv[1],0,0,BASS_SAMPLE_LOOP|BASS_MUSIC_RAMPS|BASS_MUSIC_PRESCAN,1)))
+		if (!(chan=BASS_MusicLoad(FALSE,argv[argc-1],0,0,BASS_SAMPLE_LOOP|BASS_MUSIC_RAMPS|BASS_MUSIC_PRESCAN,1)))
 			// not a MOD either
 			Error("Can't play the file");
 		{ // count channels

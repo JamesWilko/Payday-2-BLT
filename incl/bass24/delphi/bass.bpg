@@ -34,7 +34,7 @@ DspTest.exe: DspTest\DspTest.dpr
 FXtest.exe: fxtest\FXtest.dpr
   $(DCC)
 
-list.exe: list\list.dpr
+devlist.exe: devlist\devlist.dpr
   $(DCC)
 
 livefx.exe: livefx\livefx.dpr

@@ -1,6 +1,6 @@
 /*
 	BASS internet radio example
-	Copyright (c) 2002-2012 Un4seen Developments Ltd.
+	Copyright (c) 2002-2015 Un4seen Developments Ltd.
 */
 
 #include <windows.h>
@@ -14,14 +14,12 @@ DWORD req=0;	// request number/counter
 HSTREAM chan;	// stream handle
 
 const char *urls[10]={ // preset stream URLs
-	"http://www.radioparadise.com/musiclinks/rp_128-9.m3u", "http://www.radioparadise.com/musiclinks/rp_32.m3u",
-	"http://ogg2.as34763.net/vr160.ogg", "http://ogg2.as34763.net/vr32.ogg",
-	"http://ogg2.as34763.net/a8160.ogg", "http://ogg2.as34763.net/a832.ogg",
+	"http://www.radioparadise.com/m3u/mp3-128.m3u", "http://www.radioparadise.com/m3u/mp3-32.m3u",
+	"http://icecast.timlradio.co.uk/vr160.ogg", "http://icecast.timlradio.co.uk/vr32.ogg",
+	"http://icecast.timlradio.co.uk/a8160.ogg", "http://icecast.timlradio.co.uk/a832.ogg",
 	"http://somafm.com/secretagent.pls", "http://somafm.com/secretagent24.pls",
 	"http://somafm.com/suburbsofgoa.pls", "http://somafm.com/suburbsofgoa24.pls"
 };
-
-char proxy[100]=""; // proxy server
 
 // display error messages
 void Error(const char *es)
@@ -159,22 +157,23 @@ INT_PTR CALLBACK dialogproc(HWND h,UINT m,WPARAM w,LPARAM l)
 				case IDCANCEL:
 					DestroyWindow(h);
 					return 1;
-				case 41:
-					if (MESS(41,BM_GETCHECK,0,0))
-						BASS_SetConfigPtr(BASS_CONFIG_NET_PROXY,NULL); // disable proxy
-					else
-						BASS_SetConfigPtr(BASS_CONFIG_NET_PROXY,proxy); // enable proxy
-					break;
 				default:
 					if ((LOWORD(w)>=10 && LOWORD(w)<20) || LOWORD(w)==21) {
 						char *url;
-						GetDlgItemText(win,40,proxy,sizeof(proxy)-1); // get proxy server
 						if (LOWORD(w)==21) { // custom stream URL
 							char temp[200];
 							MESS(20,WM_GETTEXT,sizeof(temp),temp);
 							url=strdup(temp);
 						} else // preset
 							url=strdup(urls[LOWORD(w)-10]);
+						if (MESS(41,BM_GETCHECK,0,0))
+							BASS_SetConfigPtr(BASS_CONFIG_NET_PROXY,NULL); // disable proxy
+						else {
+							char proxy[100];
+							GetDlgItemText(win,40,proxy,sizeof(proxy)-1);
+							proxy[sizeof(proxy)-1]=0;
+							BASS_SetConfigPtr(BASS_CONFIG_NET_PROXY,proxy); // set proxy server
+						}
 						// open URL in a new thread (so that main thread is free)
 						_beginthread(OpenURL,0,url);
 					}
@@ -190,8 +189,8 @@ INT_PTR CALLBACK dialogproc(HWND h,UINT m,WPARAM w,LPARAM l)
 			}
 			BASS_SetConfig(BASS_CONFIG_NET_PLAYLIST,1); // enable playlist processing
 			BASS_SetConfig(BASS_CONFIG_NET_PREBUF,0); // minimize automatic pre-buffering, so we can do it (and display it) instead
-			BASS_SetConfigPtr(BASS_CONFIG_NET_PROXY,proxy); // setup proxy server location
 			InitializeCriticalSection(&lock);
+			MESS(20,WM_SETTEXT,0,"http://");
 			return 1;
 
 		case WM_DESTROY:

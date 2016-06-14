@@ -215,7 +215,6 @@ object Form1: TForm1
         Height = 17
         Caption = 'Direct connection'
         TabOrder = 1
-        OnClick = cbDirectConnectionClick
       end
     end
   end

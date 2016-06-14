@@ -51,6 +51,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "devlist"=.\devlist\devlist.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "dsptest"=.\dsptest\dsptest.dsp - Package Owner=<4>
 
 Package=<5>
@@ -64,18 +76,6 @@ Package=<4>
 ###############################################################################
 
 Project: "fxtest"=.\fxtest\fxtest.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "list"=.\list\list.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

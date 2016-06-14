@@ -1,5 +1,5 @@
 BASS 2.4
-Copyright (c) 1999-2014 Un4seen Developments Ltd. All rights reserved.
+Copyright (c) 1999-2016 Un4seen Developments Ltd. All rights reserved.
 
 Files that you should have found in the BASS package
 ====================================================
@@ -45,6 +45,11 @@ C\              C/C++ API and examples...
     CUSTLOOP.DSP
     CUSTLOOP.VCPROJ
     MAKEFILE
+  DEVLIST\        Device list example
+    DEVLIST.C
+    DEVLIST.DSP
+    DEVLIST.VCPROJ
+    MAKEFILE
   DSPTEST\        DSP example
     DSPTEST.C
     DSPTEST.RC
@@ -56,11 +61,6 @@ C\              C/C++ API and examples...
     FXTEST.RC
     FXTEST.DSP
     FXTEST.VCPROJ
-    MAKEFILE
-  LIST\           Device list example
-    LIST.C
-    LIST.DSP
-    LIST.VCPROJ
     MAKEFILE
   LIVEFX\         Full-duplex example
     LIVEFX.C
@@ -129,9 +129,9 @@ C\              C/C++ API and examples...
     BASSTEST.EXE
     CONTEST.EXE
     CUSTLOOP.EXE
+    DEVLIST.EXE
     DSPTEST.EXE
     FXTEST.EXE
-    LIST.EXE
     LIVEFX.EXE
     LIVESPEC.EXE
     MODTEST.EXE
@@ -313,6 +313,9 @@ CONTEST\        Console example
 CUSTLOOP\       Custom looping example
   CUSTLOOP.C
   MAKEFILE
+DEVLIST\        Device list example
+  DEVLIST.C
+  MAKEFILE
 DSPTEST\        DSP example
   DSPTEST.C
   DSPTEST.NIB
@@ -320,9 +323,6 @@ DSPTEST\        DSP example
 FXTEST\         DX8 effect example
   FXTEST.C
   FXTEST.NIB
-  MAKEFILE
-LIST\           Device list example
-  LIST.C
   MAKEFILE
 LIVESPEC\       "Live" version of spectrum analyser example
   LIVESPEC.C
@@ -396,6 +396,9 @@ CONTEST\        Console example
 CUSTLOOP\       Custom looping example
   CUSTLOOP.C
   MAKEFILE
+DEVLIST\        Device list example
+  DEVLIST.C
+  MAKEFILE
 DSPTEST\        DSP example
   DSPTEST.C
   MAKEFILE
@@ -404,9 +407,6 @@ FXTEST\         DX8 effect example
   FXTEST.C
   MAKEFILE
   FXTEST.GLADE
-LIST\           Device list example
-  LIST.C
-  MAKEFILE
 LIVESPEC\       "Live" version of spectrum analyser example
   LIVESPEC.C
   MAKEFILE
@@ -465,21 +465,22 @@ Requirements
 ============
 Win32 version
 -------------
-BASS requires DirectX for playback/recording, but decoding is still
-possible without it. DirectX has been included with all Windows versions
+BASS requires DirectSound for playback and recording, but decoding is still
+possible without it. DirectSound has been included with all Windows versions
 since Windows 98. 32-bit and 64-bit Windows are supported.
 
 MacOSX version
 --------------
-BASS uses CoreAudio for playback/recording, so there are no special
-library/driver requirements. 32-bit (i386 & ppc) and 64-bit (x86_64)
-architectures are supported in a single universal library. OSX 10.4 or
-above is recommended.
+BASS uses CoreAudio for playback and recording, so there are no special
+library/driver requirements. 32-bit (i386) and 64-bit (x86_64) architectures
+are supported in a single universal library. OSX 10.4 or above is
+recommended.
 
 Linux version
 -------------
-BASS requires ALSA for playback/recording, but decoding is still possible
+BASS requires ALSA for playback and recording, but decoding is still possible
 without it. 32-bit (i386) and 64-bit (x86-64) architectures are supported.
+ARM support is also available as a separate download from the website.
 
 
 Main Features
@@ -601,15 +602,11 @@ See the example Xcode project and makefiles.
 NOTE: The LIBBASS.DYLIB file must be put in the same directory as the
       executable, it can't just be somewhere in the path.
 
-LIBBASS.DYLIB is a universal binary, with support for the ppc, i386, and
-x86_64 architectures. If not all of those architectures are needed, the
-included makefile can be used extract the wanted ones. It will also process
-any BASS add-ons placed in the same directory. Type "make ppc", "make i386"
-or "make x86_64" to extract a particular architecture. "make intel" can
-be used to extract the i386 and x86_64 architectures together.
-
-NOTE: Apple's App Store does not support the ppc architecture, so that will
-      need to be removed from the BASS binary before submitting apps.
+LIBBASS.DYLIB is a universal binary, with support for the i386 and
+x86_64 architectures. If only one of those architectures is needed, the
+included makefile can be used extract the wanted one. It will also process
+any BASS add-ons placed in the same directory. Type "make i386" or
+"make x86_64" to extract a particular architecture.
 
 Linux version
 -------------
@@ -725,6 +722,44 @@ These are the major (and not so major) changes at each version stage.
 There are of course bug fixes and other little improvements made along
 the way too! To make upgrading simpler, all functions affected by a
 change to the BASS interface are listed.
+
+2.4.12 - 10/3/2016
+------------------
+* DSP/FX chain order modification
+	BASS_FXSetPriority
+* Average bitrate retrieval
+	BASS_ATTRIB_BITRATE
+* Ramping-out when stopping/pausing playback
+	BASS_ChannelStop
+	BASS_ChannelPause
+* Disabling of playback ramping
+	BASS_ATTRIB_NORAMP (BASS_ChannelSetAttribute option)
+* Pre-buffering when playback buffering is disabled
+	BASS_ChannelUpdate
+	BASS_ATTRIB_NOBUFFER (BASS_ChannelSetAttribute option)
+* Net agent and proxy config options now make a copy of the provided string
+	BASS_CONFIG_NET_AGENT/PROXY (BASS_SetConfig options)
+	NETRADIO example updated
+* Unicode net agent and proxy config options on Windows
+	BASS_CONFIG_NET_AGENT/PROXY (BASS_SetConfig options)
+* 32768 sample FFT
+	BASS_DATA_FFT32768 (BASS_ChannelGetData flag)
+* Support for numerical MP4 genre (gnre) tags
+	BASS_TAG_MP4 (BASS_ChannelGetTags type)
+* Support for BASSWMA's tag option when using Media Foundation WMA codec
+	BASS_TAG_WMA (BASS_ChannelGetTags type)
+* OpenMPT author tag retrieval
+	BASS_TAG_MUSIC_AUTH (BASS_ChannelGetTags type)
+* FastTracker2 panning for XM files
+	BASS_MUSIC_FT2PAN (BASS_MusicLoad flag)
+* Support for longer device names on Windows
+	BASS_DEVICEINFO (name member)
+* Checking for floating-point support on platforms that might not have it
+	BASS_CONFIG_FLOAT (BASS_GetConfig option)
+* Attribute size retrieval fix
+	BASS_ChannelGetAttributeEx
+* Fix for missing LC_VERSION_MIN issue with Xcode 7 on OSX, ppc architecture (PowerPC) support dropped
+* LIST example renamed to DEVLIST
 
 2.4.11 - 22/12/2014
 -------------------
@@ -1551,7 +1586,7 @@ change to the BASS interface are listed.
 	BASS_StreamCreate/File/URL
 * BASS_StreamGetFilePosition mode flags added
 	BASS_FILEPOS_DECODE/DOWNLOAD/END
-* DirectX 9 detection
+* DirectSound 9 detection
 	BASS_INFO (dsver member)
 * Initialization flags retrieval
 	BASS_INFO (initflags member)
@@ -2075,7 +2110,6 @@ Visual Basic: Adam Hoult, Hendrik Knaepen, Arthur Aminov,
               Peter Hebels
 Delphi: Titus Miloi, Rogier Timmermans, Alessandro Cappellozza,
         Jesse Naranjo, Chris Troesken, Evgeny Melnikov
-MASM: Octavian Chis, Evgeny Melnikov
 
 
 Bug reports, Suggestions, Comments, Enquiries, etc...
