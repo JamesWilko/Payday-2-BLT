@@ -89,6 +89,7 @@
     <ClCompile Include="..\src\util\compression.cpp" />
     <ClCompile Include="..\src\util\files.cpp" />
     <ClCompile Include="..\src\util\logging.cpp" />
+    <ClCompile Include="..\src\util\util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\console\console.h" />
