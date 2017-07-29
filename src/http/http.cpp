@@ -119,8 +119,6 @@ void launch_thread_http(HTTPItem *raw_item){
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60);
-
 	if (item->progress){
 		curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, http_progress_call);
 		curl_easy_setopt(curl, CURLOPT_XFERINFODATA, item.get());
