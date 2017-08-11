@@ -314,6 +314,18 @@ void progress_lua_http(void* data, long progress, long total){
 
 static int HTTPReqIdent = 0;
 
+int luaF_directoryhash(lua_State* L) {
+	PD2HOOK_TRACE_FUNC;
+
+	int n = lua_gettop(L);
+
+	size_t length = 0;
+	const char* filename = lua_tolstring(L, 1, &length);
+	std::string hash = Util::GetDirectoryHash(filename);
+	lua_pushlstring(L, hash.c_str(), hash.length());
+	return 1;
+}
+
 int luaF_dohttpreq(lua_State* L){
 	PD2HOOK_TRACE_FUNC;
 	PD2HOOK_LOG_LOG("Incoming HTTP Request/Request");
@@ -431,7 +443,7 @@ int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, 
 	luaL_Reg consoleLib[] = { { "CreateConsole", luaF_createconsole }, { "DestroyConsole", luaF_destroyconsole }, { NULL, NULL } };
 	luaI_openlib(L, "console", consoleLib, 0);
 
-	luaL_Reg fileLib[] = { { "GetDirectories", luaF_getdir }, { "GetFiles", luaF_getfiles }, { "RemoveDirectory", luaF_removeDirectory }, { "DirectoryExists", luaF_directoryExists }, { NULL, NULL } };
+	luaL_Reg fileLib[] = { { "GetDirectories", luaF_getdir }, { "GetFiles", luaF_getfiles }, { "RemoveDirectory", luaF_removeDirectory }, { "DirectoryExists", luaF_directoryExists }, {"DirectoryHash", luaF_directoryhash }, { NULL, NULL } };
 	luaI_openlib(L, "file", fileLib, 0);
 
 	//lua_settop(L, stack_size);
