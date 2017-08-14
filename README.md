@@ -31,25 +31,25 @@ A compiled version of detours is included, and all terms of the included Microso
 
 ## Contributors
 - Payday 2 BLT Team
--- [James Wilkinson](http://jameswilko.com/) ([Twitter](http://twitter.com/_JamesWilko))
--- [SirWaddlesworth](http://genj.io/)
--- [Will Donohoe](https://will.io/)
+	* [James Wilkinson](http://jameswilko.com/) ([Twitter](http://twitter.com/_JamesWilko))
+	* [SirWaddlesworth](http://genj.io/)
+	* [Will Donohoe](https://will.io/)
 
 - Contributors, Translators, Testers and more
--- saltisgood
--- Kail
--- Dougley
--- awcjack
--- BangL
--- chromKa
--- xDarkWolf
--- Luffyyy
--- NHellFire
--- TdlQ
--- Mrucux7
--- Simon
--- goontest
--- aayanl
--- cjur3
--- Kilandor
--- and others who haven't been added yet
+	* saltisgood
+	* Kail
+	* Dougley
+	* awcjack
+	* BangL
+	* chromKa
+	* xDarkWolf
+	* Luffyyy
+	* NHellFire
+	* TdlQ
+	* Mrucux7
+	* Simon
+	* goontest
+	* aayanl
+	* cjur3
+	* Kilandor
+	* and others who haven't been added yet
