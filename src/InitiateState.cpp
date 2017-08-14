@@ -459,6 +459,19 @@ namespace pd2hook
 		lua_pcall(ourData->L, 3, 0, 0);
 	}
 
+	int luaF_directoryhash(lua_State* L)
+	{ 
+		PD2HOOK_TRACE_FUNC; 
+		int n = lua_gettop(L); 
+
+		size_t length = 0; 
+		const char* filename = lua_tolstring(L, 1, &length); 
+		std::string hash = Util::GetDirectoryHash(filename); 
+		lua_pushlstring(L, hash.c_str(), hash.length()); 
+
+		return 1; 
+	} 
+
 	static int HTTPReqIdent = 0;
 
 	int luaF_dohttpreq(lua_State* L)
@@ -603,6 +616,7 @@ namespace pd2hook
 			{ "GetFiles", luaF_getfiles },
 			{ "RemoveDirectory", luaF_removeDirectory },
 			{ "DirectoryExists", luaF_directoryExists },
+			{ "DirectoryHash", luaF_directoryhash },
 			{ NULL, NULL }
 		};
 		luaI_openlib(L, "file", fileLib, 0);

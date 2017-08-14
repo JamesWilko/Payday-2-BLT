@@ -3,7 +3,7 @@
 
 #include "util/util.h"
 #include <Windows.h>
-#include <tchar.h> 
+#include <tchar.h>
 #include <stdio.h>
 #include <strsafe.h>
 
@@ -49,7 +49,7 @@ const char *IOException::exceptionName() const
 		}
 		do{
 			bool isDir = (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
-			
+
 			if ((dirs && isDir) || (!dirs && !isDir)){
 				files.push_back(ffd.cFileName);
 			}
@@ -64,14 +64,14 @@ const char *IOException::exceptionName() const
 	}
 
 	string GetFileContents(const string& filename){
-		ifstream t(filename);
+		ifstream t(filename, std::ifstream::binary);
 		string str;
 
 		t.seekg(0, std::ios::end);
 		str.reserve(static_cast<string::size_type>(t.tellg()));
 		t.seekg(0, std::ios::beg);
 		str.assign((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-		
+
 		return str;
 	}
 

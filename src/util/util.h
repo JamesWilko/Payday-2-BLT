@@ -19,6 +19,7 @@ namespace Util {
 	// String split from http://stackoverflow.com/a/236803
 	void SplitString(const std::string &s, char delim, std::vector<std::string> &elems);
 	std::vector<std::string> SplitString(const std::string &s, char delim);
+    std::string GetDirectoryHash(std::string directory);
 
 	class Exception : public std::exception
 	{
@@ -30,7 +31,7 @@ namespace Util {
 
 		virtual const char *exceptionName() const;
 		virtual void writeToStream(std::ostream& os) const;
-	
+
 	private:
 		const char * const mFile;
 		const int mLine;
