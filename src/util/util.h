@@ -22,6 +22,7 @@ namespace Util {
 	std::vector<std::string> SplitString(const std::string &s, char delim);
     std::string GetDirectoryHash(std::string directory);
 	std::string GetFileHash(std::string filename);
+	bool MoveDirectory(const std::string & path, const std::string & destination);
 
 	class Exception : public std::exception
 	{

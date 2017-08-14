@@ -557,6 +557,19 @@ namespace pd2hook
 		return 0;
 	}
 
+	int luaF_moveDirectory(lua_State * L)
+	{
+		int top = lua_gettop(L);
+		size_t lf = 0;
+		const char * fromStr = lua_tolstring(L, 1, &lf);
+		size_t ld = 0;
+		const char * destStr = lua_tolstring(L, 2, &ld);
+
+		bool success = Util::MoveDirectory(fromStr, destStr);
+		lua_pushboolean(L, success);
+		return 1;
+	}
+
 	int updates = 0;
 	std::thread::id main_thread_id;
 
@@ -628,6 +641,7 @@ namespace pd2hook
 			{ "DirectoryExists", luaF_directoryExists },
 			{ "DirectoryHash", luaF_directoryhash },
 			{ "FileHash", luaF_filehash },
+			{ "MoveDirectory", luaF_moveDirectory },
 			{ NULL, NULL }
 		};
 		luaI_openlib(L, "file", fileLib, 0);
