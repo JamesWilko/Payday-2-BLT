@@ -119,7 +119,10 @@ void launch_thread_http(HTTPItem *raw_item){
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60);
+	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 30L);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 900L);
+	curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, 30L);
+	curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1000L);
 
 	if (item->progress){
 		curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, http_progress_call);
