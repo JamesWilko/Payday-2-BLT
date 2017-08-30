@@ -175,12 +175,18 @@ LogWriter::LogWriter(LogType msgType)
 
 LogWriter::LogWriter(const char *file, int line, LogType msgType)
 {
-	*this << LogTime << msgType << " (" << file;
-	if (line)
+	if (line && line > 0)
 	{
-		*this << ':' << line;
+		*this << LogTime << msgType << " (" << file << ':' << line << ") ";
 	}
-	*this << ") ";
+	else if (file)
+	{
+		*this << LogTime << msgType << " (" << file << ") ";
+	}
+	else
+	{
+		*this << LogTime << msgType;
+	}
 }
 }
 }

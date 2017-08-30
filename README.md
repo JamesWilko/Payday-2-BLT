@@ -1,9 +1,13 @@
 # Payday 2 BLT
 An open source Lua hook for Payday 2, designed and created for ease of use for both players and modders.  
 This is the developer repository, and should only be used if you know what you're doing. If you don't, visit the website at [PaydayMods.com](http://paydaymods.com/) to get an up-to-date drag-drop install.  
+The Lua component of the BLT which controls mod loading can be found in it's own repository, [Payday-2-BLT-Lua](https://github.com/JamesWilko/Payday-2-BLT-Lua).
 
 ## Download
 Visit [PaydayMods.com](http://paydaymods.com/) to get the latest stable download.  
+
+## Documentation
+Documentation for the BLT can be found on the [GitHub Wiki](https://github.com/JamesWilko/Payday-2-BLT/wiki) for the project.
 
 ## Dependencies
 Payday2 BLT requires the following dependencies, which are all statically linked.
@@ -25,10 +29,27 @@ I had to add SAFESEH handling to the MASM objects in order for this to be compat
 ### Detours
 A compiled version of detours is included, and all terms of the included Microsoft Research Shared Source License Agreement (detours_license.rtf) are applicable.
 
-## Documentation
-All documentation can be found via the navigation bar the Payday Mods site, or just [go to it directly](http://payday-2-blt-docs.readthedocs.org/en/latest/). It's also available on [GitHub](https://github.com/JamesWilko/Payday-2-BLT-Docs) (or click the 'Edit on GitHub' button) so that you can contribute stuff if you need to, or need us to fix something.  
-The documentation is written in [markdown](http://daringfireball.net/projects/markdown/) with the help of [MkDocs](http://www.mkdocs.org/) and [ReadTheDocs](https://readthedocs.org/).  
+## Contributors
+- Payday 2 BLT Team
+	* [James Wilkinson](http://jameswilko.com/) ([Twitter](http://twitter.com/_JamesWilko))
+	* [SirWaddlesworth](http://genj.io/)
+	* [Will Donohoe](https://will.io/)
 
-## Developers
-The Payday 2 BLT was made by [James Wilkinson](http://jameswilko.com/) and [SirWaddlesworth](http://sirwaddlesworth.com/). We're friendly guys sometimes, so if you need help or want to discuss something you can reach us at any of the contact details we've got listed [over here](http://paydaymods.com/contact/).  
-We've also had help from a bunch of other people who've tested stuff, reported bugs, suggested changes, and everthing else. So thanks to GREAT BIG BUSHY BEARD, Kail, Dougley, and everybody else!  
+- Contributors, Translators, Testers and more
+	* saltisgood
+	* Kail
+	* Dougley
+	* awcjack
+	* BangL
+	* chromKa
+	* xDarkWolf
+	* Luffyyy
+	* NHellFire
+	* TdlQ
+	* Mrucux7
+	* Simon
+	* goontest
+	* aayanl
+	* cjur3
+	* Kilandor
+	* and others who haven't been added yet
