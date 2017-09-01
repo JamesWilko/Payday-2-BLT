@@ -11,6 +11,7 @@
 
 #include <thread>
 #include <list>
+#include <fstream>
 
 // Code taken from LuaJIT 2.1.0-beta2
 namespace pd2hook
@@ -690,6 +691,12 @@ namespace pd2hook
 		FuncDetour* gameUpdateDetour = new FuncDetour((void**)&do_game_update, do_game_update_new);
 		FuncDetour* newStateDetour = new FuncDetour((void**)&luaL_newstate, luaL_newstate_new);
 		FuncDetour* luaCloseDetour = new FuncDetour((void**)&lua_close, luaF_close);
+
+		std::ifstream infile("mods/developer.txt");
+		if(infile.good())
+		{
+			gbl_mConsole = new CConsole();
+		}
 	}
 
 	void DestroyStates()
