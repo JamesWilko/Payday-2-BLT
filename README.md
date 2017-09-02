@@ -52,4 +52,6 @@ A compiled version of detours is included, and all terms of the included Microso
 	* aayanl
 	* cjur3
 	* Kilandor
+	* Joel Juvél
+	* PlayYou
 	* and others who haven't been added yet
