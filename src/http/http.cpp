@@ -15,7 +15,6 @@ struct InitHttpManager
 {
 	InitHttpManager() { HTTPManager::GetSingleton(); }
 };
-InitHttpManager initHttp; // curl recommends against calling curl_global_init from within DLL_Main, so static initialisation is best.
 
 struct HTTPProgressNotification{
 	HTTPItem* ourItem;
