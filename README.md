@@ -1,16 +1,13 @@
-# Payday 2 BLT
-An open source Lua hook for Payday 2, designed and created for ease of use for both players and modders.  
-This is the developer repository, and should only be used if you know what you're doing. If you don't, visit the website at [PaydayMods.com](http://paydaymods.com/) to get an up-to-date drag-drop install.  
+# Raid BLT
+An open source Lua hook for Raid, designed and created for ease of use for both players and modders.  
+This is the developer repository.
 The Lua component of the BLT which controls mod loading can be found in it's own repository, [Payday-2-BLT-Lua](https://github.com/JamesWilko/Payday-2-BLT-Lua).
-
-## Download
-Visit [PaydayMods.com](http://paydaymods.com/) to get the latest stable download.  
 
 ## Documentation
 Documentation for the BLT can be found on the [GitHub Wiki](https://github.com/JamesWilko/Payday-2-BLT/wiki) for the project.
 
 ## Dependencies
-Payday2 BLT requires the following dependencies, which are all statically linked.
+Raid BLT requires the following dependencies, which are all statically linked.
 * OpenSSL
 * cURL
 * zlib
