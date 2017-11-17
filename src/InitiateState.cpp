@@ -90,6 +90,7 @@ namespace pd2hook
 	CREATE_NORMAL_CALLABLE_SIGNATURE(luaL_unref, void, "\x53\x8B\x5C\x24\x10\x85\xDB\x78\x67\x56\x8B\x74\x24\x0C\x57\x8B", "xxxxxxxxxxxxxxxx", 0, lua_State*, int, int);
 	CREATE_CALLABLE_CLASS_SIGNATURE(do_game_update, void*, "\x56\xFF\x74\x24\x0C\x8B\xF1\x68\x00\x00\x00\x00\xFF\x36\xE8", "xxxxxxxx????xxx", 0, int*, int*)
 		CREATE_CALLABLE_CLASS_SIGNATURE(luaL_newstate, int, "\x53\x56\x33\xDB\x57\x8B\xF1\x39\x5C\x24\x18\x0F", "xxxxxxxxxxxx", 0, char, char, int)
+		CREATE_CALLABLE_CLASS_SIGNATURE(luaL_newstate_vr, int, "\x8B\x44\x24\x0C\x56\x8B\xF1\x85\xC0\x75\x08\x50\x68\x70\x86\x7E", "xxxxxxxxxxxxxxxx", 0, char, char, int)
 
 		// lua c-functions
 
@@ -265,6 +266,13 @@ namespace pd2hook
 			//		else Logging::Log("blt.forcepcalls(): Protected calls are not currently being forced, ignoring request", Logging::LOGGING_WARN);
 		}
 		return 0;
+	}
+
+	bool vrMode = false;
+
+	int luaF_getvrstate(lua_State* L) {
+		lua_pushboolean(L, vrMode);
+		return 1;
 	}
 
 	int luaH_getcontents(lua_State* L, bool files)
@@ -605,7 +613,7 @@ namespace pd2hook
 	// Mine worked fine, but this seems more elegant.
 	int __fastcall luaL_newstate_new(void* thislol, int edx, char no, char freakin, int clue)
 	{
-		int ret = luaL_newstate(thislol, no, freakin, clue);
+		int ret = (vrMode ? luaL_newstate_vr : luaL_newstate)(thislol, no, freakin, clue);
 
 		lua_State* L = (lua_State*)*((void**)thislol);
 		printf("Lua State: %p\n", (void*)L);
@@ -651,6 +659,7 @@ namespace pd2hook
 		luaL_Reg bltLib[] = {
 			{ "ispcallforced", luaF_ispcallforced },
 			{ "forcepcalls", luaF_forcepcalls },
+			{ "getvrstate", luaF_getvrstate },
 			{ NULL, NULL }
 		};
 		luaI_openlib(L, "blt", bltLib, 0);
@@ -676,6 +685,11 @@ namespace pd2hook
 		return ret;
 	}
 
+	int __fastcall luaL_newstate_new_vr(void* thislol, int edx, char no, char freakin, int clue) {
+		vrMode = true;
+		return luaL_newstate_new(thislol, edx, no, freakin, clue);
+	}
+
 	void luaF_close(lua_State* L)
 	{
 		remove_active_state(L);
@@ -690,6 +704,7 @@ namespace pd2hook
 
 		FuncDetour* gameUpdateDetour = new FuncDetour((void**)&do_game_update, do_game_update_new);
 		FuncDetour* newStateDetour = new FuncDetour((void**)&luaL_newstate, luaL_newstate_new);
+		FuncDetour* newStateDetourVr = new FuncDetour((void**)&luaL_newstate_vr, luaL_newstate_new_vr);
 		FuncDetour* luaCloseDetour = new FuncDetour((void**)&lua_close, luaF_close);
 
 		std::ifstream infile("mods/developer.txt");
