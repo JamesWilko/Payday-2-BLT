@@ -50,10 +50,25 @@ SignatureSearch::SignatureSearch(const char* funcname, void* adress, const char*
 }
 
 void SignatureSearch::Search(){
-	printf("Scanning for signatures.\n");
+	// Find the name of the current EXE
+	TCHAR processPath[MAX_PATH + 1];
+	GetModuleFileName(NULL, processPath, MAX_PATH + 1); // Get the path
+	TCHAR filename[MAX_PATH + 1];
+	_splitpath_s( // Find the filename part of the path
+		processPath, // Input
+		NULL, 0, // Don't care about the drive letter
+		NULL, 0, // Don't care about the directory
+		filename, MAX_PATH, // Grab the filename
+		NULL, 0 // Extension is always .exe
+	);
+
+	// Add the .exe back on
+	strcat_s(filename, MAX_PATH, ".exe");
+
+	printf("Scanning for signatures in %s.\n", filename);
 	std::vector<SignatureF>::iterator it;
 	for (it = allSignatures->begin(); it < allSignatures->end(); it++){
-		*((void**)it->address) = (void*)(FindPattern("payday2_win32_release.exe", it->funcname, it->signature, it->mask) + it->offset);
+		*((void**)it->address) = (void*)(FindPattern(filename, it->funcname, it->signature, it->mask) + it->offset);
 	}
 }
 
